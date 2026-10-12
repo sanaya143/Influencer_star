@@ -1,0 +1,2032 @@
+[
+ {
+  "product_id": "P001",
+  "product_name": "Oversized Graphic Hoodie",
+  "description": "Oversized Graphic Hoodie from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 32.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "women",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora1/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": []
+ },
+ {
+  "product_id": "P002",
+  "product_name": "Cargo Parachute Trousers",
+  "description": "Cargo Parachute Trousers from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 38.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "streetwear",
+   "y2k"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "y2k",
+   "women",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora2/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": []
+ },
+ {
+  "product_id": "P003",
+  "product_name": "Baggy Wide-Leg Jeans",
+  "description": "Baggy Wide-Leg Jeans from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 35.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "denim",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "denim",
+   "streetwear",
+   "women",
+   "denim lab"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora3/600/800",
+  "seasonal_collection": "Denim Lab",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P004",
+  "product_name": "Ribbed Baby Tee",
+  "description": "Ribbed Baby Tee from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 12.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "y2k",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "y2k",
+   "casual",
+   "women",
+   "y2k revival"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora4/600/800",
+  "seasonal_collection": "Y2K Revival",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P005",
+  "product_name": "Satin Slip Midi Dress",
+  "description": "Satin Slip Midi Dress from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 45.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "occasion",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "occasion",
+   "minimal",
+   "women",
+   "occasion"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora5/600/800",
+  "seasonal_collection": "Occasion",
+  "badges": []
+ },
+ {
+  "product_id": "P006",
+  "product_name": "Tailored Wool-Blend Blazer",
+  "description": "Tailored Wool-Blend Blazer from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 58.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "workwear",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "workwear",
+   "minimal",
+   "women",
+   "workwear"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora6/600/800",
+  "seasonal_collection": "Workwear",
+  "badges": []
+ },
+ {
+  "product_id": "P007",
+  "product_name": "Pleated Wide Trousers",
+  "description": "Pleated Wide Trousers from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "workwear",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "workwear",
+   "minimal",
+   "women",
+   "workwear"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora7/600/800",
+  "seasonal_collection": "Workwear",
+  "badges": [
+   "New",
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P008",
+  "product_name": "Relaxed Knit Cardigan",
+  "description": "Relaxed Knit Cardigan from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 34.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "35-54",
+   "55+"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "classic",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "classic",
+   "casual",
+   "women",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora8/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": []
+ },
+ {
+  "product_id": "P009",
+  "product_name": "Floral Wrap Dress",
+  "description": "Floral Wrap Dress from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 42.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "35-54",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "occasion",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "occasion",
+   "classic",
+   "women",
+   "occasion"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora9/600/800",
+  "seasonal_collection": "Occasion",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P010",
+  "product_name": "Classic Trench Coat",
+  "description": "Classic Trench Coat from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 79.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54",
+   "55+"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "classic",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "classic",
+   "workwear",
+   "women",
+   "heritage"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora10/600/800",
+  "seasonal_collection": "Heritage",
+  "badges": []
+ },
+ {
+  "product_id": "P011",
+  "product_name": "Utility Boiler Jacket",
+  "description": "Utility Boiler Jacket from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 54.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "streetwear",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "workwear",
+   "men",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora11/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P012",
+  "product_name": "Washed Straight Jeans",
+  "description": "Washed Straight Jeans from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "denim",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "denim",
+   "casual",
+   "men",
+   "denim lab"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora12/600/800",
+  "seasonal_collection": "Denim Lab",
+  "badges": [
+   "Bestseller",
+   "Sale"
+  ]
+ },
+ {
+  "product_id": "P013",
+  "product_name": "Heavyweight Boxy Tee",
+  "description": "Heavyweight Boxy Tee from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 16.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "men",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora13/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P014",
+  "product_name": "Slim Chino Trousers",
+  "description": "Slim Chino Trousers from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 32.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "smart-casual",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "smart-casual",
+   "workwear",
+   "men",
+   "workwear"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora14/600/800",
+  "seasonal_collection": "Workwear",
+  "badges": [
+   "Sale"
+  ]
+ },
+ {
+  "product_id": "P015",
+  "product_name": "Merino Crew Jumper",
+  "description": "Merino Crew Jumper from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 44.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "smart-casual",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "smart-casual",
+   "classic",
+   "men",
+   "heritage"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora15/600/800",
+  "seasonal_collection": "Heritage",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P016",
+  "product_name": "Tech Track Jacket",
+  "description": "Tech Track Jacket from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 40.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "sportswear",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "sportswear",
+   "streetwear",
+   "men",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora16/600/800",
+  "seasonal_collection": "Active",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P017",
+  "product_name": "Single-Breasted Suit Jacket",
+  "description": "Single-Breasted Suit Jacket from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 89.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "occasion",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "occasion",
+   "workwear",
+   "men",
+   "occasion"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora17/600/800",
+  "seasonal_collection": "Occasion",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P018",
+  "product_name": "Linen-Blend Shirt",
+  "description": "Linen-Blend Shirt from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 28.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "35-54",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "smart-casual",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "smart-casual",
+   "classic",
+   "men",
+   "summer"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora18/600/800",
+  "seasonal_collection": "Summer",
+  "badges": []
+ },
+ {
+  "product_id": "P019",
+  "product_name": "Mini Rainbow Raincoat",
+  "description": "Mini Rainbow Raincoat from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 24.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "casual",
+   "kids",
+   "little threads"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora19/600/800",
+  "seasonal_collection": "Little Threads",
+  "badges": [
+   "New",
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P020",
+  "product_name": "Kids Dino Pyjama Set",
+  "description": "Kids Dino Pyjama Set from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 14.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "casual",
+   "kids",
+   "little threads"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora20/600/800",
+  "seasonal_collection": "Little Threads",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P021",
+  "product_name": "Kids Denim Dungarees",
+  "description": "Kids Denim Dungarees from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 22.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "denim"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "denim",
+   "kids",
+   "little threads"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora21/600/800",
+  "seasonal_collection": "Little Threads",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P022",
+  "product_name": "Teen Varsity Bomber",
+  "description": "Teen Varsity Bomber from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 38.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "teens"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "kids",
+   "teen edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora22/600/800",
+  "seasonal_collection": "Teen Edit",
+  "badges": [
+   "Eco-edit",
+   "New"
+  ]
+ },
+ {
+  "product_id": "P023",
+  "product_name": "Kids School Polo 2-Pack",
+  "description": "Kids School Polo 2-Pack from the THREADORA Back to School collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 10.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "classic",
+   "kids",
+   "back to school"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora23/600/800",
+  "seasonal_collection": "Back to School",
+  "badges": [
+   "New",
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P024",
+  "product_name": "Teen Graphic Sweatshirt",
+  "description": "Teen Graphic Sweatshirt from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 22.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "teens"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "streetwear",
+   "y2k"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "y2k",
+   "kids",
+   "teen edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora24/600/800",
+  "seasonal_collection": "Teen Edit",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P025",
+  "product_name": "Unisex Essential Hoodie",
+  "description": "Unisex Essential Hoodie from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Unisex",
+  "price_gbp": 30.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "casual",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "streetwear",
+   "unisex",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora25/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P026",
+  "product_name": "Unisex Sherpa Fleece",
+  "description": "Unisex Sherpa Fleece from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Unisex",
+  "price_gbp": 42.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "casual",
+   "sportswear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "sportswear",
+   "unisex",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora26/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": []
+ },
+ {
+  "product_id": "P027",
+  "product_name": "Unisex Cord Bucket Hat",
+  "description": "Unisex Cord Bucket Hat from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Unisex",
+  "price_gbp": 14.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "streetwear",
+   "accessories"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "accessories",
+   "unisex",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora27/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P028",
+  "product_name": "Unisex Coach Jacket",
+  "description": "Unisex Coach Jacket from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Unisex",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "streetwear",
+   "sportswear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "sportswear",
+   "unisex",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora28/600/800",
+  "seasonal_collection": "Active",
+  "badges": []
+ },
+ {
+  "product_id": "P029",
+  "product_name": "Matching Knit Set - His",
+  "description": "Matching Knit Set - His from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "18-24"
+  ],
+  "target_gender_or_collection": "couple",
+  "style_tags": [
+   "couple",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "couple",
+   "casual",
+   "couple",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora29/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P030",
+  "product_name": "Matching Knit Set - Hers",
+  "description": "Matching Knit Set - Hers from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "18-24"
+  ],
+  "target_gender_or_collection": "couple",
+  "style_tags": [
+   "couple",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "couple",
+   "casual",
+   "couple",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora30/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": [
+   "Trending",
+   "Sale"
+  ]
+ },
+ {
+  "product_id": "P031",
+  "product_name": "Couple Check Shirt & Dress",
+  "description": "Couple Check Shirt & Dress from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 64.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "couple",
+  "style_tags": [
+   "couple",
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "couple",
+   "occasion",
+   "couple",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora31/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P032",
+  "product_name": "Family Christmas Pyjama Set",
+  "description": "Family Christmas Pyjama Set from the THREADORA Festive collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 48.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54",
+   "children"
+  ],
+  "target_gender_or_collection": "family",
+  "style_tags": [
+   "family",
+   "kids"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "family",
+   "kids",
+   "family",
+   "festive"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora32/600/800",
+  "seasonal_collection": "Festive",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P033",
+  "product_name": "Family Denim Jacket Trio",
+  "description": "Family Denim Jacket Trio from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 72.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54",
+   "children"
+  ],
+  "target_gender_or_collection": "family",
+  "style_tags": [
+   "family",
+   "denim"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "family",
+   "denim",
+   "family",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora33/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P034",
+  "product_name": "Leather-Look Shoulder Bag",
+  "description": "Leather-Look Shoulder Bag from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 26.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "accessories",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "minimal",
+   "women",
+   "accessories"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora34/600/800",
+  "seasonal_collection": "Accessories",
+  "badges": []
+ },
+ {
+  "product_id": "P035",
+  "product_name": "Layered Chain Necklace Set",
+  "description": "Layered Chain Necklace Set from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 9.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "accessories",
+   "y2k"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "y2k",
+   "women",
+   "accessories"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora35/600/800",
+  "seasonal_collection": "Accessories",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P036",
+  "product_name": "Canvas Tote Bag",
+  "description": "Canvas Tote Bag from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 12.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "accessories",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "casual",
+   "unisex",
+   "accessories"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora36/600/800",
+  "seasonal_collection": "Accessories",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P037",
+  "product_name": "Wool Scarf",
+  "description": "Wool Scarf from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 18.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54",
+   "55+"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "accessories",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "classic",
+   "unisex",
+   "heritage"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora37/600/800",
+  "seasonal_collection": "Heritage",
+  "badges": [
+   "Sale",
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P038",
+  "product_name": "Plaid Baseball Cap",
+  "description": "Plaid Baseball Cap from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 11.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "accessories",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "streetwear",
+   "men",
+   "street edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora38/600/800",
+  "seasonal_collection": "Street Edit",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P039",
+  "product_name": "Seamless Gym Leggings",
+  "description": "Seamless Gym Leggings from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 22.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "sportswear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "sportswear",
+   "casual",
+   "women",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora39/600/800",
+  "seasonal_collection": "Active",
+  "badges": []
+ },
+ {
+  "product_id": "P040",
+  "product_name": "Sports Bra Longline",
+  "description": "Sports Bra Longline from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 16.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "sportswear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "sportswear",
+   "women",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora40/600/800",
+  "seasonal_collection": "Active",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P041",
+  "product_name": "Dry-Fit Training Shorts",
+  "description": "Dry-Fit Training Shorts from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 18.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "sportswear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "sportswear",
+   "men",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora41/600/800",
+  "seasonal_collection": "Active",
+  "badges": [
+   "Sale"
+  ]
+ },
+ {
+  "product_id": "P042",
+  "product_name": "Quilted Puffer Gilet",
+  "description": "Quilted Puffer Gilet from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 49.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "35-54",
+   "55+"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "casual",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "classic",
+   "women",
+   "heritage"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora42/600/800",
+  "seasonal_collection": "Heritage",
+  "badges": [
+   "New"
+  ]
+ },
+ {
+  "product_id": "P043",
+  "product_name": "Tweed Skirt Suit",
+  "description": "Tweed Skirt Suit from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 69.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "55+",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "classic",
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "classic",
+   "occasion",
+   "women",
+   "heritage"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora43/600/800",
+  "seasonal_collection": "Heritage",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P044",
+  "product_name": "Corduroy Overshirt",
+  "description": "Corduroy Overshirt from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 34.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "18-24"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "casual",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "workwear",
+   "men",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora44/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P045",
+  "product_name": "Y2K Low-Rise Mini Skirt",
+  "description": "Y2K Low-Rise Mini Skirt from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 18.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "y2k",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "y2k",
+   "streetwear",
+   "women",
+   "y2k revival"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora45/600/800",
+  "seasonal_collection": "Y2K Revival",
+  "badges": [
+   "Sale",
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P046",
+  "product_name": "Prom Sequin Gown",
+  "description": "Prom Sequin Gown from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 85.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "occasion",
+   "women",
+   "occasion"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora46/600/800",
+  "seasonal_collection": "Occasion",
+  "badges": [
+   "Trending"
+  ]
+ },
+ {
+  "product_id": "P047",
+  "product_name": "Wedding Guest Jumpsuit",
+  "description": "Wedding Guest Jumpsuit from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 62.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "occasion",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "occasion",
+   "minimal",
+   "women",
+   "occasion"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora47/600/800",
+  "seasonal_collection": "Occasion",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P048",
+  "product_name": "Festival Fringe Jacket",
+  "description": "Festival Fringe Jacket from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 44.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "streetwear",
+   "y2k"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "y2k",
+   "women",
+   "summer"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora48/600/800",
+  "seasonal_collection": "Summer",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P049",
+  "product_name": "Mum & Mini Matching Dresses",
+  "description": "Mum & Mini Matching Dresses from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 55.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54",
+   "children"
+  ],
+  "target_gender_or_collection": "family",
+  "style_tags": [
+   "family",
+   "kids",
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "family",
+   "kids",
+   "occasion",
+   "family",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora49/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": [
+   "Eco-edit",
+   "Sale"
+  ]
+ },
+ {
+  "product_id": "P050",
+  "product_name": "Toddler Knit Beanie Set",
+  "description": "Toddler Knit Beanie Set from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 8.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "casual",
+   "kids",
+   "little threads"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora50/600/800",
+  "seasonal_collection": "Little Threads",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P051",
+  "product_name": "Teen Cargo Shorts",
+  "description": "Teen Cargo Shorts from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Kids",
+  "price_gbp": 16.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "teens"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "kids",
+   "teen edit"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora51/600/800",
+  "seasonal_collection": "Teen Edit",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P052",
+  "product_name": "Slim Fit Dress Shirt",
+  "description": "Slim Fit Dress Shirt from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 25.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "workwear",
+   "smart-casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "workwear",
+   "smart-casual",
+   "men",
+   "workwear"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora52/600/800",
+  "seasonal_collection": "Workwear",
+  "badges": [
+   "New",
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P053",
+  "product_name": "Linen Co-ord Set",
+  "description": "Linen Co-ord Set from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 52.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "minimal",
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "minimal",
+   "occasion",
+   "women",
+   "summer"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora53/600/800",
+  "seasonal_collection": "Summer",
+  "badges": []
+ },
+ {
+  "product_id": "P054",
+  "product_name": "Padded Shacket",
+  "description": "Padded Shacket from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Men",
+  "price_gbp": 56.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "casual",
+   "workwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "workwear",
+   "men",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora54/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": [
+   "Bestseller"
+  ]
+ },
+ {
+  "product_id": "P055",
+  "product_name": "Silver Hoop Earrings",
+  "description": "Silver Hoop Earrings from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 7.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "accessories",
+   "minimal"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "minimal",
+   "women",
+   "accessories"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora55/600/800",
+  "seasonal_collection": "Accessories",
+  "badges": [
+   "Eco-edit",
+   "New"
+  ]
+ },
+ {
+  "product_id": "P056",
+  "product_name": "Belt Bag Crossbody",
+  "description": "Belt Bag Crossbody from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Accessories",
+  "price_gbp": 19.0,
+  "sizes": [
+   "One size"
+  ],
+  "target_age_segments": [
+   "18-24"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "accessories",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "accessories",
+   "streetwear",
+   "unisex",
+   "accessories"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora56/600/800",
+  "seasonal_collection": "Accessories",
+  "badges": [
+   "Sale",
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P057",
+  "product_name": "Jersey Wide-Leg Joggers",
+  "description": "Jersey Wide-Leg Joggers from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Unisex",
+  "price_gbp": 24.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "sportswear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "sportswear",
+   "casual",
+   "unisex",
+   "active"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora57/600/800",
+  "seasonal_collection": "Active",
+  "badges": [
+   "Eco-edit"
+  ]
+ },
+ {
+  "product_id": "P058",
+  "product_name": "Matching Denim Jackets",
+  "description": "Matching Denim Jackets from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Couple Looks",
+  "price_gbp": 78.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "couple",
+  "style_tags": [
+   "couple",
+   "denim"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "couple",
+   "denim",
+   "couple",
+   "twinning"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora58/600/800",
+  "seasonal_collection": "Twinning",
+  "badges": []
+ },
+ {
+  "product_id": "P059",
+  "product_name": "Maxi Knit Dress",
+  "description": "Maxi Knit Dress from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 40.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "35-54",
+   "55+"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "classic",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "classic",
+   "casual",
+   "women",
+   "everyday"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora59/600/800",
+  "seasonal_collection": "Everyday",
+  "badges": []
+ },
+ {
+  "product_id": "P060",
+  "product_name": "Oversized Blazer Dress",
+  "description": "Oversized Blazer Dress from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "category": "Women",
+  "price_gbp": 48.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "workwear",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "workwear",
+   "streetwear",
+   "women",
+   "workwear"
+  ],
+  "product_image": "https://picsum.photos/seed/threadora60/600/800",
+  "seasonal_collection": "Workwear",
+  "badges": [
+   "Trending"
+  ]
+ }
+]
