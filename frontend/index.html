@@ -6,7 +6,17 @@
     <title>THREADORA — Fashion for every you</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://images.unsplash.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      // Apply the saved theme before first paint (no light flash in dark mode).
+      try {
+        var t = localStorage.getItem('threadora.theme');
+        if (t === 'dark' || ((!t || t === 'system') && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+        var m = localStorage.getItem('threadora.motion');
+        if (m === 'on' || m === 'off') document.documentElement.classList.add('motion-' + m);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

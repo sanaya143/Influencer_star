@@ -13,9 +13,10 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from ..agents.workflow import run_brief, run_match
-from ..config import get_settings
+from ..config import PROVIDERS, get_settings
 from ..db.database import CampaignRow, RunRow, jsonable, session
-from ..schemas.models import AGE_SEGMENTS, TARGETS, CampaignBrief, FilterConfig, ScoreWeights
+from ..schemas.models import AGE_SEGMENTS, CATEGORIES, TARGETS, CampaignBrief, FilterConfig, ScoreWeights
+from ..services import inventory
 from ..services.data_provider import get_provider
 
 router = APIRouter(prefix="/api")
@@ -53,11 +54,35 @@ def _completed_run(cid: str) -> RunRow:
     return run
 
 
+LEADER_FIELDS = [
+    ("overall", "Best overall match", "score", lambda m: m["overall_score"], None),
+    ("audience_fit", "Best audience fit", "score", lambda m: m["scores"]["audience_fit"], None),
+    ("promo_views", "Most promo views", "views", lambda m: m["median_promotional_views"], None),
+    ("engagement", "Highest engagement", "pct", lambda m: m["engagement_rate"], None),
+    ("micro", "Top micro-influencers", "score", lambda m: m["overall_score"], lambda m: m["is_micro"]),
+]
+
+
+def leaders(ranked: list[dict], n: int = 3) -> list[dict]:
+    """Top-n ranked creators for each headline field (ties broken by overall rank)."""
+    out = []
+    for key, label, unit, value, keep in LEADER_FIELDS:
+        pool = [m for m in ranked if keep is None or keep(m)]
+        top = sorted(pool, key=lambda m: (-value(m), m["rank"]))[:n]
+        out.append({"key": key, "label": label, "unit": unit, "items": [
+            {"influencer_id": m["influencer_id"], "display_name": m["display_name"], "username": m["username"], "platform": m["platform"],
+             "rank": m["rank"], "overall_score": m["overall_score"], "value": value(m), "is_micro": m["is_micro"]} for m in top]})
+    return out
+
+
 # ------------------------------------------------------------------ health + catalogue
 @router.get("/health")
 def health():
     s = get_settings()
-    return {"status": "ok", "mode": s.effective_mode(), "provider": s.llm_provider, "model": s.llm_model if s.effective_mode() == "llm" else None,
+    llm = s.effective_mode() == "llm"
+    return {"status": "ok", "mode": s.effective_mode(), "provider": s.llm_provider, "model": s.llm_model if llm else None,
+            "provider_label": PROVIDERS.get(s.llm_provider, {}).get("label", s.llm_provider), "configured_model": s.llm_model,
+            "use_ai": s.llm_mode != "offline", "key_source": s.key_source,
             "data": "synthetic", "influencers": len(get_provider().influencers()), "products": len(get_provider().products())}
 
 
@@ -65,37 +90,23 @@ def health():
 def meta():
     return {"age_segments": AGE_SEGMENTS, "targets": TARGETS, "default_filters": FilterConfig().model_dump(),
             "default_weights": ScoreWeights().model_dump(),
-            "categories": sorted({p.category for p in get_provider().products()})}
+            "categories": CATEGORIES}
 
 
 @router.get("/products")
-def products(q: str = "", category: str = "", target: str = "", sort: Literal["featured", "price_asc", "price_desc", "name"] = "featured",
+def products(q: str = "", category: str = "", target: str = "",
+             sort: Literal["featured", "newest", "bestsellers", "price_asc", "price_desc", "name"] = "featured",
              page: int = Query(1, ge=1), page_size: int = Query(24, ge=1, le=100)):
-    items = get_provider().products()
-    if q:
-        ql = q.lower()
-        items = [p for p in items if ql in p.product_name.lower() or ql in p.description.lower() or any(ql in t for t in p.style_tags) or ql in p.category.lower()]
-    if category:
-        items = [p for p in items if p.category.lower() == category.lower()]
-    if target:
-        items = [p for p in items if p.target_gender_or_collection == target]
-    if sort == "price_asc":
-        items = sorted(items, key=lambda p: p.price_gbp)
-    elif sort == "price_desc":
-        items = sorted(items, key=lambda p: -p.price_gbp)
-    elif sort == "name":
-        items = sorted(items, key=lambda p: p.product_name)
-    out = paginate(items, page, page_size)
-    out["items"] = [p.model_dump() for p in out["items"]]
-    return out
+    """Storefront catalogue: active products from the inventory database, with live stock."""
+    return paginate(inventory.search(["active"], q, category, target, "", sort), page, page_size)
 
 
 @router.get("/products/{product_id}")
 def product(product_id: str):
-    p = get_provider().product(product_id)
-    if not p:
+    p = inventory.product_view(product_id)
+    if not p or p["status"] != "active":
         raise HTTPException(404, f"Product '{product_id}' not found")
-    return p.model_dump()
+    return p
 
 
 # ------------------------------------------------------------------ mock influencer API
@@ -162,6 +173,8 @@ def create_campaign(req: CreateCampaignReq):
     prod = get_provider().product(req.brief.product_id)
     if not prod:
         raise HTTPException(404, f"Product '{req.brief.product_id}' not found")
+    if prod.status == "archived":
+        raise HTTPException(409, f"'{prod.product_name}' is archived; restore it in Inventory before planning a campaign.")
     cid = f"cmp_{uuid.uuid4().hex[:8]}"
     brief_trace = None
     if req.brief_run_id:
@@ -255,11 +268,12 @@ async def match(campaign_id: str, req: MatchReq = MatchReq()):
 
 @router.get("/campaigns/{campaign_id}/results")
 def results(campaign_id: str, sort: Literal["overall_score", "audience_fit", "promo_views", "engagement"] = "overall_score",
-            micro_only: bool = False, platform: str = "", min_score: float = 0, limit: int = Query(100, ge=1, le=500)):
+            micro_only: bool = False, platform: str = "", min_score: float = 0, limit: int = Query(100, ge=1, le=2000)):
     row = _campaign(campaign_id)
     run = _completed_run(campaign_id)
     out = run.output
     ranked = out["ranked"]
+    top = leaders(ranked)
     if micro_only:
         ranked = [m for m in ranked if m["is_micro"]]
     if platform:
@@ -269,7 +283,8 @@ def results(campaign_id: str, sort: Literal["overall_score", "audience_fit", "pr
             "promo_views": lambda m: (-m["median_promotional_views"], m["influencer_id"]), "engagement": lambda m: (-m["engagement_rate"], m["influencer_id"])}[sort]
     ranked = sorted(ranked, key=keyf)[:limit]
     return {"campaign_id": campaign_id, "name": row.name, "run_id": run.id, "status": run.status, "brief": run.brief or row.brief,
-            "stats": out["stats"], "ranked": ranked, "insights": out.get("insights"), "label": "Synthetic demonstration data; scores are not outcome predictions."}
+            "stats": out["stats"], "ranked": ranked, "leaders": top, "insights": out.get("insights"),
+            "label": "Synthetic demonstration data; scores are not outcome predictions."}
 
 
 @router.get("/campaigns/{campaign_id}/results/{influencer_id}")
@@ -384,6 +399,20 @@ def _run(run_id: str) -> RunRow:
     return r
 
 
+@router.get("/runs")
+def list_runs(kind: Literal["match", "brief", ""] = "match", limit: int = Query(20, ge=1, le=100)):
+    with session() as db:
+        q = db.query(RunRow)
+        if kind:
+            q = q.filter(RunRow.kind == kind)
+        rows = q.order_by(RunRow.created_at.desc(), RunRow.id.desc()).limit(limit).all()
+        ids = {r.campaign_id for r in rows if r.campaign_id}
+        names = {c.id: c.name for c in db.query(CampaignRow).filter(CampaignRow.id.in_(ids)).all()} if ids else {}
+    return {"items": [{"run_id": r.id, "campaign_id": r.campaign_id, "campaign_name": names.get(r.campaign_id), "kind": r.kind,
+                       "status": r.status, "created_at": r.created_at.isoformat(), "mode": (r.trace or {}).get("mode"),
+                       "model": (r.trace or {}).get("model"), "total_tokens": (r.usage or {}).get("total_tokens")} for r in rows]}
+
+
 @router.get("/runs/{run_id}/trace")
 def run_trace(run_id: str):
     r = _run(run_id)
@@ -408,7 +437,19 @@ def overview():
         n_campaigns = db.query(CampaignRow).count()
         recent = db.query(CampaignRow).order_by(CampaignRow.created_at.desc()).limit(5).all()
         recent_out = [{"campaign_id": c.id, "name": c.name, "created_at": c.created_at.isoformat()} for c in recent]
+        camp = db.get(CampaignRow, run.campaign_id) if run and run.campaign_id else None
+        latest = {c["campaign_id"]: (db.query(RunRow).filter(RunRow.campaign_id == c["campaign_id"], RunRow.kind == "match")
+                                     .order_by(RunRow.created_at.desc()).first()) for c in recent_out}
+    for c in recent_out:
+        r = latest.get(c["campaign_id"])
+        c["status"] = r.status if r else "Pending"
+        c["ranked"] = ((r.output or {}).get("stats") or {}).get("ranked") if r else None
     stats = (run.output or {}).get("stats") if run else None
+    inv = inventory.summary()
     return {"total_influencers": len(prov.influencers()), "total_products": len(prov.products()), "campaigns": n_campaigns,
-            "latest_run": ({"run_id": run.id, "campaign_id": run.campaign_id, "status": run.status, "stats": stats,
-                            "usage": run.usage} if run else None), "recent_campaigns": recent_out, "mode": get_settings().effective_mode()}
+            "latest_run": ({"run_id": run.id, "campaign_id": run.campaign_id, "campaign_name": camp.name if camp else None, "status": run.status,
+                            "stats": stats, "usage": run.usage, "created_at": run.created_at.isoformat(),
+                            "leaders": leaders((run.output or {}).get("ranked") or [])} if run else None),
+            "recent_campaigns": recent_out, "mode": get_settings().effective_mode(),
+            "inventory": {k: inv[k] for k in ("counts", "units_in_stock", "stock_value_gbp", "low_stock_sizes", "sold_out_sizes",
+                                              "orders_30d", "revenue_30d", "bestsellers", "low_stock")}}

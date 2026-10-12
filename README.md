@@ -9,7 +9,8 @@
 
 | Part | Where |
 |---|---|
-| Storefront (`/`) and Campaign Studio (`/admin`) | `frontend/` (React + Vite + TS + Tailwind + Framer Motion + D3) |
+| Storefront (`/`) and Back office (`/admin`: campaigns, inventory, orders) | `frontend/` (React + Vite + TS + Tailwind + Framer Motion + D3) |
+| Product inventory, stock, orders, image uploads (shared by storefront, back office and matching) | `backend/app/services/inventory.py`, `api/inventory_routes.py` |
 | API, mock influencer service, SQLite | `backend/app/api`, `backend/app/db` |
 | **Level 1** eligibility filter | `backend/app/services/eligibility_filter.py` |
 | **Level 2** audience/product matcher | `backend/app/services/audience_matcher.py` |
@@ -27,6 +28,22 @@ Each run records per-agent status (Pending / Running / Completed / Failed / Need
 ### Scoring (configurable in the UI)
 Audience fit 25 · Content/style fit 25 · Engagement 15 · Median promo views 15 · Past collaborations 10 · Brand affinity 5 · Region 5. Follower count is an **eligibility threshold only** (default ≥1,000 followers and ≥500 median promo views; both configurable demo defaults). Missing metrics are flagged *needs review* at Level 1 and receive a neutral-low sub-score (never a high one) later; they lower the confidence indicator.
 
+## Back office: inventory → storefront
+Products live in the SQLite `products` table (seeded once from `data/seed/products.json`). The back office writes there and everything else reads from it:
+
+- **Inventory → Add product** is a validated form (name, description, category, colour, collection, price, badges, visibility, image link or upload, sizes with per-size stock, target audience and style tags) with a live storefront preview. Saving makes an *Active* product purchasable in the storefront immediately; *Draft* keeps it hidden (you can still plan campaigns); *Archive* is a soft delete so past orders and campaigns still resolve.
+- The storefront shows live stock per size (sold-out sizes are disabled, “Only N left”), and checkout calls `POST /api/orders`, which checks every line and decrements stock atomically (HTTP 409 with per-line detail if anything ran out).
+- Every stock change (initial stock, back-office edits, restocks, storefront orders) is written to `stock_movements`; the Inventory page shows them as a live feed and the Orders page lists every checkout.
+- New products appear in the Create campaign picker, so the influencer-matching engine can promote them straight away.
+
+## Data
+All synthetic: **1,200 creators** (the first 300 are identical to earlier seeds), ~1,500 collaborations, ~2,300 promotional posts, **1,200 historical orders** (timestamps relative to first start) and 60 products. Regenerate with `python -m app.data.seed_generator --influencers 1200`.
+Product photos are hand-picked [Unsplash](https://unsplash.com/license) images matched to each product name (served from `images.unsplash.com`); offline, each tile falls back to a line illustration of the right garment type in the product colour.
+
+## UI
+Light and dark themes (header toggle, or **Settings → Appearance**), page transitions and micro-animations on both sites. Animations follow the device's *reduce motion* setting (gentle fades only); choose **Animations: On** in Settings → Appearance to see the full motion. The header's model chip always shows the provider/model the agents use (green = live, amber = selected but no token, grey = AI off) with a quick switcher.
+**Agent execution** shows a live call graph (agents, tools, LLM, data counts on each edge) that updates while a run is in progress and replays finished runs step by step; select any node for its inputs, outputs, timing and tokens on the same page.
+
 ## Quick start (works with no token; add one in Settings for real agents)
 
 Requirements: Python 3.11+, Node 20+. No Docker needed. One-liner: `./start.ps1` (Windows PowerShell) or `./start.sh`.
@@ -42,7 +59,8 @@ python -m venv .venv
 # 2. Frontend (second terminal)
 cd frontend && npm install && npm run dev            # http://localhost:5173
 ```
-Seed data is generated on first start (`python -m app.data.seed_generator --influencers 300 --seed 42`; pass a larger `--influencers` for stress tests). API docs: http://localhost:8000/docs
+Seed data is generated on first start (`python -m app.data.seed_generator --influencers 1200 --seed 42`; pass a larger `--influencers` for stress tests). API docs: http://localhost:8000/docs
+Single-process mode: after `npm run build`, the backend also serves the built frontend, e.g. `python -m uvicorn app.main:app --app-dir backend --port 8010` → http://localhost:8010.
 
 ### Choosing the model and access token (in the app)
 Open **Campaign Studio → Settings**:
@@ -58,13 +76,15 @@ Environment variables are an optional fallback only (see `.env.example`); anythi
 ## Demo script (≈3 min)
 1. Open the storefront, choose **Oversized Graphic Hoodie** → **Promote this product**.
 2. Paste: *"Find suitable UK-based influencers to promote our new women's streetwear collection for customers aged 18–24. Prioritize strong promotional views and relevant micro-influencers."* → **Interpret brief** → review → **Launch**.
-3. Results: funnel (300 → 191 → ~100), ranked table, recommendation, **Excluded / review** tab with exact Python reason codes.
+3. Results: **Top 3 in each field** (overall, audience fit, promo views, engagement, micro), funnel (1,200 evaluated → eligible → matched → ranked), ranked table, recommendation, **Excluded / review** tab with exact Python reason codes.
 4. Tick 2–3 creators → **Compare**. Open a **Profile** for the score breakdown.
 5. Change *Min followers* / *Min promo views* → **Re-run matching** (backend recomputes).
-6. **Analytics** tab (3 D3 charts + demographic alignment) and **Agent execution** (cards, tool calls, token calculator). Export CSV/JSON from the header.
+6. **Analytics** tab (funnel, audience age alignment, score breakdown, fit vs performance; each with a table view) and **Agent execution** (live graph + replay, cards, tool calls, tokens). Export CSV/JSON from the header.
+7. **Inventory → Add product**, save, open the storefront: it leads *New in*. Buy a size; the order appears in **Orders** and stock drops in **Inventory**.
 
 ## API
-`GET /api/health` · `/api/products[/{id}]` · `/api/mock/influencers[/{id}]` · `POST /api/campaigns/parse-brief` · `POST /api/campaigns` · `POST /api/campaigns/{id}/match` · `GET /api/campaigns/{id}/results|excluded|analytics|export` · `GET /api/runs/{id}/trace|usage`. Full OpenAPI at `/docs`.
+`GET /api/health` · `/api/products[/{id}]` (active products, live stock) · `/api/mock/influencers[/{id}]` · `POST /api/campaigns/parse-brief` · `POST /api/campaigns` · `POST /api/campaigns/{id}/match` · `GET /api/campaigns/{id}/results|excluded|analytics|export` · `GET /api/runs` · `GET /api/runs/{id}/trace|usage`.
+Back office: `GET /api/inventory/meta|summary|movements` · `GET|POST /api/inventory/products` · `GET|PUT|DELETE /api/inventory/products/{id}` · `POST /api/inventory/products/{id}/stock|status` · `GET|POST /api/orders` · `POST /api/uploads` (PNG/JPEG/WebP/GIF ≤ 4 MB). Full OpenAPI at `/docs`.
 
 ## Tests
 ```bash
@@ -75,4 +95,5 @@ cd frontend && npm test && npm run build
 ## Notes & limits
 - The mock data service sits behind `services/data_provider.py`; replace it with an authorised real integration by implementing the same interface.
 - Estimated reach on the Analytics page is an explicitly labelled estimate from synthetic medians, not a forecast.
-- Product images load from a public placeholder service with a local illustration fallback; they are not real THREADORA photography.
+- Product images are Unsplash photos chosen to match each product (not real THREADORA photography), with a garment illustration fallback offline. Uploaded images are stored in `data/uploads/` (git-ignored).
+- Stock writes are serialised in-process for the SQLite MVP; on PostgreSQL use row locks (`SELECT … FOR UPDATE`).

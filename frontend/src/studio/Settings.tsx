@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, Eye, EyeOff, KeyRound, PlugZap, Save, Trash2, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { useApi } from '../shared/hooks'
-import { Badge, Button, Card, ErrorState, Skeleton, Spinner } from '../shared/ui'
+import { Badge, Button, Card, ErrorState, Segmented, Skeleton, Spinner, inputCls } from '../shared/ui'
+import { useTheme } from '../shared/theme'
+import { SETTINGS_EVENT } from './ModelChip'
 
 interface ProviderInfo { id: string; label: string; models: string[]; default_model: string; needs_key: boolean; uses_base_url: boolean; default_base_url: string | null }
 interface SettingsView {
@@ -16,7 +18,22 @@ interface TestResult {
 }
 
 const CUSTOM = '__custom__'
-const inputCls = 'w-full rounded-xl border border-line bg-white px-3 py-2 text-sm focus:border-brand'
+
+function Appearance() {
+  const { pref, setPref, motion, setMotion, systemReducedMotion } = useTheme()
+  return (
+    <Card className="space-y-4 p-5">
+      <div><h2 className="text-base font-semibold">Appearance</h2><p className="text-sm text-muted">Applies to the storefront and the back office on this browser.</p></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm"><span className="font-medium">Theme</span>
+        <Segmented label="Theme" value={pref} onChange={setPref} options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }, { value: 'system', label: 'System' }]} /></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm"><span className="font-medium">Animations</span>
+        <Segmented label="Animations" value={motion} onChange={setMotion} options={[{ value: 'system', label: 'Match device' }, { value: 'on', label: 'On' }, { value: 'off', label: 'Reduced' }]} /></div>
+      {systemReducedMotion && motion === 'system' && (
+        <p className="rounded-xl bg-ice p-3 text-xs text-muted">This device asks apps to reduce motion, so page transitions, chart growth and the agent-graph replay are toned down to simple fades. Choose <b className="text-ink">On</b> to see the full animations.</p>
+      )}
+    </Card>
+  )
+}
 
 export default function Settings() {
   const { data, error, loading, reload } = useApi<SettingsView>('/settings')
@@ -64,7 +81,7 @@ export default function Settings() {
     setBusy(clear ? 'clear' : 'save'); setMsg(null)
     try {
       const s = await api<SettingsView>('/settings', { method: 'PUT', json: { ...body, clear_key: clear } })
-      hydrate(s); reload(); window.dispatchEvent(new Event('threadora:settings'))
+      hydrate(s); reload(); window.dispatchEvent(new Event(SETTINGS_EVENT))
       setMsg({ tone: 'ok', text: clear ? 'Saved token removed.' : s.effective_mode === 'llm' ? 'Saved. New runs will use this model.' : 'Saved. The app will run in offline deterministic mode.' })
     } catch (e) { setMsg({ tone: 'bad', text: (e as Error).message }) } finally { setBusy(null) }
   }
@@ -75,6 +92,7 @@ export default function Settings() {
         <h1 className="text-2xl font-bold md:text-3xl">Settings</h1>
         <p className="text-sm text-muted">Choose the language model used by the Campaign Brief and Insights agents. Filtering and ranking stay deterministic Python either way.</p>
       </header>
+      <Appearance />
 
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4" >
         <div role="status" aria-live="polite" className="text-sm">
@@ -136,27 +154,27 @@ export default function Settings() {
         {busy === 'test' && <p className="text-xs text-muted">Contacting the provider… free models can take up to a minute.</p>}
 
         {test && (
-          <div role="status" aria-live="polite" className={`rounded-xl border p-4 text-sm ${test.ok ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+          <div role="status" aria-live="polite" className={`rounded-xl border p-4 text-sm ${test.ok ? 'border-emerald-200 dark:border-emerald-400/30 bg-emerald-50 dark:bg-emerald-400/10' : 'border-red-200 dark:border-red-400/30 bg-red-50 dark:bg-red-400/10'}`}>
             {test.ok ? (
               <div className="space-y-1">
-                <p className="flex items-center gap-2 font-semibold text-emerald-900"><CheckCircle2 size={18} aria-hidden="true" />Connection successful</p>
-                <p className="text-emerald-900">{test.model} answered in {((test.latency_ms ?? 0) / 1000).toFixed(1)}s{test.reply ? ` (“${test.reply}”)` : ''}
+                <p className="flex items-center gap-2 font-semibold text-emerald-900 dark:text-emerald-200"><CheckCircle2 size={18} aria-hidden="true" />Connection successful</p>
+                <p className="text-emerald-900 dark:text-emerald-200">{test.model} answered in {((test.latency_ms ?? 0) / 1000).toFixed(1)}s{test.reply ? ` (“${test.reply}”)` : ''}
                   {test.prompt_tokens != null && ` · ${test.prompt_tokens} in / ${test.completion_tokens ?? 0} out tokens`}</p>
-                {test.supports_tools === true && <p className="text-emerald-900">Tool calling works, so the Campaign Brief Agent can use this model.</p>}
-                {test.supports_tools === false && <p className="text-amber-800">This model answered but did not call a tool, so the Campaign Brief Agent will fall back to the rule-based parser. Insights can still use it.</p>}
-                {test.supports_tools == null && <p className="text-amber-800">Tool calling could not be checked (the probe call failed). The Brief Agent falls back to the rule-based parser if needed.</p>}
+                {test.supports_tools === true && <p className="text-emerald-900 dark:text-emerald-200">Tool calling works, so the Campaign Brief Agent can use this model.</p>}
+                {test.supports_tools === false && <p className="text-amber-800 dark:text-amber-300">This model answered but did not call a tool, so the Campaign Brief Agent will fall back to the rule-based parser. Insights can still use it.</p>}
+                {test.supports_tools == null && <p className="text-amber-800 dark:text-amber-300">Tool calling could not be checked (the probe call failed). The Brief Agent falls back to the rule-based parser if needed.</p>}
                 {!msg && dirty && <p className="text-xs text-emerald-900/80">Not saved yet: press “Save settings” to use it.</p>}
               </div>
             ) : (
               <div className="space-y-1">
-                <p className="flex items-center gap-2 font-semibold text-red-900"><XCircle size={18} aria-hidden="true" />Connection failed{test.status ? ` (HTTP ${test.status})` : ''}</p>
-                {test.hint && <p className="text-red-900">{test.hint}</p>}
+                <p className="flex items-center gap-2 font-semibold text-red-900 dark:text-red-200"><XCircle size={18} aria-hidden="true" />Connection failed{test.status ? ` (HTTP ${test.status})` : ''}</p>
+                {test.hint && <p className="text-red-900 dark:text-red-200">{test.hint}</p>}
                 <p className="break-words text-xs text-red-900/80">{test.error}</p>
               </div>
             )}
           </div>
         )}
-        {msg && <p role="status" className={`text-sm font-medium ${msg.tone === 'ok' ? 'text-emerald-800' : 'text-red-700'}`}>{msg.text}</p>}
+        {msg && <p role="status" className={`text-sm font-medium ${msg.tone === 'ok' ? 'text-emerald-800 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>{msg.text}</p>}
       </Card>
     </div>
   )

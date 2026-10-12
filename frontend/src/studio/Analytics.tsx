@@ -1,8 +1,14 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Eye, Gauge, Sparkles, Users } from 'lucide-react'
 import { fmt, type Analytics as A } from '../api'
 import { useApi } from '../shared/hooks'
-import { Badge, Card, EmptyState, ErrorState, Skeleton } from '../shared/ui'
-import { BreakdownChart, DemographicChart, FunnelChart, ScatterChart } from '../charts/charts'
+import { Badge, ErrorState, Skeleton, Stat } from '../shared/ui'
+import { CountUp, Reveal, rise, stagger } from '../shared/motion'
+import {
+  AlignmentChart, BreakdownChart, ChartFrame, FunnelChart, ScatterChart, alignmentLegend, alignmentTable, breakdownLegend, breakdownTable,
+  funnelTable, scatterLegend, scatterTable,
+} from '../charts/charts'
 import { useCampaign } from './CampaignLayout'
 
 export default function Analytics() {
@@ -12,26 +18,50 @@ export default function Analytics() {
   if (!done) return <Skeleton className="h-80" />
   if (trace?.status === 'Failed') return <ErrorState message="The run failed, so there are no analytics to show." />
   if (error) return <ErrorState message={error} onRetry={reload} />
-  if (!data) return <Skeleton className="h-80" />
+  if (!data) return <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-72" /><Skeleton className="h-72" /></div>
   const open = (id: string) => nav(`/admin/campaigns/${campaignId}/influencer/${id}`)
   const s = data.summary
+  const mix = Object.entries(s.platform_mix_top10)
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-4"><p className="text-xs text-muted">Avg score, top 10</p><p className="text-2xl font-bold">{s.avg_score_top10}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted">Micro-influencers in top 10</p><p className="text-2xl font-bold">{s.micro_in_top10}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted">Platform mix, top 10</p><p className="text-sm font-semibold">{Object.entries(s.platform_mix_top10).map(([p, n]) => `${p} ${n}`).join(' · ') || '—'}</p></Card>
-        <Card className="p-4"><p className="text-xs text-muted">Estimated views, top 3 <Badge tone="warn">Estimate</Badge></p><p className="text-2xl font-bold">{fmt.n(data.estimate.estimated_views_top3)}</p></Card>
-      </div>
+      <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <motion.div variants={rise}><Stat label="Average score, top 10" value={<CountUp value={s.avg_score_top10} format={v => v.toFixed(1)} />} sub="out of 100" icon={<Gauge size={15} />} /></motion.div>
+        <motion.div variants={rise}><Stat label="Micro-influencers in top 10" value={<CountUp value={s.micro_in_top10} />} sub="10k–100k followers" icon={<Sparkles size={15} />} /></motion.div>
+        <motion.div variants={rise}><Stat label="Platform mix, top 10" value={<span className="text-base">{mix.map(([p, n]) => `${p} ${n}`).join(' · ') || '—'}</span>} icon={<Users size={15} />} /></motion.div>
+        <motion.div variants={rise}><Stat label="Estimated views, top 3" value={<CountUp value={data.estimate.estimated_views_top3} />} sub={<Badge tone="warn">Estimate, not a forecast</Badge>} icon={<Eye size={15} />} /></motion.div>
+      </motion.div>
       <p className="text-xs text-muted">Estimate assumptions: {data.estimate.assumptions}</p>
+
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="p-5"><h2 className="mb-2 text-lg font-semibold">Matching funnel</h2><FunnelChart data={data.funnel} /></Card>
-        <Card className="p-5"><h2 className="mb-2 text-lg font-semibold">Audience age alignment</h2><DemographicChart data={data.demographics} /></Card>
+        <Reveal><ChartFrame title="Matching funnel" subtitle="How many creators survive each deterministic stage." table={funnelTable(data.funnel)}><FunnelChart data={data.funnel} /></ChartFrame></Reveal>
+        <Reveal delay={0.06}><ChartFrame title="Audience age alignment" subtitle="Does the shortlist reach the ages this product targets? Bold rows are target segments." legend={alignmentLegend} table={alignmentTable(data.demographics)}><AlignmentChart data={data.demographics} /></ChartFrame></Reveal>
       </div>
-      <Card className="p-5"><h2 className="mb-1 text-lg font-semibold">Score breakdown, top 10</h2><p className="mb-3 text-sm text-muted">Weighted points each criterion adds to the overall score. Select a bar to open the profile.</p><BreakdownChart data={data.breakdown} onSelect={open} /></Card>
-      <Card className="p-5"><h2 className="mb-1 text-lg font-semibold">Audience fit vs promotional performance</h2><p className="mb-3 text-sm text-muted">High and to the right is best. Large bubbles are not automatically better.</p><ScatterChart data={data.scatter} onSelect={open} /></Card>
-      <Card className="p-5"><h2 className="mb-2 text-lg font-semibold">Exclusion reasons</h2>
-        {!Object.keys(s.exclusion_reasons).length ? <EmptyState title="Nothing was excluded" /> : <div className="flex flex-wrap gap-2">{Object.entries(s.exclusion_reasons).sort((a, b) => b[1] - a[1]).map(([c, n]) => <Badge key={c}>{c} · {n}</Badge>)}</div>}</Card>
+      <Reveal>
+        <ChartFrame title="Score breakdown, top 10" subtitle="Weighted points each criterion adds to the overall score. Hover for every criterion; select a row to open the profile." legend={breakdownLegend} table={breakdownTable(data.breakdown)}>
+          <BreakdownChart data={data.breakdown} onSelect={open} />
+        </ChartFrame>
+      </Reveal>
+      <Reveal>
+        <ChartFrame title="Audience fit vs promotional performance" subtitle="Up and to the right is best. Follower count (bubble size) is not part of the ranking." legend={scatterLegend} table={scatterTable(data.scatter)}>
+          <ScatterChart data={data.scatter} onSelect={open} />
+        </ChartFrame>
+      </Reveal>
+      <Reveal>
+        <section className="shadow-card rounded-2xl border border-line bg-surface p-5">
+          <h2 className="mb-1 text-base font-semibold">Why creators were excluded</h2>
+          <p className="mb-3 text-sm text-muted">Python reason codes from Level 1 and Level 2, most common first.</p>
+          {!Object.keys(s.exclusion_reasons).length ? <p className="text-sm text-muted">Nothing was excluded.</p> : (
+            <ul className="grid gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+              {Object.entries(s.exclusion_reasons).sort((a, b) => b[1] - a[1]).map(([c, n], i, all) => (
+                <li key={c} className="min-w-0 text-sm">
+                  <div className="flex items-baseline justify-between gap-2"><span className="truncate font-mono text-xs" title={c}>{c}</span><span className="tabular font-semibold">{fmt.n(n)}</span></div>
+                  <span className="mt-1 block h-2 overflow-hidden rounded-full bg-ice"><motion.span initial={{ width: 0 }} animate={{ width: `${(n / all[0][1]) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.04 }} className="block h-full rounded-full bg-brand" /></span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </Reveal>
     </div>
   )
 }

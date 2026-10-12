@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, create_engine
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from ..config import get_settings
@@ -47,6 +47,55 @@ class SettingRow(Base):
     value: Mapped[dict] = mapped_column(JSON)
 
 
+class ProductRow(Base):
+    """Product catalogue owned by the back office; the storefront and the matching engine read from here."""
+    __tablename__ = "products"
+    product_id: Mapped[str] = mapped_column(String, primary_key=True)
+    product_name: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String)
+    category: Mapped[str] = mapped_column(String, index=True)
+    price_gbp: Mapped[float] = mapped_column(Float)
+    sizes: Mapped[list] = mapped_column(JSON)
+    stock: Mapped[dict] = mapped_column(JSON)
+    target_age_segments: Mapped[list] = mapped_column(JSON)
+    target_gender_or_collection: Mapped[str] = mapped_column(String)
+    style_tags: Mapped[list] = mapped_column(JSON)
+    target_region: Mapped[str] = mapped_column(String, default="UK")
+    campaign_keywords: Mapped[list] = mapped_column(JSON)
+    product_image: Mapped[str] = mapped_column(String, default="")
+    seasonal_collection: Mapped[str] = mapped_column(String, default="")
+    badges: Mapped[list] = mapped_column(JSON)
+    colour: Mapped[str] = mapped_column(String, default="")
+    status: Mapped[str] = mapped_column(String, default="active", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class OrderRow(Base):
+    __tablename__ = "orders"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    customer_name: Mapped[str] = mapped_column(String)
+    channel: Mapped[str] = mapped_column(String)  # storefront | seed
+    status: Mapped[str] = mapped_column(String, default="paid")
+    lines: Mapped[list] = mapped_column(JSON)  # [{product_id, product_name, size, qty, unit_price}]
+    units: Mapped[int] = mapped_column(Integer)
+    total_gbp: Mapped[float] = mapped_column(Float)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class StockMovementRow(Base):
+    """Audit trail of every stock change (back-office edits, restocks and storefront orders)."""
+    __tablename__ = "stock_movements"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    product_id: Mapped[str] = mapped_column(String, index=True)
+    size: Mapped[str] = mapped_column(String)
+    delta: Mapped[int] = mapped_column(Integer)
+    balance: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str] = mapped_column(String)
+    ref: Mapped[str | None] = mapped_column(String, nullable=True)  # order id, if any
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
 _engine = None
 _Session = None
 
@@ -63,6 +112,8 @@ def init_db(url: str | None = None) -> None:
     _engine = create_engine(url, **kwargs)
     Base.metadata.create_all(_engine)
     _Session = sessionmaker(_engine, expire_on_commit=False)
+    from ..services.inventory import seed_if_empty  # lazy: the service imports this module
+    seed_if_empty()
 
 
 def session() -> Session:

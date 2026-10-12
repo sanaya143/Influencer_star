@@ -45,9 +45,10 @@ def test_full_workflow(client):
     cid = make_campaign(client)
     r = client.post(f"/api/campaigns/{cid}/match", json={"wait": True})
     assert r.status_code == 202 and r.json()["status"] == "Completed"
-    res = client.get(f"/api/campaigns/{cid}/results").json()
+    res = client.get(f"/api/campaigns/{cid}/results", params={"limit": 2000}).json()
     st = res["stats"]
-    assert st["retrieved"] == 300 and st["ranked"] == len(res["ranked"]) > 0
+    assert st["retrieved"] == client.get("/api/health").json()["influencers"] >= 1000
+    assert st["ranked"] == len(res["ranked"]) > 0
     assert st["eligible"] >= st["passed_l2"] >= st["ranked"]
     assert res["insights"]["summary"]
     ex = client.get(f"/api/campaigns/{cid}/excluded").json()

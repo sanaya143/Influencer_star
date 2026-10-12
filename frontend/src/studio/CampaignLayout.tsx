@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom'
-import { BarChart3, Bot, Download, ListOrdered } from 'lucide-react'
+import { NavLink, useOutletContext, useParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { BarChart3, Download, ListOrdered, Network } from 'lucide-react'
 import { api, type Filters, type Trace, type Weights } from '../api'
 import { useApi, usePolling } from '../shared/hooks'
 import { Badge, Button, ErrorState, Skeleton, StatusPill } from '../shared/ui'
+import { AnimatedOutlet } from '../shared/motion'
 
 interface Campaign { campaign_id: string; name: string; latest_run_id: string | null; status: string; brief: { product_id: string } }
 export interface CampaignCtx {
@@ -12,7 +14,7 @@ export interface CampaignCtx {
 }
 export const useCampaign = () => useOutletContext<CampaignCtx>()
 
-const TERMINAL = ['Completed', 'Failed', 'Needs Review']
+export const TERMINAL = ['Completed', 'Failed', 'Needs Review']
 
 export default function CampaignLayout() {
   const { campaignId = '' } = useParams()
@@ -36,15 +38,15 @@ export default function CampaignLayout() {
   const tabs = [
     { to: `/admin/campaigns/${campaignId}`, label: 'Results', icon: ListOrdered, end: true },
     { to: `/admin/campaigns/${campaignId}/analytics`, label: 'Analytics', icon: BarChart3 },
-    { to: `/admin/campaigns/${campaignId}/agents`, label: 'Agent execution', icon: Bot },
+    { to: `/admin/campaigns/${campaignId}/agents`, label: 'Agent execution', icon: Network },
   ]
   return (
     <div className="mx-auto max-w-7xl space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">Campaign</p>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Campaign</p>
           <h1 className="text-2xl font-bold md:text-3xl">{camp.data.name}</h1>
-          <div className="mt-1 flex items-center gap-2"><StatusPill status={trace?.status ?? camp.data.status} /><Badge>Synthetic data</Badge></div>
+          <div className="mt-1.5 flex items-center gap-2"><StatusPill status={trace?.status ?? camp.data.status} /><Badge>Synthetic data</Badge></div>
         </div>
         {done && trace?.status !== 'Failed' && (
           <div className="flex gap-2">
@@ -53,14 +55,19 @@ export default function CampaignLayout() {
           </div>
         )}
       </header>
-      <nav aria-label="Campaign sections" className="flex gap-1 overflow-x-auto border-b border-line">
+      <nav aria-label="Campaign sections" className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-line">
         {tabs.map(t => (
-          <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${isActive ? 'border-brand text-ink' : 'border-transparent text-muted hover:text-ink'}`}>
-            <t.icon size={16} aria-hidden="true" />{t.label}
+          <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `relative flex items-center gap-1.5 whitespace-nowrap px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? 'text-ink' : 'text-muted hover:text-ink'}`}>
+            {({ isActive }) => (
+              <>
+                <t.icon size={16} aria-hidden="true" />{t.label}
+                {isActive && <motion.span layoutId="campaign-tab" className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-brand" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
-      <Outlet context={{ campaignId, runId, done, trace, rerun, rerunning } satisfies CampaignCtx} />
+      <AnimatedOutlet context={{ campaignId, runId, done, trace, rerun, rerunning } satisfies CampaignCtx} />
     </div>
   )
 }

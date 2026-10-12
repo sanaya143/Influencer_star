@@ -1,29 +1,119 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand: #01abdd;
-  --color-brand-dark: #0189b0;
-  --color-ice: #f4f9fb;
-  --color-ink: #111111;
-  --color-line: #e3eaee;
-  --color-muted: #5c6b73;
-  --font-sans: "Inter", system-ui, sans-serif;
+/* Class-based dark mode: <html class="dark"> is set by ThemeProvider (and by the inline script in index.html
+   before first paint, so there is no flash of the wrong theme). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Semantic colour tokens. Components use these names (bg-surface, text-ink, border-line...) so both
+   themes come from one set of utilities. */
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ice: var(--ice);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 }
 
-html { scroll-behavior: smooth; }
-body { margin: 0; background: #fff; color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+:root {
+  color-scheme: light;
+  --brand: #01abdd;
+  --brand-hover: #2bbde8;
+  --brand-ink: #066a87;   /* brand-coloured text that passes contrast on white */
+  --on-brand: #111111;    /* text on cyan buttons stays dark in both themes */
+  --page: #ffffff;
+  --surface: #ffffff;
+  --raised: #ffffff;
+  --ice: #f4f9fb;
+  --ink: #111111;
+  --muted: #5c6b73;
+  --line: #e3eaee;
+  --shadow: 0 1px 2px rgba(17, 17, 17, 0.04), 0 8px 24px -12px rgba(17, 17, 17, 0.08);
+  --shadow-lg: 0 18px 50px -20px rgba(1, 60, 80, 0.25);
+
+  /* Chart palette (validated with the dataviz palette checker for CVD separation in this theme). */
+  --series-1: #01abdd; --series-2: #eb6834; --series-3: #4a3aa7; --series-4: #1baf7a;
+  --series-5: #eda100; --series-6: #e87ba4; --series-7: #008300;
+  --ord-1: #62bede; --ord-2: #2ea5cf; --ord-3: #0a87b3; --ord-4: #06688a;  /* ordinal ramp, light -> dark */
+  --chart-grid: #e8eef1;
+  --chart-axis: #c9d3d8;
+  --chart-deemph: #a9b6bd;
+  --chart-zone: rgba(1, 171, 221, 0.07);
+}
+
+.dark {
+  color-scheme: dark;
+  --brand: #01abdd;
+  --brand-hover: #35c3ec;
+  --brand-ink: #5fd3f3;
+  --on-brand: #071014;
+  --page: #0a0f13;
+  --surface: #121b21;
+  --raised: #172229;
+  --ice: #0e161b;
+  --ink: #e8eef1;
+  --muted: #94a5ae;
+  --line: #22313a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 18px 50px -20px rgba(0, 0, 0, 0.8);
+
+  --series-1: #0693c0; --series-2: #d95926; --series-3: #9085e9; --series-4: #199e70;
+  --series-5: #c98500; --series-6: #d55181; --series-7: #008300;
+  --ord-1: #0d6585; --ord-2: #0a87b0; --ord-3: #1fb0dc; --ord-4: #78d3ef;  /* nearest-surface step stays darkest */
+  --chart-grid: #1e2a31;
+  --chart-axis: #33434c;
+  --chart-deemph: #4f616b;
+  --chart-zone: rgba(1, 171, 221, 0.09);
+}
+
+html { scroll-behavior: smooth; background: var(--page); }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+html.theme-switching, html.theme-switching * { transition: background-color 0.35s ease, border-color 0.35s ease, color 0.2s ease, fill 0.35s ease !important; }
 
-:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; border-radius: 4px; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+::selection { background: color-mix(in oklab, var(--brand) 35%, transparent); }
 
-.skeleton { background: linear-gradient(90deg, #eef4f7 25%, #f8fbfc 50%, #eef4f7 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+.shadow-card { box-shadow: var(--shadow); }
+.shadow-pop { box-shadow: var(--shadow-lg); }
+
+.skeleton { background: linear-gradient(90deg, var(--ice) 25%, color-mix(in oklab, var(--line) 60%, var(--surface)) 50%, var(--ice) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 12px; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+/* Agent graph: animated "data flowing" edges */
+.flow-edge { stroke-dasharray: 6 8; animation: flow 0.9s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -28; } }
+.pulse-ring { animation: pulse-ring 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse-ring { 0% { opacity: 0.55; transform: scale(1); } 100% { opacity: 0; transform: scale(1.18); } }
+
+/* Reduced motion (OS setting, unless the viewer chose "Animations: on" in Settings > Appearance): stop loops and
+   movement but keep gentle colour/opacity fades. "Animations: off" forces the same everywhere. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  html:not(.motion-on) *, html:not(.motion-on) *::before, html:not(.motion-on) *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important;
+    transition-property: color, background-color, border-color, opacity, box-shadow, fill, stroke !important;
+  }
+}
+html.motion-off *, html.motion-off *::before, html.motion-off *::after {
+  animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important;
+  transition-property: color, background-color, border-color, opacity, box-shadow, fill, stroke !important;
 }
 
 .sr-only-focusable:not(:focus) { position: absolute; left: -9999px; }
-table.dense th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-muted); font-weight: 600; text-align: left; padding: 0.55rem 0.75rem; white-space: nowrap; }
-table.dense td { padding: 0.55rem 0.75rem; border-top: 1px solid var(--color-line); font-size: 0.85rem; vertical-align: middle; }
+/* Contain sr-only labels inside horizontally scrolling tables (otherwise they widen the page). */
+table { position: relative; }
+table.dense th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; text-align: left; padding: 0.6rem 0.75rem; white-space: nowrap; }
+table.dense td { padding: 0.6rem 0.75rem; border-top: 1px solid var(--line); font-size: 0.85rem; vertical-align: middle; }
+table.dense td.num, table.dense th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+input, select, textarea { color: var(--ink); }
+select option { background: var(--surface); color: var(--ink); }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }

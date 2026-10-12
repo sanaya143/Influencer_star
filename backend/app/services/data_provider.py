@@ -1,5 +1,6 @@
-"""Data access abstraction. MockProvider serves synthetic data; swap for an authorised real
-integration by implementing the same interface."""
+"""Data access abstraction. Influencers come from the mock social-data service (synthetic seed); swap it for an
+authorised real integration by implementing the same interface. Products come from the inventory database that
+the back office manages, so a product saved there is immediately available for campaigns."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,6 +9,7 @@ from typing import Protocol
 from ..config import get_settings
 from ..data.seed_generator import load_seed
 from ..schemas.models import Influencer, Product
+from . import inventory
 
 
 class DataProvider(Protocol):
@@ -17,18 +19,19 @@ class DataProvider(Protocol):
 
 class MockProvider:
     def __init__(self, seed_dir: str | None = None):
-        self._products, self._influencers = load_seed(Path(seed_dir or get_settings().seed_dir))
-        self._pmap = {p.product_id: p for p in self._products}
+        _, self._influencers = load_seed(Path(seed_dir or get_settings().seed_dir))
         self._imap = {i.influencer_id: i for i in self._influencers}
 
     def products(self) -> list[Product]:
-        return self._products
+        """Products currently on sale (status 'active')."""
+        return inventory.products("active")
 
     def influencers(self) -> list[Influencer]:
         return self._influencers
 
     def product(self, product_id: str) -> Product | None:
-        return self._pmap.get(product_id)
+        """Any product by id, including drafts and archived ones referenced by past campaigns."""
+        return inventory.get_product(product_id)
 
     def influencer(self, influencer_id: str) -> Influencer | None:
         return self._imap.get(influencer_id)

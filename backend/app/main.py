@@ -9,6 +9,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.inventory_routes import router as inventory_router
 from .api.routes import router
 from .api.settings_routes import router as settings_router
 from .config import ROOT, get_settings
@@ -29,6 +30,7 @@ app = FastAPI(title="THREADORA Influencer Matching & Campaign Intelligence API",
               description="Agentic (Google ADK) orchestration over deterministic Python filtering and ranking. All data is synthetic.")
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins.split(","), allow_methods=["*"], allow_headers=["*"])
 app.include_router(router)
+app.include_router(inventory_router)
 app.include_router(settings_router)
 
 # Optional single-process mode: if the frontend was built (`npm run build`), serve it from this server.

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 AgeSegment = Literal["children", "teens", "18-24", "25-34", "35-54", "55+"]
 AGE_SEGMENTS: list[str] = ["children", "teens", "18-24", "25-34", "35-54", "55+"]
@@ -57,6 +57,11 @@ class Influencer(BaseModel):
     is_synthetic: bool = True
 
 
+CATEGORIES: list[str] = ["Women", "Men", "Kids", "Unisex", "Couple Looks", "Accessories"]
+BADGES: list[str] = ["New", "Bestseller", "Trending", "Sale", "Eco-edit"]
+ProductStatus = Literal["active", "draft", "archived"]
+
+
 class Product(BaseModel):
     product_id: str
     product_name: str
@@ -72,6 +77,74 @@ class Product(BaseModel):
     product_image: str = ""
     seasonal_collection: str = ""
     badges: list[str] = Field(default_factory=list)
+    colour: str = ""
+    stock: dict[str, int] = Field(default_factory=dict)  # units on hand per size
+    status: ProductStatus = "active"  # only "active" products are sold in the storefront
+
+
+class ProductIn(BaseModel):
+    """Back-office create/update payload. The product id is assigned by the server."""
+    product_name: str = Field(min_length=2, max_length=80)
+    description: str = Field(min_length=10, max_length=600)
+    category: str
+    price_gbp: float = Field(gt=0, le=5000)
+    sizes: list[str] = Field(min_length=1, max_length=12)
+    stock: dict[str, int] = Field(default_factory=dict)
+    target_age_segments: list[str] = Field(min_length=1)
+    target_gender_or_collection: str
+    style_tags: list[str] = Field(default_factory=list, max_length=8)
+    target_region: str = "UK"
+    product_image: str = Field(default="", max_length=600)
+    seasonal_collection: str = Field(default="", max_length=40)
+    badges: list[str] = Field(default_factory=list)
+    colour: str = Field(default="", max_length=30)
+    status: ProductStatus = "active"
+
+    @model_validator(mode="after")
+    def _check(self) -> "ProductIn":
+        self.product_name = self.product_name.strip()
+        self.sizes = list(dict.fromkeys(s.strip() for s in self.sizes if s.strip()))
+        if not self.sizes:
+            raise ValueError("Add at least one size.")
+        if self.category not in CATEGORIES:
+            raise ValueError(f"Category must be one of {', '.join(CATEGORIES)}.")
+        if self.target_gender_or_collection not in TARGETS:
+            raise ValueError(f"Target collection must be one of {', '.join(TARGETS)}.")
+        bad = [a for a in self.target_age_segments if a not in AGE_SEGMENTS]
+        if bad:
+            raise ValueError(f"Unknown age segment(s): {', '.join(bad)}.")
+        bad = [b for b in self.badges if b not in BADGES]
+        if bad:
+            raise ValueError(f"Unknown badge(s): {', '.join(bad)}.")
+        extra = [s for s in self.stock if s not in self.sizes]
+        if extra:
+            raise ValueError(f"Stock given for size(s) not offered: {', '.join(extra)}.")
+        if any(v < 0 or v > 100_000 for v in self.stock.values()):
+            raise ValueError("Stock per size must be between 0 and 100,000.")
+        self.stock = {s: int(self.stock.get(s, 0)) for s in self.sizes}
+        self.style_tags = list(dict.fromkeys(t.strip().lower() for t in self.style_tags if t.strip()))
+        img = self.product_image.strip()
+        if img and not (img.startswith("https://") or img.startswith("http://") or img.startswith("/api/uploads/")):
+            raise ValueError("Image must be an http(s) URL or an uploaded image.")
+        self.product_image = img
+        return self
+
+
+class StockAdjust(BaseModel):
+    size: str
+    delta: int = Field(ge=-100_000, le=100_000)
+    reason: str = Field(default="Manual adjustment", max_length=80)
+
+
+class OrderLine(BaseModel):
+    product_id: str
+    size: str
+    qty: int = Field(ge=1, le=20)
+
+
+class OrderIn(BaseModel):
+    lines: list[OrderLine] = Field(min_length=1, max_length=30)
+    customer_name: str = Field(default="Guest shopper", max_length=60)
 
 
 class FilterConfig(BaseModel):

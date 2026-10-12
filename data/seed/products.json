@@ -2,7 +2,7 @@
  {
   "product_id": "P001",
   "product_name": "Oversized Graphic Hoodie",
-  "description": "Oversized Graphic Hoodie from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Oversized Graphic Hoodie in black from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 32.0,
   "sizes": [
@@ -27,14 +27,23 @@
    "women",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora1/600/800",
+  "product_image": "https://images.unsplash.com/photo-1773984159844-35cba1600d92?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
-  "badges": []
+  "badges": [],
+  "colour": "Black",
+  "stock": {
+   "XS": 0,
+   "S": 17,
+   "M": 31,
+   "L": 58,
+   "XL": 4
+  },
+  "status": "active"
  },
  {
   "product_id": "P002",
   "product_name": "Cargo Parachute Trousers",
-  "description": "Cargo Parachute Trousers from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Cargo Parachute Trousers in lavender from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 38.0,
   "sizes": [
@@ -59,14 +68,23 @@
    "women",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora2/600/800",
+  "product_image": "https://images.unsplash.com/photo-1789110520465-efc5ff05c95e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
-  "badges": []
+  "badges": [],
+  "colour": "Lavender",
+  "stock": {
+   "XS": 40,
+   "S": 31,
+   "M": 43,
+   "L": 35,
+   "XL": 11
+  },
+  "status": "active"
  },
  {
   "product_id": "P003",
   "product_name": "Baggy Wide-Leg Jeans",
-  "description": "Baggy Wide-Leg Jeans from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Baggy Wide-Leg Jeans in light wash from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 35.0,
   "sizes": [
@@ -92,16 +110,25 @@
    "women",
    "denim lab"
   ],
-  "product_image": "https://picsum.photos/seed/threadora3/600/800",
+  "product_image": "https://images.unsplash.com/photo-1683126257977-5142e52acc7e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Denim Lab",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Light wash",
+  "stock": {
+   "XS": 60,
+   "S": 2,
+   "M": 4,
+   "L": 4,
+   "XL": 40
+  },
+  "status": "active"
  },
  {
   "product_id": "P004",
   "product_name": "Ribbed Baby Tee",
-  "description": "Ribbed Baby Tee from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Ribbed Baby Tee in cream from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 12.0,
   "sizes": [
@@ -126,16 +153,25 @@
    "women",
    "y2k revival"
   ],
-  "product_image": "https://picsum.photos/seed/threadora4/600/800",
+  "product_image": "https://images.unsplash.com/photo-1737085725626-dcdacbaf33d2?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Y2K Revival",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Cream",
+  "stock": {
+   "XS": 19,
+   "S": 11,
+   "M": 19,
+   "L": 18,
+   "XL": 12
+  },
+  "status": "active"
  },
  {
   "product_id": "P005",
   "product_name": "Satin Slip Midi Dress",
-  "description": "Satin Slip Midi Dress from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Satin Slip Midi Dress in silver from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 45.0,
   "sizes": [
@@ -161,14 +197,23 @@
    "women",
    "occasion"
   ],
-  "product_image": "https://picsum.photos/seed/threadora5/600/800",
+  "product_image": "https://images.unsplash.com/photo-1790802243983-e6de0e275f59?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Occasion",
-  "badges": []
+  "badges": [],
+  "colour": "Silver",
+  "stock": {
+   "XS": 14,
+   "S": 60,
+   "M": 49,
+   "L": 14,
+   "XL": 37
+  },
+  "status": "active"
  },
  {
   "product_id": "P006",
   "product_name": "Tailored Wool-Blend Blazer",
-  "description": "Tailored Wool-Blend Blazer from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Tailored Wool-Blend Blazer in charcoal from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 58.0,
   "sizes": [
@@ -194,14 +239,23 @@
    "women",
    "workwear"
   ],
-  "product_image": "https://picsum.photos/seed/threadora6/600/800",
+  "product_image": "https://images.unsplash.com/photo-1604904612715-47bf9d9bc670?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Workwear",
-  "badges": []
+  "badges": [],
+  "colour": "Charcoal",
+  "stock": {
+   "XS": 54,
+   "S": 41,
+   "M": 36,
+   "L": 1,
+   "XL": 11
+  },
+  "status": "active"
  },
  {
   "product_id": "P007",
   "product_name": "Pleated Wide Trousers",
-  "description": "Pleated Wide Trousers from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Pleated Wide Trousers in black from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 36.0,
   "sizes": [
@@ -227,17 +281,26 @@
    "women",
    "workwear"
   ],
-  "product_image": "https://picsum.photos/seed/threadora7/600/800",
+  "product_image": "https://images.unsplash.com/photo-1789110520755-058df30bf9cb?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Workwear",
   "badges": [
    "New",
    "Eco-edit"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 25,
+   "S": 19,
+   "M": 12,
+   "L": 43,
+   "XL": 27
+  },
+  "status": "active"
  },
  {
   "product_id": "P008",
   "product_name": "Relaxed Knit Cardigan",
-  "description": "Relaxed Knit Cardigan from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Relaxed Knit Cardigan in mustard from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 34.0,
   "sizes": [
@@ -263,14 +326,23 @@
    "women",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora8/600/800",
+  "product_image": "https://images.unsplash.com/photo-1610288311735-39b7facbd095?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
-  "badges": []
+  "badges": [],
+  "colour": "Mustard",
+  "stock": {
+   "XS": 57,
+   "S": 31,
+   "M": 10,
+   "L": 34,
+   "XL": 13
+  },
+  "status": "active"
  },
  {
   "product_id": "P009",
   "product_name": "Floral Wrap Dress",
-  "description": "Floral Wrap Dress from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Floral Wrap Dress in floral print from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 42.0,
   "sizes": [
@@ -296,16 +368,25 @@
    "women",
    "occasion"
   ],
-  "product_image": "https://picsum.photos/seed/threadora9/600/800",
+  "product_image": "https://images.unsplash.com/photo-1759992878336-a5dd342ea245?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Occasion",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Floral print",
+  "stock": {
+   "XS": 49,
+   "S": 2,
+   "M": 27,
+   "L": 4,
+   "XL": 10
+  },
+  "status": "active"
  },
  {
   "product_id": "P010",
   "product_name": "Classic Trench Coat",
-  "description": "Classic Trench Coat from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Classic Trench Coat in stone from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 79.0,
   "sizes": [
@@ -332,14 +413,23 @@
    "women",
    "heritage"
   ],
-  "product_image": "https://picsum.photos/seed/threadora10/600/800",
+  "product_image": "https://images.unsplash.com/photo-1633821879282-0c4e91f96232?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Heritage",
-  "badges": []
+  "badges": [],
+  "colour": "Stone",
+  "stock": {
+   "XS": 1,
+   "S": 60,
+   "M": 1,
+   "L": 60,
+   "XL": 29
+  },
+  "status": "active"
  },
  {
   "product_id": "P011",
   "product_name": "Utility Boiler Jacket",
-  "description": "Utility Boiler Jacket from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Utility Boiler Jacket in olive from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 54.0,
   "sizes": [
@@ -365,16 +455,25 @@
    "men",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora11/600/800",
+  "product_image": "https://images.unsplash.com/photo-1625327009034-039a65fa3153?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Olive",
+  "stock": {
+   "XS": 4,
+   "S": 56,
+   "M": 29,
+   "L": 32,
+   "XL": 1
+  },
+  "status": "active"
  },
  {
   "product_id": "P012",
   "product_name": "Washed Straight Jeans",
-  "description": "Washed Straight Jeans from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Washed Straight Jeans in indigo from the THREADORA Denim Lab collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 36.0,
   "sizes": [
@@ -400,17 +499,26 @@
    "men",
    "denim lab"
   ],
-  "product_image": "https://picsum.photos/seed/threadora12/600/800",
+  "product_image": "https://images.unsplash.com/photo-1754555009601-498e9873197e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Denim Lab",
   "badges": [
    "Bestseller",
    "Sale"
-  ]
+  ],
+  "colour": "Indigo",
+  "stock": {
+   "XS": 2,
+   "S": 51,
+   "M": 51,
+   "L": 33,
+   "XL": 45
+  },
+  "status": "active"
  },
  {
   "product_id": "P013",
   "product_name": "Heavyweight Boxy Tee",
-  "description": "Heavyweight Boxy Tee from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Heavyweight Boxy Tee in white from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 16.0,
   "sizes": [
@@ -435,16 +543,25 @@
    "men",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora13/600/800",
+  "product_image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 59,
+   "S": 30,
+   "M": 0,
+   "L": 58,
+   "XL": 53
+  },
+  "status": "active"
  },
  {
   "product_id": "P014",
   "product_name": "Slim Chino Trousers",
-  "description": "Slim Chino Trousers from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Slim Chino Trousers in stone from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 32.0,
   "sizes": [
@@ -470,16 +587,25 @@
    "men",
    "workwear"
   ],
-  "product_image": "https://picsum.photos/seed/threadora14/600/800",
+  "product_image": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Workwear",
   "badges": [
    "Sale"
-  ]
+  ],
+  "colour": "Stone",
+  "stock": {
+   "XS": 11,
+   "S": 27,
+   "M": 20,
+   "L": 32,
+   "XL": 32
+  },
+  "status": "active"
  },
  {
   "product_id": "P015",
   "product_name": "Merino Crew Jumper",
-  "description": "Merino Crew Jumper from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Merino Crew Jumper in oatmeal from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 44.0,
   "sizes": [
@@ -505,16 +631,25 @@
    "men",
    "heritage"
   ],
-  "product_image": "https://picsum.photos/seed/threadora15/600/800",
+  "product_image": "https://images.unsplash.com/photo-1630254688956-40da9f30216a?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Heritage",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Oatmeal",
+  "stock": {
+   "XS": 37,
+   "S": 14,
+   "M": 0,
+   "L": 47,
+   "XL": 40
+  },
+  "status": "active"
  },
  {
   "product_id": "P016",
   "product_name": "Tech Track Jacket",
-  "description": "Tech Track Jacket from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Tech Track Jacket in red from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 40.0,
   "sizes": [
@@ -539,16 +674,25 @@
    "men",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora16/600/800",
+  "product_image": "https://images.unsplash.com/photo-1643622782660-30dedcd8d75a?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Red",
+  "stock": {
+   "XS": 15,
+   "S": 24,
+   "M": 36,
+   "L": 17,
+   "XL": 14
+  },
+  "status": "active"
  },
  {
   "product_id": "P017",
   "product_name": "Single-Breasted Suit Jacket",
-  "description": "Single-Breasted Suit Jacket from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Single-Breasted Suit Jacket in navy from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 89.0,
   "sizes": [
@@ -574,16 +718,25 @@
    "men",
    "occasion"
   ],
-  "product_image": "https://picsum.photos/seed/threadora17/600/800",
+  "product_image": "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Occasion",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "Navy",
+  "stock": {
+   "XS": 15,
+   "S": 34,
+   "M": 35,
+   "L": 2,
+   "XL": 29
+  },
+  "status": "active"
  },
  {
   "product_id": "P018",
   "product_name": "Linen-Blend Shirt",
-  "description": "Linen-Blend Shirt from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Linen-Blend Shirt in white from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 28.0,
   "sizes": [
@@ -609,14 +762,23 @@
    "men",
    "summer"
   ],
-  "product_image": "https://picsum.photos/seed/threadora18/600/800",
+  "product_image": "https://images.unsplash.com/photo-1713881587420-113c1c43e28a?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Summer",
-  "badges": []
+  "badges": [],
+  "colour": "White",
+  "stock": {
+   "XS": 42,
+   "S": 2,
+   "M": 20,
+   "L": 13,
+   "XL": 52
+  },
+  "status": "active"
  },
  {
   "product_id": "P019",
   "product_name": "Mini Rainbow Raincoat",
-  "description": "Mini Rainbow Raincoat from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Mini Rainbow Raincoat in yellow from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 24.0,
   "sizes": [
@@ -640,17 +802,25 @@
    "kids",
    "little threads"
   ],
-  "product_image": "https://picsum.photos/seed/threadora19/600/800",
+  "product_image": "https://images.unsplash.com/photo-1781735974892-360b1cbf8765?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Little Threads",
   "badges": [
    "New",
    "Trending"
-  ]
+  ],
+  "colour": "Yellow",
+  "stock": {
+   "3-4Y": 49,
+   "5-6Y": 38,
+   "7-8Y": 17,
+   "9-10Y": 8
+  },
+  "status": "active"
  },
  {
   "product_id": "P020",
   "product_name": "Kids Dino Pyjama Set",
-  "description": "Kids Dino Pyjama Set from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Kids Dino Pyjama Set in teal from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 14.0,
   "sizes": [
@@ -674,16 +844,24 @@
    "kids",
    "little threads"
   ],
-  "product_image": "https://picsum.photos/seed/threadora20/600/800",
+  "product_image": "https://images.unsplash.com/photo-1778283222098-da1f8fc1e5ea?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Little Threads",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Teal",
+  "stock": {
+   "3-4Y": 38,
+   "5-6Y": 17,
+   "7-8Y": 50,
+   "9-10Y": 54
+  },
+  "status": "active"
  },
  {
   "product_id": "P021",
   "product_name": "Kids Denim Dungarees",
-  "description": "Kids Denim Dungarees from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Kids Denim Dungarees in mid wash from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 22.0,
   "sizes": [
@@ -707,16 +885,24 @@
    "kids",
    "little threads"
   ],
-  "product_image": "https://picsum.photos/seed/threadora21/600/800",
+  "product_image": "https://images.unsplash.com/photo-1541015492536-31d513c59861?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Little Threads",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "Mid wash",
+  "stock": {
+   "3-4Y": 36,
+   "5-6Y": 56,
+   "7-8Y": 39,
+   "9-10Y": 47
+  },
+  "status": "active"
  },
  {
   "product_id": "P022",
   "product_name": "Teen Varsity Bomber",
-  "description": "Teen Varsity Bomber from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Teen Varsity Bomber in red from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 38.0,
   "sizes": [
@@ -740,17 +926,25 @@
    "kids",
    "teen edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora22/600/800",
+  "product_image": "https://images.unsplash.com/photo-1663374723561-885d23959717?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Teen Edit",
   "badges": [
    "Eco-edit",
    "New"
-  ]
+  ],
+  "colour": "Red",
+  "stock": {
+   "3-4Y": 35,
+   "5-6Y": 44,
+   "7-8Y": 2,
+   "9-10Y": 9
+  },
+  "status": "active"
  },
  {
   "product_id": "P023",
   "product_name": "Kids School Polo 2-Pack",
-  "description": "Kids School Polo 2-Pack from the THREADORA Back to School collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Kids School Polo 2-Pack in navy from the THREADORA Back to School collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 10.0,
   "sizes": [
@@ -774,17 +968,25 @@
    "kids",
    "back to school"
   ],
-  "product_image": "https://picsum.photos/seed/threadora23/600/800",
+  "product_image": "https://images.unsplash.com/photo-1778788732561-a6f28431a2bd?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Back to School",
   "badges": [
    "New",
    "Trending"
-  ]
+  ],
+  "colour": "Navy",
+  "stock": {
+   "3-4Y": 59,
+   "5-6Y": 52,
+   "7-8Y": 2,
+   "9-10Y": 20
+  },
+  "status": "active"
  },
  {
   "product_id": "P024",
   "product_name": "Teen Graphic Sweatshirt",
-  "description": "Teen Graphic Sweatshirt from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Teen Graphic Sweatshirt in lilac from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 22.0,
   "sizes": [
@@ -808,16 +1010,24 @@
    "kids",
    "teen edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora24/600/800",
+  "product_image": "https://images.unsplash.com/photo-1781935542639-72c9373f085f?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Teen Edit",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Lilac",
+  "stock": {
+   "3-4Y": 54,
+   "5-6Y": 11,
+   "7-8Y": 39,
+   "9-10Y": 34
+  },
+  "status": "active"
  },
  {
   "product_id": "P025",
   "product_name": "Unisex Essential Hoodie",
-  "description": "Unisex Essential Hoodie from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Unisex Essential Hoodie in white from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Unisex",
   "price_gbp": 30.0,
   "sizes": [
@@ -843,16 +1053,25 @@
    "unisex",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora25/600/800",
+  "product_image": "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 29,
+   "S": 52,
+   "M": 16,
+   "L": 3,
+   "XL": 31
+  },
+  "status": "active"
  },
  {
   "product_id": "P026",
   "product_name": "Unisex Sherpa Fleece",
-  "description": "Unisex Sherpa Fleece from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Unisex Sherpa Fleece in cream from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Unisex",
   "price_gbp": 42.0,
   "sizes": [
@@ -879,14 +1098,23 @@
    "unisex",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora26/600/800",
+  "product_image": "https://images.unsplash.com/photo-1771074153183-5849e68c5da6?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
-  "badges": []
+  "badges": [],
+  "colour": "Cream",
+  "stock": {
+   "XS": 4,
+   "S": 36,
+   "M": 58,
+   "L": 58,
+   "XL": 31
+  },
+  "status": "active"
  },
  {
   "product_id": "P027",
   "product_name": "Unisex Cord Bucket Hat",
-  "description": "Unisex Cord Bucket Hat from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Unisex Cord Bucket Hat in black from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Unisex",
   "price_gbp": 14.0,
   "sizes": [
@@ -911,16 +1139,25 @@
    "unisex",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora27/600/800",
+  "product_image": "https://images.unsplash.com/photo-1648422204972-4278784a9863?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 35,
+   "S": 45,
+   "M": 48,
+   "L": 0,
+   "XL": 16
+  },
+  "status": "active"
  },
  {
   "product_id": "P028",
   "product_name": "Unisex Coach Jacket",
-  "description": "Unisex Coach Jacket from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Unisex Coach Jacket in black from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Unisex",
   "price_gbp": 36.0,
   "sizes": [
@@ -946,14 +1183,23 @@
    "unisex",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora28/600/800",
+  "product_image": "https://images.unsplash.com/photo-1620636371503-3bd6f660c369?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
-  "badges": []
+  "badges": [],
+  "colour": "Black",
+  "stock": {
+   "XS": 21,
+   "S": 2,
+   "M": 39,
+   "L": 41,
+   "XL": 24
+  },
+  "status": "active"
  },
  {
   "product_id": "P029",
   "product_name": "Matching Knit Set - His",
-  "description": "Matching Knit Set - His from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Matching Knit Set - His in forest green from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 36.0,
   "sizes": [
@@ -979,16 +1225,25 @@
    "couple",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora29/600/800",
+  "product_image": "https://images.unsplash.com/photo-1610901157620-340856d0a50f?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "Forest green",
+  "stock": {
+   "XS": 14,
+   "S": 40,
+   "M": 14,
+   "L": 27,
+   "XL": 24
+  },
+  "status": "active"
  },
  {
   "product_id": "P030",
   "product_name": "Matching Knit Set - Hers",
-  "description": "Matching Knit Set - Hers from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Matching Knit Set - Hers in cream from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 36.0,
   "sizes": [
@@ -1014,17 +1269,26 @@
    "couple",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora30/600/800",
+  "product_image": "https://images.unsplash.com/photo-1629580626780-7fe7fb0523e9?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
   "badges": [
    "Trending",
    "Sale"
-  ]
+  ],
+  "colour": "Cream",
+  "stock": {
+   "XS": 4,
+   "S": 0,
+   "M": 48,
+   "L": 38,
+   "XL": 14
+  },
+  "status": "active"
  },
  {
   "product_id": "P031",
   "product_name": "Couple Check Shirt & Dress",
-  "description": "Couple Check Shirt & Dress from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Couple Check Shirt & Dress in floral print from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 64.0,
   "sizes": [
@@ -1050,16 +1314,25 @@
    "couple",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora31/600/800",
+  "product_image": "https://images.unsplash.com/photo-1754359555458-1f29d13d332e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Floral print",
+  "stock": {
+   "XS": 0,
+   "S": 38,
+   "M": 26,
+   "L": 2,
+   "XL": 13
+  },
+  "status": "active"
  },
  {
   "product_id": "P032",
   "product_name": "Family Christmas Pyjama Set",
-  "description": "Family Christmas Pyjama Set from the THREADORA Festive collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Family Christmas Pyjama Set in red check from the THREADORA Festive collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 48.0,
   "sizes": [
@@ -1086,16 +1359,25 @@
    "family",
    "festive"
   ],
-  "product_image": "https://picsum.photos/seed/threadora32/600/800",
+  "product_image": "https://images.unsplash.com/photo-1670906230394-d5b332a2113b?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Festive",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Red check",
+  "stock": {
+   "XS": 42,
+   "S": 17,
+   "M": 30,
+   "L": 0,
+   "XL": 10
+  },
+  "status": "active"
  },
  {
   "product_id": "P033",
   "product_name": "Family Denim Jacket Trio",
-  "description": "Family Denim Jacket Trio from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Family Denim Jacket Trio in light wash from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 72.0,
   "sizes": [
@@ -1122,16 +1404,25 @@
    "family",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora33/600/800",
+  "product_image": "https://images.unsplash.com/photo-1790443036439-0495dc83ee42?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Light wash",
+  "stock": {
+   "XS": 3,
+   "S": 48,
+   "M": 28,
+   "L": 34,
+   "XL": 8
+  },
+  "status": "active"
  },
  {
   "product_id": "P034",
   "product_name": "Leather-Look Shoulder Bag",
-  "description": "Leather-Look Shoulder Bag from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Leather-Look Shoulder Bag in tan from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 26.0,
   "sizes": [
@@ -1153,14 +1444,19 @@
    "women",
    "accessories"
   ],
-  "product_image": "https://picsum.photos/seed/threadora34/600/800",
+  "product_image": "https://images.unsplash.com/photo-1594633313593-bab3825d0caf?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Accessories",
-  "badges": []
+  "badges": [],
+  "colour": "Tan",
+  "stock": {
+   "One size": 13
+  },
+  "status": "active"
  },
  {
   "product_id": "P035",
   "product_name": "Layered Chain Necklace Set",
-  "description": "Layered Chain Necklace Set from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Layered Chain Necklace Set in gold from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 9.0,
   "sizes": [
@@ -1181,16 +1477,21 @@
    "women",
    "accessories"
   ],
-  "product_image": "https://picsum.photos/seed/threadora35/600/800",
+  "product_image": "https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Accessories",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Gold",
+  "stock": {
+   "One size": 14
+  },
+  "status": "active"
  },
  {
   "product_id": "P036",
   "product_name": "Canvas Tote Bag",
-  "description": "Canvas Tote Bag from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Canvas Tote Bag in natural from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 12.0,
   "sizes": [
@@ -1212,16 +1513,21 @@
    "unisex",
    "accessories"
   ],
-  "product_image": "https://picsum.photos/seed/threadora36/600/800",
+  "product_image": "https://images.unsplash.com/photo-1574365569389-a10d488ca3fb?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Accessories",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Natural",
+  "stock": {
+   "One size": 47
+  },
+  "status": "active"
  },
  {
   "product_id": "P037",
   "product_name": "Wool Scarf",
-  "description": "Wool Scarf from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Wool Scarf in tartan from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 18.0,
   "sizes": [
@@ -1244,17 +1550,22 @@
    "unisex",
    "heritage"
   ],
-  "product_image": "https://picsum.photos/seed/threadora37/600/800",
+  "product_image": "https://images.unsplash.com/photo-1789845137280-8fd8eee7e691?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Heritage",
   "badges": [
    "Sale",
    "Trending"
-  ]
+  ],
+  "colour": "Tartan",
+  "stock": {
+   "One size": 10
+  },
+  "status": "active"
  },
  {
   "product_id": "P038",
   "product_name": "Plaid Baseball Cap",
-  "description": "Plaid Baseball Cap from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Plaid Baseball Cap in charcoal from the THREADORA Street Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 11.0,
   "sizes": [
@@ -1275,16 +1586,21 @@
    "men",
    "street edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora38/600/800",
+  "product_image": "https://images.unsplash.com/photo-1521369909029-2afed882baee?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Street Edit",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Charcoal",
+  "stock": {
+   "One size": 10
+  },
+  "status": "active"
  },
  {
   "product_id": "P039",
   "product_name": "Seamless Gym Leggings",
-  "description": "Seamless Gym Leggings from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Seamless Gym Leggings in black from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 22.0,
   "sizes": [
@@ -1310,14 +1626,23 @@
    "women",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora39/600/800",
+  "product_image": "https://images.unsplash.com/photo-1641808887823-b3201916a57d?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
-  "badges": []
+  "badges": [],
+  "colour": "Black",
+  "stock": {
+   "XS": 14,
+   "S": 12,
+   "M": 40,
+   "L": 59,
+   "XL": 51
+  },
+  "status": "active"
  },
  {
   "product_id": "P040",
   "product_name": "Sports Bra Longline",
-  "description": "Sports Bra Longline from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Sports Bra Longline in white from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 16.0,
   "sizes": [
@@ -1341,16 +1666,25 @@
    "women",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora40/600/800",
+  "product_image": "https://images.unsplash.com/photo-1594730036615-a0f77497536f?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 25,
+   "S": 19,
+   "M": 48,
+   "L": 39,
+   "XL": 34
+  },
+  "status": "active"
  },
  {
   "product_id": "P041",
   "product_name": "Dry-Fit Training Shorts",
-  "description": "Dry-Fit Training Shorts from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Dry-Fit Training Shorts in black from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 18.0,
   "sizes": [
@@ -1374,16 +1708,25 @@
    "men",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora41/600/800",
+  "product_image": "https://images.unsplash.com/photo-1785926262431-ad6a88990c2e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
   "badges": [
    "Sale"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 53,
+   "S": 50,
+   "M": 31,
+   "L": 21,
+   "XL": 48
+  },
+  "status": "active"
  },
  {
   "product_id": "P042",
   "product_name": "Quilted Puffer Gilet",
-  "description": "Quilted Puffer Gilet from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Quilted Puffer Gilet in black from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 49.0,
   "sizes": [
@@ -1409,16 +1752,25 @@
    "women",
    "heritage"
   ],
-  "product_image": "https://picsum.photos/seed/threadora42/600/800",
+  "product_image": "https://images.unsplash.com/photo-1636529109797-0749811c4916?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Heritage",
   "badges": [
    "New"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 39,
+   "S": 41,
+   "M": 17,
+   "L": 45,
+   "XL": 15
+  },
+  "status": "active"
  },
  {
   "product_id": "P043",
   "product_name": "Tweed Skirt Suit",
-  "description": "Tweed Skirt Suit from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Tweed Skirt Suit in brown tweed from the THREADORA Heritage collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 69.0,
   "sizes": [
@@ -1444,16 +1796,25 @@
    "women",
    "heritage"
   ],
-  "product_image": "https://picsum.photos/seed/threadora43/600/800",
+  "product_image": "https://images.unsplash.com/photo-1649937408746-4d2f603f91c8?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Heritage",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Brown tweed",
+  "stock": {
+   "XS": 1,
+   "S": 15,
+   "M": 0,
+   "L": 52,
+   "XL": 60
+  },
+  "status": "active"
  },
  {
   "product_id": "P044",
   "product_name": "Corduroy Overshirt",
-  "description": "Corduroy Overshirt from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Corduroy Overshirt in tan from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 34.0,
   "sizes": [
@@ -1479,16 +1840,25 @@
    "men",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora44/600/800",
+  "product_image": "https://images.unsplash.com/photo-1594201658541-52380e1ca6df?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Tan",
+  "stock": {
+   "XS": 22,
+   "S": 8,
+   "M": 31,
+   "L": 1,
+   "XL": 1
+  },
+  "status": "active"
  },
  {
   "product_id": "P045",
   "product_name": "Y2K Low-Rise Mini Skirt",
-  "description": "Y2K Low-Rise Mini Skirt from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Y2K Low-Rise Mini Skirt in white from the THREADORA Y2K Revival collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 18.0,
   "sizes": [
@@ -1513,17 +1883,26 @@
    "women",
    "y2k revival"
   ],
-  "product_image": "https://picsum.photos/seed/threadora45/600/800",
+  "product_image": "https://images.unsplash.com/photo-1582142306909-195724d33ffc?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Y2K Revival",
   "badges": [
    "Sale",
    "Eco-edit"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 35,
+   "S": 0,
+   "M": 0,
+   "L": 14,
+   "XL": 35
+  },
+  "status": "active"
  },
  {
   "product_id": "P046",
   "product_name": "Prom Sequin Gown",
-  "description": "Prom Sequin Gown from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Prom Sequin Gown in champagne from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 85.0,
   "sizes": [
@@ -1546,16 +1925,25 @@
    "women",
    "occasion"
   ],
-  "product_image": "https://picsum.photos/seed/threadora46/600/800",
+  "product_image": "https://images.unsplash.com/photo-1772615071677-6441340349fd?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Occasion",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Champagne",
+  "stock": {
+   "XS": 9,
+   "S": 45,
+   "M": 26,
+   "L": 42,
+   "XL": 0
+  },
+  "status": "active"
  },
  {
   "product_id": "P047",
   "product_name": "Wedding Guest Jumpsuit",
-  "description": "Wedding Guest Jumpsuit from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Wedding Guest Jumpsuit in khaki from the THREADORA Occasion collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 62.0,
   "sizes": [
@@ -1581,16 +1969,25 @@
    "women",
    "occasion"
   ],
-  "product_image": "https://picsum.photos/seed/threadora47/600/800",
+  "product_image": "https://images.unsplash.com/photo-1767077280665-c3e251378f9e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Occasion",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Khaki",
+  "stock": {
+   "XS": 13,
+   "S": 0,
+   "M": 0,
+   "L": 0,
+   "XL": 42
+  },
+  "status": "active"
  },
  {
   "product_id": "P048",
   "product_name": "Festival Fringe Jacket",
-  "description": "Festival Fringe Jacket from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Festival Fringe Jacket in tan from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 44.0,
   "sizes": [
@@ -1615,16 +2012,25 @@
    "women",
    "summer"
   ],
-  "product_image": "https://picsum.photos/seed/threadora48/600/800",
+  "product_image": "https://images.unsplash.com/photo-1650338524059-f0ae486cfa66?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Summer",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Tan",
+  "stock": {
+   "XS": 30,
+   "S": 10,
+   "M": 4,
+   "L": 25,
+   "XL": 13
+  },
+  "status": "active"
  },
  {
   "product_id": "P049",
   "product_name": "Mum & Mini Matching Dresses",
-  "description": "Mum & Mini Matching Dresses from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Mum & Mini Matching Dresses in floral print from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 55.0,
   "sizes": [
@@ -1653,17 +2059,26 @@
    "family",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora49/600/800",
+  "product_image": "https://images.unsplash.com/photo-1560707856-3af2ff5ea652?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
   "badges": [
    "Eco-edit",
    "Sale"
-  ]
+  ],
+  "colour": "Floral print",
+  "stock": {
+   "XS": 58,
+   "S": 42,
+   "M": 3,
+   "L": 36,
+   "XL": 15
+  },
+  "status": "active"
  },
  {
   "product_id": "P050",
   "product_name": "Toddler Knit Beanie Set",
-  "description": "Toddler Knit Beanie Set from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Toddler Knit Beanie Set in white from the THREADORA Little Threads collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 8.0,
   "sizes": [
@@ -1687,16 +2102,24 @@
    "kids",
    "little threads"
   ],
-  "product_image": "https://picsum.photos/seed/threadora50/600/800",
+  "product_image": "https://images.unsplash.com/photo-1685458249619-b78fe5ee7abe?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Little Threads",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "3-4Y": 40,
+   "5-6Y": 14,
+   "7-8Y": 35,
+   "9-10Y": 22
+  },
+  "status": "active"
  },
  {
   "product_id": "P051",
   "product_name": "Teen Cargo Shorts",
-  "description": "Teen Cargo Shorts from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Teen Cargo Shorts in khaki from the THREADORA Teen Edit collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Kids",
   "price_gbp": 16.0,
   "sizes": [
@@ -1720,16 +2143,24 @@
    "kids",
    "teen edit"
   ],
-  "product_image": "https://picsum.photos/seed/threadora51/600/800",
+  "product_image": "https://images.unsplash.com/photo-1740512922260-543b1b83c986?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Teen Edit",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Khaki",
+  "stock": {
+   "3-4Y": 54,
+   "5-6Y": 39,
+   "7-8Y": 14,
+   "9-10Y": 28
+  },
+  "status": "active"
  },
  {
   "product_id": "P052",
   "product_name": "Slim Fit Dress Shirt",
-  "description": "Slim Fit Dress Shirt from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Slim Fit Dress Shirt in white from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 25.0,
   "sizes": [
@@ -1755,17 +2186,26 @@
    "men",
    "workwear"
   ],
-  "product_image": "https://picsum.photos/seed/threadora52/600/800",
+  "product_image": "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Workwear",
   "badges": [
    "New",
    "Eco-edit"
-  ]
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 58,
+   "S": 40,
+   "M": 36,
+   "L": 38,
+   "XL": 57
+  },
+  "status": "active"
  },
  {
   "product_id": "P053",
   "product_name": "Linen Co-ord Set",
-  "description": "Linen Co-ord Set from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Linen Co-ord Set in cream from the THREADORA Summer collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 52.0,
   "sizes": [
@@ -1791,14 +2231,23 @@
    "women",
    "summer"
   ],
-  "product_image": "https://picsum.photos/seed/threadora53/600/800",
+  "product_image": "https://images.unsplash.com/photo-1726591383658-37fc19442523?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Summer",
-  "badges": []
+  "badges": [],
+  "colour": "Cream",
+  "stock": {
+   "XS": 59,
+   "S": 57,
+   "M": 10,
+   "L": 0,
+   "XL": 18
+  },
+  "status": "active"
  },
  {
   "product_id": "P054",
   "product_name": "Padded Shacket",
-  "description": "Padded Shacket from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Padded Shacket in check from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Men",
   "price_gbp": 56.0,
   "sizes": [
@@ -1824,16 +2273,25 @@
    "men",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora54/600/800",
+  "product_image": "https://images.unsplash.com/photo-1645106281801-32a3e43b2d49?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
   "badges": [
    "Bestseller"
-  ]
+  ],
+  "colour": "Check",
+  "stock": {
+   "XS": 55,
+   "S": 47,
+   "M": 17,
+   "L": 40,
+   "XL": 34
+  },
+  "status": "active"
  },
  {
   "product_id": "P055",
   "product_name": "Silver Hoop Earrings",
-  "description": "Silver Hoop Earrings from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Silver Hoop Earrings in silver from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 7.0,
   "sizes": [
@@ -1855,17 +2313,22 @@
    "women",
    "accessories"
   ],
-  "product_image": "https://picsum.photos/seed/threadora55/600/800",
+  "product_image": "https://images.unsplash.com/photo-1602722872368-0cfc00f748ff?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Accessories",
   "badges": [
    "Eco-edit",
    "New"
-  ]
+  ],
+  "colour": "Silver",
+  "stock": {
+   "One size": 25
+  },
+  "status": "active"
  },
  {
   "product_id": "P056",
   "product_name": "Belt Bag Crossbody",
-  "description": "Belt Bag Crossbody from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Belt Bag Crossbody in cream from the THREADORA Accessories collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Accessories",
   "price_gbp": 19.0,
   "sizes": [
@@ -1886,17 +2349,22 @@
    "unisex",
    "accessories"
   ],
-  "product_image": "https://picsum.photos/seed/threadora56/600/800",
+  "product_image": "https://images.unsplash.com/photo-1588596589966-3260ee9d8b3e?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Accessories",
   "badges": [
    "Sale",
    "Eco-edit"
-  ]
+  ],
+  "colour": "Cream",
+  "stock": {
+   "One size": 23
+  },
+  "status": "active"
  },
  {
   "product_id": "P057",
   "product_name": "Jersey Wide-Leg Joggers",
-  "description": "Jersey Wide-Leg Joggers from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Jersey Wide-Leg Joggers in black from the THREADORA Active collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Unisex",
   "price_gbp": 24.0,
   "sizes": [
@@ -1922,16 +2390,25 @@
    "unisex",
    "active"
   ],
-  "product_image": "https://picsum.photos/seed/threadora57/600/800",
+  "product_image": "https://images.unsplash.com/photo-1552902875-9ac1f9fe0c07?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Active",
   "badges": [
    "Eco-edit"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 27,
+   "S": 53,
+   "M": 0,
+   "L": 19,
+   "XL": 0
+  },
+  "status": "active"
  },
  {
   "product_id": "P058",
   "product_name": "Matching Denim Jackets",
-  "description": "Matching Denim Jackets from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Matching Denim Jackets in mid wash from the THREADORA Twinning collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Couple Looks",
   "price_gbp": 78.0,
   "sizes": [
@@ -1957,14 +2434,23 @@
    "couple",
    "twinning"
   ],
-  "product_image": "https://picsum.photos/seed/threadora58/600/800",
+  "product_image": "https://images.unsplash.com/photo-1535821768496-80f6b2bd573a?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Twinning",
-  "badges": []
+  "badges": [],
+  "colour": "Mid wash",
+  "stock": {
+   "XS": 16,
+   "S": 15,
+   "M": 55,
+   "L": 17,
+   "XL": 9
+  },
+  "status": "active"
  },
  {
   "product_id": "P059",
   "product_name": "Maxi Knit Dress",
-  "description": "Maxi Knit Dress from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Maxi Knit Dress in grey marl from the THREADORA Everyday collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 40.0,
   "sizes": [
@@ -1990,14 +2476,23 @@
    "women",
    "everyday"
   ],
-  "product_image": "https://picsum.photos/seed/threadora59/600/800",
+  "product_image": "https://images.unsplash.com/photo-1789110520279-49e8a3a6fb91?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Everyday",
-  "badges": []
+  "badges": [],
+  "colour": "Grey marl",
+  "stock": {
+   "XS": 13,
+   "S": 19,
+   "M": 40,
+   "L": 18,
+   "XL": 3
+  },
+  "status": "active"
  },
  {
   "product_id": "P060",
   "product_name": "Oversized Blazer Dress",
-  "description": "Oversized Blazer Dress from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
+  "description": "Oversized Blazer Dress in black from the THREADORA Workwear collection. Affordable, trend-led and made to be worn on repeat.",
   "category": "Women",
   "price_gbp": 48.0,
   "sizes": [
@@ -2023,10 +2518,19 @@
    "women",
    "workwear"
   ],
-  "product_image": "https://picsum.photos/seed/threadora60/600/800",
+  "product_image": "https://images.unsplash.com/photo-1779400202247-2a9da5b4027c?auto=format&fit=crop&w=800&h=1067&q=75",
   "seasonal_collection": "Workwear",
   "badges": [
    "Trending"
-  ]
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 52,
+   "S": 41,
+   "M": 31,
+   "L": 12,
+   "XL": 36
+  },
+  "status": "active"
  }
 ]

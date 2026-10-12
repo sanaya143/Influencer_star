@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Sparkles, Rocket, SlidersHorizontal } from 'lucide-react'
 import { api, fmt, type Brief, type Meta, type Paged, type Product, type Trace, type Usage } from '../api'
 import { useApi } from '../shared/hooks'
-import { Badge, Button, Card, ErrorState, Spinner } from '../shared/ui'
+import { Badge, Button, Card, ErrorState, ProductImage, Spinner, inputCls } from '../shared/ui'
 
 interface ParseRes { run_id: string; status: string; brief: Brief | null; needs_clarification: string[]; candidates: { product_id: string; product_name: string }[]; error?: string; warning?: string | null; trace: Trace; usage: Usage }
 
@@ -12,7 +12,6 @@ const EXAMPLE = "Find suitable UK-based influencers to promote our new women's s
 const Field = ({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) => (
   <label className="block text-sm"><span className="mb-1 block font-medium">{label}</span>{children}{hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}</label>
 )
-const inputCls = 'w-full rounded-xl border border-line bg-white px-3 py-2 text-sm focus:border-brand'
 
 export default function CreateCampaign() {
   const [sp] = useSearchParams()
@@ -62,6 +61,16 @@ export default function CreateCampaign() {
         <p className="text-sm text-muted">Describe the campaign in plain English or just pick a product. The Campaign Brief Agent turns it into a structured brief you can review before anything runs.</p>
       </header>
 
+      {product && (
+        <div className="shadow-card flex items-center gap-4 rounded-2xl border border-brand/30 bg-surface p-3">
+          <ProductImage src={product.product_image} alt={product.product_name} name={product.product_name} category={product.category} colour={product.colour} width={160} className="h-24 w-[72px] shrink-0 rounded-xl" />
+          <div className="min-w-0 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Promoting</p>
+            <p className="truncate text-base font-semibold">{product.product_name}</p>
+            <p className="text-muted">{fmt.gbp(product.price_gbp)} · {product.category} · {product.colour} · {product.total_stock} in stock</p>
+          </div>
+        </div>
+      )}
       <Card className="space-y-4 p-5">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Product" hint={product ? `${product.category} · ${fmt.gbp(product.price_gbp)} · targets ${product.target_gender_or_collection}, ${product.target_age_segments.join(' / ')}` : 'Optional if your brief names the product'}>
@@ -81,10 +90,10 @@ export default function CreateCampaign() {
         {error && <ErrorState message={error} />}
       </Card>
 
-      {briefRun?.warning && brief && <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm"><b>Model call failed, rule-based fallback used.</b> {briefRun.warning} <a className="font-semibold text-[#066a87] underline" href="/admin/settings">Check Settings</a></div>}
+      {briefRun?.warning && brief && <div role="status" className="rounded-xl border border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/10 p-3 text-sm"><b>Model call failed, rule-based fallback used.</b> {briefRun.warning} <a className="font-semibold text-brand-ink underline" href="/admin/settings">Check Settings</a></div>}
 
       {briefRun && !brief && (
-        <Card className="space-y-3 border-amber-200 bg-amber-50 p-5" >
+        <Card className="space-y-3 border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/10 p-5" >
           <div role="alert"><b>The agent needs your input</b>
             <ul className="mt-1 list-disc pl-5 text-sm">{briefRun.needs_clarification.map(c => <li key={c}>{c}</li>)}</ul></div>
           {briefRun.candidates?.length > 0 && <div className="flex flex-wrap gap-2">
@@ -129,7 +138,7 @@ export default function CreateCampaign() {
             <legend className="mb-2 text-sm font-medium">Target age segments</legend>
             <div className="flex flex-wrap gap-2">
               {meta?.age_segments.map(s => (
-                <label key={s} className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${brief.target_age_segments.includes(s) ? 'border-brand bg-brand text-ink' : 'border-line bg-white'}`}>
+                <label key={s} className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm ${brief.target_age_segments.includes(s) ? 'border-brand bg-brand text-on-brand' : 'border-line bg-surface'}`}>
                   <input type="checkbox" className="sr-only" checked={brief.target_age_segments.includes(s)} onChange={() => toggleSeg(s)} />{s}
                 </label>
               ))}
@@ -140,7 +149,7 @@ export default function CreateCampaign() {
             <Field label="Minimum median promo views" hint="Eligibility threshold (configurable default)"><input className={inputCls} type="number" min={0} value={brief.filters.min_promo_views} onChange={e => setF('min_promo_views', Number(e.target.value))} /></Field>
             <Field label="Minimum audience match (0–100)" hint="Level 2 cut-off"><input className={inputCls} type="number" min={0} max={100} value={brief.filters.min_audience_match} onChange={e => setF('min_audience_match', Number(e.target.value))} /></Field>
           </div>
-          <button className="inline-flex items-center gap-1.5 text-sm font-medium text-[#066a87]" onClick={() => setShowAdv(v => !v)} aria-expanded={showAdv}><SlidersHorizontal size={15} aria-hidden="true" />Scoring weights</button>
+          <button className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink" onClick={() => setShowAdv(v => !v)} aria-expanded={showAdv}><SlidersHorizontal size={15} aria-hidden="true" />Scoring weights</button>
           {showAdv && (
             <div className="grid gap-3 rounded-xl bg-ice p-4 sm:grid-cols-2 lg:grid-cols-4">
               {(Object.keys(brief.weights) as (keyof Brief['weights'])[]).map(k => (

@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { CRITERIA_LABELS, fmt, type Exclusion, type Influencer, type Match, type Weights } from '../api'
 import { useApi } from '../shared/hooks'
-import { Badge, Card, ErrorState, Skeleton } from '../shared/ui'
+import { Avatar, Badge, Card, ErrorState, Skeleton } from '../shared/ui'
 
 interface Detail { influencer: Influencer; match: Match | null; exclusion: Exclusion | null; target_age_segments: string[]; weights: Weights }
 
@@ -14,7 +14,7 @@ function Dist({ title, data, highlight = [] }: { title: string; data: Record<str
       <ul className="space-y-1.5">{entries.map(([k, v]) => (
         <li key={k} className="grid grid-cols-[88px_1fr_44px] items-center gap-2 text-xs">
           <span className={highlight.includes(k) ? 'font-bold' : 'text-muted'}>{k}</span>
-          <div className="h-2 rounded-full bg-line" role="img" aria-label={`${k}: ${v}%`}><div className={`h-full rounded-full ${highlight.includes(k) ? 'bg-brand' : 'bg-[#b8c6cd]'}`} style={{ width: `${Math.min(100, v)}%` }} /></div>
+          <div className="h-2 rounded-full bg-line" role="img" aria-label={`${k}: ${v}%`}><div className={`h-full rounded-full ${highlight.includes(k) ? 'bg-brand' : 'bg-muted/40'}`} style={{ width: `${Math.min(100, v)}%` }} /></div>
           <span className="text-right">{v.toFixed(0)}%</span>
         </li>))}</ul>
     </div>
@@ -31,10 +31,10 @@ export default function Profile() {
   const total = Object.values(w).reduce((a, b) => a + b, 0) || 1
   return (
     <div className="space-y-5">
-      <Link to={`/admin/campaigns/${campaignId}`} className="inline-flex items-center gap-1 text-sm font-medium text-[#066a87]"><ArrowLeft size={15} aria-hidden="true" />Back to results</Link>
+      <Link to={`/admin/campaigns/${campaignId}`} className="inline-flex items-center gap-1 text-sm font-medium text-brand-ink"><ArrowLeft size={15} aria-hidden="true" />Back to results</Link>
       <Card className="flex flex-wrap items-start justify-between gap-4 p-5">
         <div>
-          <h2 className="text-2xl font-bold">{i.display_name}</h2>
+          <div className="flex items-center gap-3"><Avatar name={i.display_name} size={52} /><h2 className="text-2xl font-bold">{i.display_name}</h2></div>
           <p className="text-sm text-muted">{i.username} · {i.platform ?? 'Platform unknown'} · {i.creator_content_style}</p>
           <p className="mt-1 max-w-xl text-sm">{i.bio}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -49,7 +49,7 @@ export default function Profile() {
       </Card>
 
       {ex && (
-        <Card className="border-amber-200 bg-amber-50 p-5"><h3 className="font-semibold">Why this creator was {ex.status === 'needs_review' ? 'flagged for review' : 'excluded'} (Level {ex.level})</h3>
+        <Card className="border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/10 p-5"><h3 className="font-semibold">Why this creator was {ex.status === 'needs_review' ? 'flagged for review' : 'excluded'} (Level {ex.level})</h3>
           <ul className="mt-1 list-disc pl-5 text-sm">{ex.reasons.map(r => <li key={r}>{r}</li>)}</ul><p className="mt-1 text-xs text-muted">Codes: {ex.reason_codes.join(', ')}</p></Card>
       )}
 
@@ -71,7 +71,7 @@ export default function Profile() {
           <h4 className="mb-1 mt-4 text-sm font-semibold">Matching criteria</h4>
           <ul className="space-y-1 text-sm">{m.criteria.map(c => (
             <li key={c.name} className="flex flex-wrap items-center gap-2"><Badge tone={c.status === 'satisfied' ? 'ok' : c.status === 'partial' ? 'warn' : 'bad'}>{c.status.replace('_', ' ')}</Badge><b>{c.name}</b><span className="text-muted">{c.detail}</span></li>))}</ul>
-          {m.concerns.length > 0 && <div className="mt-3 rounded-xl bg-amber-50 p-3 text-sm"><b>Potential concerns</b><ul className="list-disc pl-5">{m.concerns.map(c => <li key={c}>{c}</li>)}</ul></div>}
+          {m.concerns.length > 0 && <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-400/10 p-3 text-sm"><b>Potential concerns</b><ul className="list-disc pl-5">{m.concerns.map(c => <li key={c}>{c}</li>)}</ul></div>}
         </Card>
       )}
 
