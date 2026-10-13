@@ -1,0 +1,11 @@
+Technical changes 
+1- What brief agent is doing is it really required? or it can be handle any subsequent agents as itis doing only one tool call but it is not compiling anything.
+2- Right now in creating a new campaign we are selecting a product what we need in addition A combined categories section example (Marvel/DC exclusive collection, Disney collection, summer sale, winter collection etc) in collection it should filter influencers based on there content. create relative data for the same.
+3 - the ai assistance is in side nav bar remover it and add it liker a floating button at right bottom side like a chat support bot in multiple company's.
+4. token usage should be added on the top like a dropdown pop up on top when click it should open and close that should also calculate how much cost 
+5. there should be one separate mechanism that use MCP process by which we get the out source data in our influncer agents.
+
+
+
+
+
