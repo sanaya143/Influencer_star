@@ -9,7 +9,7 @@ interface ThemeCtx {
   motion: MotionPref; setMotion: (m: MotionPref) => void; systemReducedMotion: boolean
 }
 const Ctx = createContext<ThemeCtx | null>(null)
-const KEY = 'threadora.theme', MOTION_KEY = 'threadora.motion'
+const KEY = 'zylo.theme', MOTION_KEY = 'zylo.motion'
 
 const media = (q: string) => typeof window !== 'undefined' && !!window.matchMedia?.(q).matches
 function read<T extends string>(key: string, allowed: T[], fallback: T): T {

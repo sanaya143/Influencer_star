@@ -1,8 +1,8 @@
-# THREADORA — Influencer Matching & Campaign Intelligence
+# Zylo — Influencer Matching & Campaign Intelligence
 
 *Fashion for every you.* An agentic (Google ADK) influencer-matching MVP where **every filtering and ranking decision is deterministic Python**, and the LLM is used only to interpret a campaign brief and explain results.
 
-> THREADORA is a placeholder brand name; check trademark/domain availability before commercial use.
+> Zylo is a demo brand name (formerly THREADORA); check trademark/domain availability before commercial use. Logo: gold hanger wordmark in `frontend/public/` (`zylo-logo.png` full with tagline, `zylo-wordmark.png` used in headers, `favicon.png`).
 > **All influencers, audiences, products and campaign metrics are synthetic demonstration data.** Outcomes in real life depend on data quality and observed performance; nothing here predicts sales or ROI.
 
 ## What's inside
@@ -15,6 +15,8 @@
 | **Level 1** eligibility filter | `backend/app/services/eligibility_filter.py` |
 | **Level 2** audience/product matcher | `backend/app/services/audience_matcher.py` |
 | Ranking engine + pipeline | `backend/app/services/ranking_engine.py` |
+| MCP server (inventory, orders, creators, campaigns for AI clients) | `backend/app/mcp_server.py` |
+| Chat assistant (coordinator + specialist agents), agent brain | `backend/app/agents/concierge.py`, `agents/brain.py`, `services/agent_tools.py` |
 | ADK agents, run recorder, tokens | `backend/app/agents/` (prompts in `agents/prompts/`) |
 | Seed generator (reproducible) | `backend/app/data/seed_generator.py` → `data/seed/*.json` |
 
@@ -36,13 +38,59 @@ Products live in the SQLite `products` table (seeded once from `data/seed/produc
 - Every stock change (initial stock, back-office edits, restocks, storefront orders) is written to `stock_movements`; the Inventory page shows them as a live feed and the Orders page lists every checkout.
 - New products appear in the Create campaign picker, so the influencer-matching engine can promote them straight away.
 
+## Assistant (chat) and the agent brain
+**Back office → Assistant** is a chat where the system explores a non-deterministic path: a language model (Google ADK, the model chosen in Settings) decides which specialist agent to consult and which of its tools to call, can chain several calls, and writes the answer from the results.
+
+| Specialist agent | Tools |
+|---|---|
+| Inventory | `list_products`, `get_product`, `inventory_summary`, `recent_orders` |
+| Creator | `search_creators`, `get_creator` |
+| Matching | `preview_matching` (deterministic engine; nothing saved; `micro_only` for micro-influencers) |
+| Campaign | `list_campaigns`, `get_campaign_results`, `explain_creator_in_campaign`, `start_campaign` |
+
+The specialists do the real work in deterministic Python (the same code the MCP server uses, in `services/agent_tools.py`); the model never scores anyone. `start_campaign` launches the full Brief → Matching → Insights workflow and is only called when you explicitly ask to create, launch or run a campaign. Chat cannot change stock or products. Under each reply the interface shows result cards built from the tool results (not by the model): products, creators, rankings, orders, KPIs, campaign links.
+
+If no model is configured, or the model fails or times out (free models often do), a rule-based keyword router calls the same tools and fills a fixed template. The reply is labelled "Rule-based router" with the reason, so it is never mistaken for the model. Tick *Skip the AI model* to force this instant path.
+
+**Agent brain.** Every model turn is recorded: what it saw (the latest message or tool result), any reasoning it returned, what it said, which tools it decided to call, tokens and time. Tool calls and the deterministic agents' rule-based decisions (thresholds, weights, template use) are in the same timeline. See it live beside each chat reply, and on every campaign run (**Agent execution → Agent brain**, filterable by agent). It is stored in `trace.brain` (`chat_turns.brain` for chat). Runs recorded before this feature have no brain.
+
+API: `POST /api/chat/sessions`, `POST /api/chat/sessions/{id}/messages`, `GET /api/chat/turns/{id}` (poll), `GET /api/chat/sessions[/{id}]`, `GET /api/chat/capabilities`.
+
+## MCP server
+Zylo exposes its services to any [Model Context Protocol](https://modelcontextprotocol.io) client (Claude Desktop/Code, IDE agents, other agent frameworks). The tools call the same service layer as the REST API, so there is one set of business rules.
+
+| Area | Tools (read-only unless marked ✎) |
+|---|---|
+| Inventory | `list_products`, `get_product`, `inventory_summary`, `stock_movements` · ✎ `create_product`, `adjust_stock`, `set_product_status` |
+| Orders | `list_orders` · ✎ `place_order` |
+| Creators | `search_creators`, `get_creator` |
+| Matching | `preview_matching` (deterministic Level 1 → Level 2 → ranking for a product; nothing is saved, no LLM) |
+| Campaigns | `list_campaigns`, `get_campaign_results`, `get_campaign_analytics`, `explain_creator_in_campaign` |
+| Reference | resource `zylo://methodology`, prompt `plan_influencer_campaign` |
+
+**Streamable HTTP** runs inside the API process at `http://localhost:8000/mcp` (no extra service to start):
+```bash
+claude mcp add --transport http zylo http://localhost:8000/mcp
+# with a token:  ZYLO_MCP_TOKEN=... on the server, then
+claude mcp add --transport http zylo http://localhost:8000/mcp --header "Authorization: Bearer <token>"
+```
+**stdio** (read-only) for desktop clients, e.g. Claude Desktop `claude_desktop_config.json`:
+```json
+{ "mcpServers": { "zylo": { "command": "C:/path/to/Influencer_star/backend/.venv/Scripts/python.exe",
+                            "args": ["-m", "app.mcp_server"], "cwd": "C:/path/to/Influencer_star/backend" } } }
+```
+**Activity log:** every tool call, resource read and prompt request, from both HTTP and stdio, is recorded (time, client name, tool, trimmed inputs with secrets masked, result hint, duration, success or error, and whether it changed data) in the `mcp_calls` table. See it live in **Agent execution → MCP activity** (filters for data changes and errors, expandable rows, pause/resume), or via `GET /api/mcp/calls`. Full results and access tokens are never stored; the last 5,000 calls are kept.
+
+Safety defaults: the endpoint only accepts local `Host`/`Origin` headers (DNS-rebinding protection; add deployed ones with `ZYLO_MCP_ALLOWED_HOSTS`); tools that change data are **off** unless `ZYLO_MCP_WRITES=1` **and** `ZYLO_MCP_TOKEN` is set, and they are never available over stdio (stock changes are serialised inside the API process). Creator bios and product descriptions returned by tools are data, not instructions. Test with the MCP Inspector: `npx @modelcontextprotocol/inspector` → Streamable HTTP → `http://localhost:8000/mcp`.
+
 ## Data
 All synthetic: **1,200 creators** (the first 300 are identical to earlier seeds), ~1,500 collaborations, ~2,300 promotional posts, **1,200 historical orders** (timestamps relative to first start) and 60 products. Regenerate with `python -m app.data.seed_generator --influencers 1200`.
 Product photos are hand-picked [Unsplash](https://unsplash.com/license) images matched to each product name (served from `images.unsplash.com`); offline, each tile falls back to a line illustration of the right garment type in the product colour.
 
 ## UI
 Light and dark themes (header toggle, or **Settings → Appearance**), page transitions and micro-animations on both sites. Animations follow the device's *reduce motion* setting (gentle fades only); choose **Animations: On** in Settings → Appearance to see the full motion. The header's model chip always shows the provider/model the agents use (green = live, amber = selected but no token, grey = AI off) with a quick switcher.
-**Agent execution** shows a live call graph (agents, tools, LLM, data counts on each edge) that updates while a run is in progress and replays finished runs step by step; select any node for its inputs, outputs, timing and tokens on the same page.
+**Agent execution** shows a live call graph (agents, tools, LLM, data counts on each edge) that updates while a run is in progress and replays finished runs step by step (click any step on the timeline). The canvas pans by dragging and zooms with the − / % / + controls, Ctrl/⌘ + scroll or pinch, and the keyboard (`+` `-`, `0` fit everything, `R` readable view, arrows); a minimap appears when part of the graph is off-screen, the camera follows the active step, and the expand button opens it full screen. Select any node for its inputs, outputs, timing and tokens on the same page.
+**Analytics**: *Score breakdown* and *Audience fit vs promotional performance* open as sortable tables (inline bars, quadrant filter, select a creator to open the profile); the chart view is one click away.
 
 ## Quick start (works with no token; add one in Settings for real agents)
 
@@ -66,7 +114,7 @@ Single-process mode: after `npm run build`, the backend also serves the built fr
 Open **Campaign Studio → Settings**:
 1. Pick a **provider** (Google Gemini, OpenRouter, OpenAI, Anthropic, Ollama, or Custom LiteLLM string).
 2. Pick a **model** from the dropdown or choose *Custom model id…* and type any id (e.g. `nvidia/nemotron-3-ultra-550b-a55b:free` on OpenRouter).
-3. Paste your **access token** (not needed for Ollama). It is write-only: stored in the local SQLite file `data/threadora.db` (git-ignored) and never sent back to the browser.
+3. Paste your **access token** (not needed for Ollama). It is write-only: stored in the local SQLite file `data/zylo.db` (git-ignored; an existing `data/threadora.db` is copied there once on first start) and never sent back to the browser.
 4. Press **Test connection** (makes one tiny real call and reports latency, tokens and clear errors), then **Save settings**.
 
 Untick *Use an AI model* for the deterministic offline mode (rule-based brief parser + templated insights, zero tokens, no network). If a saved model fails during a run, the brief step falls back to the rule-based parser and the run is marked *Needs Review*; insights fall back to the template.
@@ -84,7 +132,7 @@ Environment variables are an optional fallback only (see `.env.example`); anythi
 
 ## API
 `GET /api/health` · `/api/products[/{id}]` (active products, live stock) · `/api/mock/influencers[/{id}]` · `POST /api/campaigns/parse-brief` · `POST /api/campaigns` · `POST /api/campaigns/{id}/match` · `GET /api/campaigns/{id}/results|excluded|analytics|export` · `GET /api/runs` · `GET /api/runs/{id}/trace|usage`.
-Back office: `GET /api/inventory/meta|summary|movements` · `GET|POST /api/inventory/products` · `GET|PUT|DELETE /api/inventory/products/{id}` · `POST /api/inventory/products/{id}/stock|status` · `GET|POST /api/orders` · `POST /api/uploads` (PNG/JPEG/WebP/GIF ≤ 4 MB). Full OpenAPI at `/docs`.
+Back office: `GET /api/inventory/meta|summary|movements` · `GET|POST /api/inventory/products` · `GET|PUT|DELETE /api/inventory/products/{id}` · `POST /api/inventory/products/{id}/stock|status` · `GET|POST /api/orders` · `POST /api/uploads` (PNG/JPEG/WebP/GIF ≤ 4 MB). MCP at `/mcp` (activity log: `GET /api/mcp/calls`). Chat: `/api/chat/*`. Full OpenAPI at `/docs`.
 
 ## Tests
 ```bash
@@ -95,5 +143,5 @@ cd frontend && npm test && npm run build
 ## Notes & limits
 - The mock data service sits behind `services/data_provider.py`; replace it with an authorised real integration by implementing the same interface.
 - Estimated reach on the Analytics page is an explicitly labelled estimate from synthetic medians, not a forecast.
-- Product images are Unsplash photos chosen to match each product (not real THREADORA photography), with a garment illustration fallback offline. Uploaded images are stored in `data/uploads/` (git-ignored).
+- Product images are Unsplash photos chosen to match each product (not real Zylo photography), with a garment illustration fallback offline. Uploaded images are stored in `data/uploads/` (git-ignored).
 - Stock writes are serialised in-process for the SQLite MVP; on PostgreSQL use row locks (`SELECT … FOR UPDATE`).

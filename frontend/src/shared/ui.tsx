@@ -4,17 +4,13 @@ import { AlertTriangle, Inbox, X } from 'lucide-react'
 import { imgSrc } from '../api'
 import { GarmentArt } from './garments'
 
-export function Logo({ size = 28, light = false, tagline }: { size?: number; light?: boolean; tagline?: string }) {
+// Zylo logo (gold wordmark with hanger). `size` is the visual scale used across the app; the image is 2.2:1.
+export function Logo({ size = 28, tagline }: { size?: number; light?: boolean; tagline?: string }) {
+  const h = Math.round(size * 1.45)
   return (
-    <span className="inline-flex items-center gap-2" aria-label="THREADORA">
-      <motion.svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" whileHover={{ rotate: -8, scale: 1.06 }} transition={{ type: 'spring', stiffness: 300, damping: 15 }}>
-        <rect width="32" height="32" rx="9" fill="#01ABDD" />
-        <path d="M8 11h16M16 11v14M10 21c4 3 8-3 12 0" stroke="#111" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      </motion.svg>
-      <span className="leading-none">
-        <span className={`block font-display font-bold tracking-[0.14em] ${light ? 'text-white' : 'text-ink'}`} style={{ fontSize: size * 0.6 }}>THREADORA</span>
-        {tagline && <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">{tagline}</span>}
-      </span>
+    <span className="inline-flex flex-col items-start" aria-label="Zylo">
+      <img src="/zylo-wordmark.png" alt="Zylo" height={h} width={Math.round(h * 2.21)} decoding="async" draggable={false} style={{ height: h, width: 'auto' }} />
+      {tagline && <span className="-mt-0.5 pl-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">{tagline}</span>}
     </span>
   )
 }

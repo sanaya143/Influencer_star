@@ -1,4 +1,4 @@
-"""THREADORA backend entrypoint:  uvicorn app.main:app --reload --port 8000"""
+"""Zylo backend entrypoint:  uvicorn app.main:app --reload --port 8000"""
 from __future__ import annotations
 
 import warnings
@@ -9,13 +9,19 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.chat_routes import router as chat_router
 from .api.inventory_routes import router as inventory_router
+from .api.mcp_routes import router as mcp_router
 from .api.routes import router
 from .api.settings_routes import router as settings_router
 from .config import ROOT, get_settings
 from .db.database import init_db
+from .mcp_server import McpHttpMount
 from .services import runtime_settings
 from .services.data_provider import get_provider
+
+
+mcp_mount = McpHttpMount()
 
 
 @asynccontextmanager
@@ -23,15 +29,20 @@ async def lifespan(app: FastAPI):
     init_db()
     runtime_settings.load()  # provider/model/token saved from the Settings page
     get_provider()  # load/generate synthetic seed data
-    yield
+    async with mcp_mount.running():  # MCP server (Streamable HTTP) lives and dies with the app
+        yield
 
 
-app = FastAPI(title="THREADORA Influencer Matching & Campaign Intelligence API", version="1.0.0", lifespan=lifespan,
+app = FastAPI(title="Zylo Influencer Matching & Campaign Intelligence API", version="1.0.0", lifespan=lifespan,
               description="Agentic (Google ADK) orchestration over deterministic Python filtering and ranking. All data is synthetic.")
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins.split(","), allow_methods=["*"], allow_headers=["*"])
 app.include_router(router)
 app.include_router(inventory_router)
+app.include_router(mcp_router)
+app.include_router(chat_router)
 app.include_router(settings_router)
+app.add_route("/mcp", mcp_mount, include_in_schema=False)  # Model Context Protocol endpoint (see app/mcp_server.py)
+app.add_route("/mcp/", mcp_mount, include_in_schema=False)
 
 # Optional single-process mode: if the frontend was built (`npm run build`), serve it from this server.
 _dist = ROOT / "frontend" / "dist"

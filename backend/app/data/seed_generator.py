@@ -151,7 +151,7 @@ def generate_products(seed: int = 42) -> list[Product]:
         colour = COLOURS[i - 1]
         out.append(Product(
             product_id=f"P{i:03d}", product_name=name,
-            description=(f"{name} in {colour.lower()} from the THREADORA {coll} collection. "
+            description=(f"{name} in {colour.lower()} from the Zylo {coll} collection. "
                          "Affordable, trend-led and made to be worn on repeat."),
             category=cat, price_gbp=float(price), sizes=sizes, target_age_segments=ages,
             target_gender_or_collection=target, style_tags=styles, target_region="UK",

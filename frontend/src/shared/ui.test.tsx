@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { EmptyState, ErrorState, ProductImage, StatusPill } from './ui'
+import { EmptyState, ErrorState, Logo, ProductImage, StatusPill } from './ui'
 
 describe('shared UI', () => {
   it('shows an accessible error with retry', () => {
@@ -18,5 +18,13 @@ describe('shared UI', () => {
     render(<ProductImage src="http://bad.invalid/x.jpg" alt="Hoodie" category="Women" />)
     fireEvent.error(screen.getByAltText('Hoodie'))
     expect(screen.getByRole('img', { name: 'Hoodie' })).toBeInTheDocument()
+  })
+})
+
+describe('brand', () => {
+  it('renders the Zylo logo with an accessible name', () => {
+    render(<Logo tagline="Back office" />)
+    expect(screen.getByAltText('Zylo')).toHaveAttribute('src', '/zylo-wordmark.png')
+    expect(screen.getByText('Back office')).toBeInTheDocument()
   })
 })

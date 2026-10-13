@@ -47,6 +47,52 @@ class SettingRow(Base):
     value: Mapped[dict] = mapped_column(JSON)
 
 
+class McpCallRow(Base):
+    """One call made to the MCP server by an outside agent/client (tool, resource read or prompt). Stores a trimmed,
+    secret-redacted summary of the inputs and a short result hint, never full results or access tokens."""
+    __tablename__ = "mcp_calls"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    client: Mapped[str] = mapped_column(String, default="unknown")
+    transport: Mapped[str] = mapped_column(String, default="http")  # http | stdio
+    kind: Mapped[str] = mapped_column(String, default="tool")  # tool | resource | prompt
+    name: Mapped[str] = mapped_column(String, index=True)
+    args: Mapped[str] = mapped_column(String, default="")
+    status: Mapped[str] = mapped_column(String, default="ok", index=True)  # ok | error
+    error: Mapped[str | None] = mapped_column(String, nullable=True)
+    duration_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    result_hint: Mapped[str | None] = mapped_column(String, nullable=True)
+    changes_data: Mapped[bool] = mapped_column(Integer, default=0)  # a write tool that succeeded
+
+
+class ChatSessionRow(Base):
+    __tablename__ = "chat_sessions"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    title: Mapped[str] = mapped_column(String, default="New chat")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
+class ChatTurnRow(Base):
+    """One user message and the assistant's answer, with the agent 'brain' timeline that produced it."""
+    __tablename__ = "chat_turns"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    session_id: Mapped[str] = mapped_column(ForeignKey("chat_sessions.id"), index=True)
+    idx: Mapped[int] = mapped_column(Integer)
+    user_text: Mapped[str] = mapped_column(String)
+    answer: Mapped[str | None] = mapped_column(String, nullable=True)
+    status: Mapped[str] = mapped_column(String, default="Running")  # Running | Completed | Needs Review | Failed
+    mode: Mapped[str | None] = mapped_column(String, nullable=True)  # llm | rules
+    model: Mapped[str | None] = mapped_column(String, nullable=True)
+    note: Mapped[str | None] = mapped_column(String, nullable=True)
+    brain: Mapped[list] = mapped_column(JSON, default=list)
+    cards: Mapped[list] = mapped_column(JSON, default=list)
+    agents: Mapped[list] = mapped_column(JSON, default=list)  # specialist agents consulted, in order
+    usage: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class ProductRow(Base):
     """Product catalogue owned by the back office; the storefront and the matching engine read from here."""
     __tablename__ = "products"
@@ -112,8 +158,9 @@ def init_db(url: str | None = None) -> None:
     _engine = create_engine(url, **kwargs)
     Base.metadata.create_all(_engine)
     _Session = sessionmaker(_engine, expire_on_commit=False)
-    from ..services.inventory import seed_if_empty  # lazy: the service imports this module
+    from ..services.inventory import apply_rebrand, seed_if_empty  # lazy: the service imports this module
     seed_if_empty()
+    apply_rebrand()
 
 
 def session() -> Session:

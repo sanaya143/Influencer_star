@@ -123,3 +123,19 @@ def test_leaders_runs_and_health(client):
     assert ov["latest_run"]["campaign_name"] == "Hoodie drop" and len(ov["latest_run"]["leaders"]) == 5 and ov["inventory"]["bestsellers"]
     h = client.get("/api/health").json()
     assert h["configured_model"] and h["provider_label"] and h["mode"] == "offline"
+
+
+def test_rebrand_migrations(client, tmp_path, monkeypatch):
+    from app import config
+    from app.db.database import ProductRow, session
+    from app.services.inventory import apply_rebrand
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "threadora.db").write_bytes(b"old-db")
+    monkeypatch.setattr(config, "ROOT", tmp_path)
+    assert config.default_database_path().read_bytes() == b"old-db"  # copied once, original kept
+    assert (tmp_path / "data" / "threadora.db").exists()
+    with session() as db:
+        db.get(ProductRow, "P001").description = "From the THREADORA Street Edit collection."
+        db.commit()
+    apply_rebrand()
+    assert client.get("/api/products/P001").json()["description"] == "From the Zylo Street Edit collection."

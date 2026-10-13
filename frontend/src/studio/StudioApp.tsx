@@ -13,6 +13,7 @@ import Settings from './Settings'
 import Inventory from './Inventory'
 import ProductForm from './ProductForm'
 import Orders from './Orders'
+import Assistant from './Assistant'
 
 export default function StudioApp() {
   return (
@@ -26,6 +27,7 @@ export default function StudioApp() {
           <Route path="agents" element={<Agents />} />
           <Route path="influencer/:influencerId" element={<Profile />} />
         </Route>
+        <Route path="assistant" element={<Assistant />} />
         <Route path="discovery" element={<Discovery />} />
         <Route path="agents" element={<AgentsLanding />} />
         <Route path="inventory" element={<Inventory />} />

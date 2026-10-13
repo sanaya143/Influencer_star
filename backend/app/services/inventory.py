@@ -53,6 +53,16 @@ def seed_if_empty() -> None:
         db.commit()
 
 
+def apply_rebrand() -> None:
+    """One-off data migration for databases seeded before the THREADORA -> Zylo rebrand (idempotent)."""
+    with session() as db:
+        rows = db.query(ProductRow).filter(ProductRow.description.contains("THREADORA")).all()
+        for r in rows:
+            r.description = r.description.replace("THREADORA", "Zylo")
+        if rows:
+            db.commit()
+
+
 # ------------------------------------------------------------------ read helpers
 def _product(r: ProductRow) -> Product:
     return Product(product_id=r.product_id, product_name=r.product_name, description=r.description, category=r.category,

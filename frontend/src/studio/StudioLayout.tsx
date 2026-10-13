@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Activity, Compass, LayoutDashboard, Menu, Package, PlusCircle, Receipt, Settings as Cog, Store, X } from 'lucide-react'
+import { Activity, Compass, LayoutDashboard, Menu, MessageSquareText, Package, PlusCircle, Receipt, Settings as Cog, Store, X } from 'lucide-react'
 import { Logo } from '../shared/ui'
 import { ThemeToggle } from '../shared/theme'
 import { AnimatedOutlet } from '../shared/motion'
@@ -10,6 +10,7 @@ import ModelChip from './ModelChip'
 const groups = [
   { title: 'Marketing', links: [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: '/admin/assistant', label: 'Assistant', icon: MessageSquareText },
     { to: '/admin/campaigns/new', label: 'Create campaign', icon: PlusCircle },
     { to: '/admin/discovery', label: 'Influencer discovery', icon: Compass },
     { to: '/admin/agents', label: 'Agent execution', icon: Activity },
@@ -27,7 +28,7 @@ function titleFor(path: string): string {
   if (path.startsWith('/admin/campaigns/')) return 'Campaign'
   if (path.startsWith('/admin/inventory/new')) return 'New product'
   if (path.startsWith('/admin/inventory/')) return 'Edit product'
-  const m: Record<string, string> = { discovery: 'Influencer discovery', agents: 'Agent execution', inventory: 'Inventory', orders: 'Orders', settings: 'Settings' }
+  const m: Record<string, string> = { assistant: 'Assistant', discovery: 'Influencer discovery', agents: 'Agent execution', inventory: 'Inventory', orders: 'Orders', settings: 'Settings' }
   return m[path.split('/')[2]] ?? 'Back office'
 }
 

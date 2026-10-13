@@ -1,4 +1,4 @@
-"""Google ADK orchestration for the THREADORA workflow.
+"""Google ADK orchestration for the Zylo workflow.
 
 Agents
   1. CampaignBriefAgent       LlmAgent (llm mode)  | deterministic BaseAgent (offline mode)
@@ -35,11 +35,12 @@ from ..services import ranking_engine as re_
 from ..services.data_provider import get_provider
 from ..services.eligibility_filter import level1_filter
 from .brief_parser import assemble_brief, parse_request, search_products
+from .brain import model_hooks
 from .recorder import Recorder
 
 PROMPTS = Path(__file__).parent / "prompts"
 BRIEF, COORD, INSIGHTS = "CampaignBriefAgent", "MatchingCoordinatorAgent", "CampaignInsightsAgent"
-APP = "threadora"
+APP = "zylo"
 
 
 def _prompt(name: str) -> str:
@@ -53,7 +54,7 @@ def make_model():
         from .fake_llm import FakeLlm
         return FakeLlm(model="fake-llm")
     from google.adk.models.lite_llm import LiteLlm  # all providers go through LiteLLM
-    kwargs: dict = {"timeout": 180}
+    kwargs: dict = {"timeout": 180, "num_retries": 3}  # LiteLLM retries brief provider hiccups (503/429/timeouts) with backoff
     if s.llm_api_key:
         kwargs["api_key"] = s.llm_api_key
     if s.llm_base_url:
@@ -96,7 +97,7 @@ def _brief_tools(rec: Recorder):
     prov = get_provider()
 
     def search_products_tool(query: str) -> dict:
-        """Search the THREADORA product catalogue. Returns up to 5 candidate products with scores."""
+        """Search the Zylo product catalogue. Returns up to 5 candidate products with scores."""
         return {"candidates": search_products(query, prov.products())}
 
     def submit_brief(product_id: str, objective: str, target_age_segments: list[str], target: str, location: str,
@@ -138,10 +139,12 @@ def build_brief_agent(rec: Recorder, mode: str) -> BaseAgent:
     before_a, after_a = _agent_hooks(rec, BRIEF, summarise)
     if mode == "llm":
         before_t, after_t = _tool_hooks(rec, BRIEF)
+        before_m, after_m = model_hooks(rec, BRIEF, get_settings().llm_model)
         return LlmAgent(
             name=BRIEF, model=make_model(), instruction=lambda ctx: _prompt("brief_agent.md"),
             description="Turns a marketing request into a validated CampaignBrief.", tools=_brief_tools(rec),
-            before_agent_callback=before_a, after_agent_callback=after_a, before_tool_callback=before_t, after_tool_callback=after_t)
+            before_agent_callback=before_a, after_agent_callback=after_a, before_tool_callback=before_t, after_tool_callback=after_t,
+            before_model_callback=before_m, after_model_callback=after_m)
     return OfflineBriefAgent(name=BRIEF, rec=rec, before_agent_callback=before_a, after_agent_callback=after_a)
 
 
@@ -157,6 +160,10 @@ class OfflineBriefAgent(BaseAgent):
         t0 = time.perf_counter()
         pre = prov.product(pid) if pid else None
         product, fields, cands = parse_request(text, pre, prov.products())
+        found = {k: v for k, v in fields.items() if v not in (None, "", [], False)}
+        self.rec.brain(BRIEF, "rule", text=(f"No language model: the rule-based parser read the request. Product: "
+                                           f"{product.product_name if product else 'not identified'}. Picked up: "
+                                           f"{', '.join(f'{k}={v}' for k, v in found.items()) or 'nothing beyond the product defaults'}."))
         self.rec.tool_call(BRIEF, "search_products", {"query": text}, {"candidates": cands}, (time.perf_counter() - t0) * 1000)
         delta: dict = {}
         if product is None:
@@ -194,6 +201,13 @@ class MatchingCoordinatorAgent(BaseAgent):
         product = prov.product(brief.product_id)
         if product is None:
             raise ValueError(f"Product {brief.product_id} not found")
+        f, w = brief.filters, brief.weights.normalised()
+        self.rec.brain(COORD, "rule", text=(
+            "No language model: every filtering and ranking decision is deterministic Python. "
+            f"Level 1 keeps creators with ≥ {f.min_followers:,} followers and ≥ {f.min_promo_views:,} median promo views"
+            f"{' and a clear brand-safety status' if f.require_brand_safety else ''}; missing metrics go to review, never guessed. "
+            f"Level 2 keeps audience/content match ≥ {f.min_audience_match:g} for {', '.join(brief.target_age_segments)} / {brief.target} / {brief.location}. "
+            "Ranking weights: " + ", ".join(f"{k.replace('_', ' ')} {v * 100:.0f}%" for k, v in w.items()) + "."))
         infl = self._call("retrieve_data", lambda: prov.influencers(), {"product_id": brief.product_id, "source": "mock API (synthetic)"},
                           lambda r: {"influencers_retrieved": len(r)})
         l1 = self._call("level1_eligibility_filter", lambda: level1_filter(infl, brief.filters), brief.filters.model_dump(),
@@ -287,6 +301,7 @@ class OfflineInsightsAgent(BaseAgent):
         t0 = time.perf_counter()
         inp = _insight_input(ctx.session.state)
         ins = template_insights(inp)
+        self.rec.brain(INSIGHTS, "rule", text=f"No language model: wrote the explanation from a fixed template using the top {len(inp['top_candidates'])} ranked creators and the funnel counts.")
         self.rec.tool_call(INSIGHTS, "template_insights", {"top_candidates": len(inp["top_candidates"])}, {"keys": list(ins)}, (time.perf_counter() - t0) * 1000)
         yield Event(author=self.name, actions=EventActions(state_delta={"insights": ins}),
                     content=types.Content(role="model", parts=[types.Part(text=ins["summary"])]))
@@ -298,10 +313,11 @@ def build_insights_agent(rec: Recorder, mode: str) -> BaseAgent:
     if mode == "llm":
         def instruction(ctx):
             return _prompt("insights_agent.md").replace("{insight_input}", json.dumps(_insight_input(dict(ctx.state)), default=str))
+        before_m, after_m = model_hooks(rec, INSIGHTS, get_settings().llm_model)
         return LlmAgent(name=INSIGHTS, model=make_model(), instruction=instruction, output_key="insights_raw",
                         description="Explains ranked results and suggests next steps.",
                         generate_content_config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.2),
-                        before_agent_callback=before_a, after_agent_callback=after_a)
+                        before_agent_callback=before_a, after_agent_callback=after_a, before_model_callback=before_m, after_model_callback=after_m)
     return OfflineInsightsAgent(name=INSIGHTS, rec=rec, before_agent_callback=before_a, after_agent_callback=after_a)
 
 

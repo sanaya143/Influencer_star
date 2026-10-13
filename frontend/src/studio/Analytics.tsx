@@ -6,9 +6,10 @@ import { useApi } from '../shared/hooks'
 import { Badge, ErrorState, Skeleton, Stat } from '../shared/ui'
 import { CountUp, Reveal, rise, stagger } from '../shared/motion'
 import {
-  AlignmentChart, BreakdownChart, ChartFrame, FunnelChart, ScatterChart, alignmentLegend, alignmentTable, breakdownLegend, breakdownTable,
-  funnelTable, scatterLegend, scatterTable,
+  AlignmentChart, BreakdownChart, ChartFrame, FunnelChart, ScatterChart, alignmentLegend, alignmentTable, breakdownLegend,
+  funnelTable, scatterLegend,
 } from '../charts/charts'
+import { BreakdownTable, ScatterTable } from '../charts/tables'
 import { useCampaign } from './CampaignLayout'
 
 export default function Analytics() {
@@ -37,12 +38,14 @@ export default function Analytics() {
         <Reveal delay={0.06}><ChartFrame title="Audience age alignment" subtitle="Does the shortlist reach the ages this product targets? Bold rows are target segments." legend={alignmentLegend} table={alignmentTable(data.demographics)}><AlignmentChart data={data.demographics} /></ChartFrame></Reveal>
       </div>
       <Reveal>
-        <ChartFrame title="Score breakdown, top 10" subtitle="Weighted points each criterion adds to the overall score. Hover for every criterion; select a row to open the profile." legend={breakdownLegend} table={breakdownTable(data.breakdown)}>
+        <ChartFrame title="Score breakdown, top 10" subtitle="Weighted points each criterion adds to the overall score. Sort any column; select a creator to open the profile."
+          legend={breakdownLegend} defaultView="table" tableView={<BreakdownTable data={data.breakdown} onSelect={open} />}>
           <BreakdownChart data={data.breakdown} onSelect={open} />
         </ChartFrame>
       </Reveal>
       <Reveal>
-        <ChartFrame title="Audience fit vs promotional performance" subtitle="Up and to the right is best. Follower count (bubble size) is not part of the ranking." legend={scatterLegend} table={scatterTable(data.scatter)}>
+        <ChartFrame title="Audience fit vs promotional performance" subtitle="Strong audience match and proven promotional views together are best. Filter by position, sort any column, or switch to the chart."
+          legend={scatterLegend} defaultView="table" tableView={<ScatterTable data={data.scatter} onSelect={open} />}>
           <ScatterChart data={data.scatter} onSelect={open} />
         </ChartFrame>
       </Reveal>

@@ -41,7 +41,7 @@ export default function StoreLayout() {
       </div>
       <header className="sticky top-0 z-30 border-b border-line bg-page/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:gap-4">
-          <Link to="/" aria-label="THREADORA home"><Logo /></Link>
+          <Link to="/" aria-label="Zylo home"><Logo /></Link>
           <form onSubmit={submit} role="search" className="relative ml-auto flex-1 md:max-w-md">
             <label htmlFor="site-search" className="sr-only">Search products</label>
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
@@ -72,7 +72,7 @@ export default function StoreLayout() {
       <main id="main"><AnimatedOutlet /></main>
       <footer className="mt-20 border-t border-line bg-ice px-4 py-10 text-center text-xs text-muted">
         <Logo size={22} />
-        <p className="mx-auto mt-3 max-w-xl">Fashion for every you. THREADORA is a placeholder brand for a hackathon demo; products and creators are synthetic. Photography from Unsplash.</p>
+        <p className="mx-auto mt-3 max-w-xl">Fashion for every you. Zylo is a demo brand for a hackathon; products and creators are synthetic. Photography from Unsplash.</p>
       </footer>
       <nav aria-label="Mobile" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-page/95 backdrop-blur md:hidden">
         {mobile.map(m => (

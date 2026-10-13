@@ -42,6 +42,16 @@ PROVIDERS: dict[str, dict] = {
 PROVIDER_ALIASES = {"litellm": "custom"}
 
 
+def default_database_path() -> Path:
+    """data/zylo.db. A database from before the Zylo rebrand (data/threadora.db) is copied over once, so saved
+    settings, campaigns and inventory carry across; the old file is left untouched."""
+    new, old = ROOT / "data" / "zylo.db", ROOT / "data" / "threadora.db"
+    if not new.exists() and old.exists():
+        import shutil
+        shutil.copy2(old, new)
+    return new
+
+
 def litellm_model(provider: str, model: str) -> str:
     return PROVIDERS.get(provider, PROVIDERS["custom"])["prefix"] + model
 
@@ -104,7 +114,7 @@ def get_settings() -> Settings:
     mode = ov.get("mode") or os.getenv("LLM_MODE", "auto").lower()
     return Settings(
         llm_mode=mode, llm_provider=provider, llm_model=model, llm_base_url=base_url, llm_api_key=api_key, key_source=source,
-        database_url=os.getenv("DATABASE_URL", f"sqlite:///{ROOT / 'data' / 'threadora.db'}"),
+        database_url=os.getenv("DATABASE_URL") or f"sqlite:///{default_database_path()}",
         seed_dir=os.getenv("SEED_DIR", str(ROOT / "data" / "seed")),
         price_in_per_m=_price("LLM_PRICE_INPUT_PER_M"), price_out_per_m=_price("LLM_PRICE_OUTPUT_PER_M"),
         cors_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"))

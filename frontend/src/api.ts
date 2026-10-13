@@ -1,4 +1,4 @@
-// Typed client for the THREADORA backend. All business logic (eligibility, ranking) lives server-side.
+// Typed client for the Zylo backend. All business logic (eligibility, ranking) lives server-side.
 export interface Product {
   product_id: string; product_name: string; description: string; category: string; price_gbp: number; sizes: string[]
   target_age_segments: string[]; target_gender_or_collection: string; style_tags: string[]; target_region: string
@@ -32,6 +32,38 @@ export interface InventorySummary {
 export interface Leader { influencer_id: string; display_name: string; username: string; platform: string; rank: number; overall_score: number; value: number; is_micro: boolean }
 export interface LeaderGroup { key: string; label: string; unit: 'score' | 'views' | 'pct'; items: Leader[] }
 export interface RunSummary { run_id: string; campaign_id: string | null; campaign_name: string | null; kind: string; status: string; created_at: string; mode: string | null; model: string | null; total_tokens: number | null }
+/** One entry of an agent's "brain": a model turn (what it saw, thought, said and decided to call), a tool call,
+ *  a deterministic rule-based decision, or a note (including errors). */
+export interface BrainEvent {
+  seq: number; ts: string; agent: string; kind: 'llm' | 'tool' | 'rule' | 'note'
+  model?: string; input?: string; thought?: string; output?: string; calls?: { name: string; args: unknown }[]
+  tokens?: { in: number | null; out: number | null }; duration_ms?: number; error?: string
+  name?: string; args?: unknown; result?: string; text?: string; level?: 'info' | 'warn' | 'error'
+}
+export type Card =
+  | { type: 'products'; title: string; items: { product_id: string; name: string; price_gbp: number; category: string; colour: string; status: string; stock_state: 'in_stock' | 'low' | 'out'; total_stock: number; low_sizes: string[]; sold_out_sizes: string[]; sold_30d: number }[] }
+  | { type: 'kpis'; title: string; items: { label: string; value: string }[] }
+  | { type: 'orders'; title: string; items: { order_id: string; customer: string; channel: string; units: number; total_gbp: number; items: string[]; at: string }[] }
+  | { type: 'creators'; title: string; items: { influencer_id: string; name: string; platform: string; followers: number | null; promo_views: number | null; engagement: number | null }[] }
+  | { type: 'matches'; title: string; subtitle: string; campaign_id?: string; items: { rank: number; influencer_id: string; name: string; platform: string; followers: number; promo_views: number; score: number; is_micro: boolean }[] }
+  | { type: 'campaigns'; title: string; items: { campaign_id: string; name: string; status: string; ranked: number | null }[] }
+  | { type: 'campaign_started'; campaign_id: string; name: string; page: string; agents_page: string }
+  | { type: 'explain'; creator: string; influencer_id: string; rank: number | null; score: number | null; reasons: string[]; concerns: string[] }
+export interface ChatTurn {
+  turn_id: string; session_id: string; idx: number; user_text: string; answer: string | null; status: 'Running' | 'Completed' | 'Needs Review' | 'Failed'
+  mode: 'llm' | 'rules' | null; model: string | null; note: string | null; brain: BrainEvent[]; cards: Card[]; agents: string[]
+  usage: { total_tokens: number; input_tokens: number; output_tokens: number; token_source: string } | null; created_at: string; completed_at: string | null
+}
+export interface ChatCapabilities { mode: 'llm' | 'offline'; provider: string; model: string | null; agents: { name: string; role: string; tools: { name: string; summary: string }[] }[] }
+export interface McpCall {
+  id: number; at: string; client: string; transport: string; kind: 'tool' | 'resource' | 'prompt'; name: string; args: string
+  status: 'ok' | 'error'; error: string | null; duration_ms: number; result_hint: string | null; changes_data: boolean
+}
+export interface McpCalls {
+  items: McpCall[]
+  summary: { total: number; last_hour: number; errors: number; changes: number; avg_ms: number; top_tools: { name: string; count: number }[]; clients: { name: string; count: number }[] }
+  server: { running: boolean; writes: boolean; token_required: boolean; tools: number; endpoint: string }
+}
 export interface Health { status: string; mode: 'llm' | 'offline'; provider: string; model: string | null; provider_label: string; configured_model: string; use_ai: boolean; key_source: string; influencers: number; products: number }
 export interface Filters { min_followers: number; min_promo_views: number; require_brand_safety: boolean; min_audience_match: number }
 export interface Weights { audience_fit: number; content_fit: number; engagement: number; promo_views: number; collaboration: number; brand_affinity: number; region: number }
@@ -68,6 +100,7 @@ export interface AgentRun {
 export interface Trace {
   run_id: string; campaign_id: string | null; kind: string; status: string; started_at: string; completed_at: string | null; mode: string
   provider: string; model: string | null; summary: string | null; agents: AgentRun[]; steps: { ts: string; agent: string; kind: string; detail: string }[]
+  brain?: BrainEvent[]  // absent on runs recorded before the brain existed
 }
 export interface Usage {
   run_id: string; model: string | null; provider: string; mode: string; input_tokens: number; output_tokens: number; total_tokens: number

@@ -10,8 +10,8 @@ interface Store {
 const Ctx = createContext<Store | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [bag, setBag] = useLocalStorage<BagItem[]>('threadora.bag', [])
-  const [wishlist, setWish] = useLocalStorage<string[]>('threadora.wishlist', [])
+  const [bag, setBag] = useLocalStorage<BagItem[]>('zylo.bag', [])
+  const [wishlist, setWish] = useLocalStorage<string[]>('zylo.wishlist', [])
   const value = useMemo<Store>(() => ({
     bag, wishlist,
     addToBag: (id, size) => setBag(b => b.some(i => i.product_id === id && i.size === size) ? b.map(i => i.product_id === id && i.size === size ? { ...i, qty: i.qty + 1 } : i) : [...b, { product_id: id, size, qty: 1 }]),

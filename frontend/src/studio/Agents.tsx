@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, Cpu, Plus, Wrench } from 'lucide-react'
-import { fmt, type AgentRun, type RunSummary, type Trace, type Usage } from '../api'
+import { BrainCircuit, ChevronDown, Cpu, Plus, Wrench } from 'lucide-react'
+import { fmt, type AgentRun, type McpCalls, type RunSummary, type Trace, type Usage } from '../api'
 import { useApi, usePolling } from '../shared/hooks'
-import { Badge, Button, Card, EmptyState, ErrorState, Skeleton, StatusPill } from '../shared/ui'
+import { Badge, Button, Card, EmptyState, ErrorState, Segmented, Skeleton, StatusPill } from '../shared/ui'
 import { rise, stagger } from '../shared/motion'
 import { TERMINAL, useCampaign } from './CampaignLayout'
 import AgentGraph from './AgentGraph'
+import McpActivity from './McpActivity'
+import BrainTimeline from './Brain'
 
 export function AgentPanel({ trace, runId }: { trace: Trace | null; runId: string | null }) {
   const done = !!trace && TERMINAL.includes(trace.status)
@@ -15,15 +17,26 @@ export function AgentPanel({ trace, runId }: { trace: Trace | null; runId: strin
   if (!trace) return <div className="space-y-4"><Skeleton className="h-96" /><Skeleton className="h-40" /></div>
   return (
     <div className="space-y-5">
-      <Card className="p-5">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <section aria-labelledby="graph-h" className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">How the agents called each other</h2>
+            <h2 id="graph-h" className="text-lg font-semibold">How the agents called each other</h2>
             <p className="text-sm text-muted">Run <span className="font-mono">{trace.run_id}</span> · started {new Date(trace.started_at).toLocaleString('en-GB')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2"><StatusPill status={trace.status} /><Badge tone={trace.mode === 'llm' ? 'brand' : 'neutral'}>{trace.mode === 'llm' ? `LLM · ${trace.model}` : 'Offline deterministic'}</Badge></div>
         </div>
         <AgentGraph trace={trace} />
+      </section>
+
+      <Card className="p-5">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold"><BrainCircuit size={18} aria-hidden="true" className="text-brand-ink" />Agent brain</h2>
+            <p className="text-sm text-muted">What each agent saw, thought and decided, in order: model turns, tool calls and rule-based decisions. Select a step to expand it.</p>
+          </div>
+        </div>
+        <BrainTimeline events={trace.brain ?? []} live={!done} running={!done} filterable maxHeight="32rem"
+          emptyHint={trace.mode === 'llm' ? 'This run was recorded before the agent brain existed.' : 'This run was recorded before the agent brain existed. New runs show every decision here.'} />
       </Card>
 
       <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 lg:grid-cols-3">
@@ -119,8 +132,37 @@ export default function Agents() {
   return <AgentPanel trace={trace} runId={runId} />
 }
 
-/** Sidebar "Agent execution": pick any recent run and inspect it right here (no navigation away). */
+/** Sidebar "Agent execution": campaign runs (live call graph) and what outside agents did through MCP, on one page. */
 export function AgentsLanding() {
+  const [sp, setSp] = useSearchParams()
+  const view = sp.get('view') === 'mcp' ? 'mcp' : 'runs'
+  const mcp = useApi<McpCalls>('/mcp/calls?limit=1')
+  const setView = (v: 'runs' | 'mcp') => { const n = new URLSearchParams(sp); if (v === 'mcp') n.set('view', 'mcp'); else n.delete('view'); setSp(n, { replace: true }) }
+  const total = mcp.data?.summary.total ?? 0
+  return (
+    <div className="mx-auto max-w-7xl space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold md:text-3xl">Agent execution</h1>
+          <p className="text-sm text-muted">{view === 'runs' ? 'Live call graph, tool calls and token usage for every matching run. Pick a run below.' : 'Every call that outside AI agents make to Zylo through the MCP server, live.'}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Segmented label="Agent execution view" value={view} onChange={setView}
+            options={[{ value: 'runs', label: 'Campaign runs' },
+              { value: 'mcp', label: <span className="inline-flex items-center gap-1.5">MCP activity{total > 0 && <span className="tabular rounded-full bg-black/10 px-1.5 text-[11px] font-bold">{total}</span>}</span> }]} />
+          {view === 'runs' && <Link to="/admin/campaigns/new"><Button variant="outline"><Plus size={16} aria-hidden="true" />New campaign</Button></Link>}
+        </div>
+      </header>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={view} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.2 }}>
+          {view === 'runs' ? <RunsView /> : <McpActivity />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function RunsView() {
   const [sp, setSp] = useSearchParams()
   const runs = useApi<{ items: RunSummary[] }>('/runs?kind=match&limit=20')
   const items = runs.data?.items ?? []
@@ -135,43 +177,31 @@ export function AgentsLanding() {
   const current = items.find(r => r.run_id === selected)
 
   if (runs.error) return <ErrorState message={runs.error} onRetry={runs.reload} />
-  if (runs.loading && !runs.data) return <div className="mx-auto max-w-7xl space-y-4"><Skeleton className="h-24" /><Skeleton className="h-96" /></div>
+  if (runs.loading && !runs.data) return <div className="space-y-4"><Skeleton className="h-24" /><Skeleton className="h-96" /></div>
+  if (!items.length) return <EmptyState title="No runs yet" hint="Launch a campaign and its agents will appear here as a live graph." />
   return (
-    <div className="mx-auto max-w-7xl space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold md:text-3xl">Agent execution</h1>
-          <p className="text-sm text-muted">Live call graph, tool calls and token usage for every matching run. Pick a run below.</p>
-        </div>
-        <Link to="/admin/campaigns/new"><Button variant="outline"><Plus size={16} aria-hidden="true" />New campaign</Button></Link>
-      </header>
-      {!items.length ? (
-        <EmptyState title="No runs yet" hint="Launch a campaign and its agents will appear here as a live graph." />
-      ) : (
-        <>
-          <div role="listbox" aria-label="Recent runs" className="scrollbar-thin -mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
-            {items.map(r => {
-              const on = r.run_id === selected
-              return (
-                <button key={r.run_id} type="button" role="option" aria-selected={on} onClick={() => setSp({ run: r.run_id }, { replace: true })}
-                  className={`relative w-60 shrink-0 rounded-2xl border p-3 text-left transition-all ${on ? 'border-brand bg-surface shadow-card' : 'border-line bg-surface/60 hover:border-brand/50 hover:bg-surface'}`}>
-                  {on && <motion.span layoutId="run-pick" className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand" />}
-                  <p className="truncate text-sm font-semibold">{r.campaign_name ?? r.campaign_id ?? r.run_id}</p>
-                  <div className="mt-1.5 flex items-center justify-between gap-2"><StatusPill status={r.status} /><span className="text-xs text-muted">{fmt.ago(r.created_at)}</span></div>
-                  <p className="mt-1.5 truncate text-[11px] text-muted">{r.mode === 'llm' ? r.model : 'Offline deterministic'}{r.total_tokens ? ` · ${fmt.n(r.total_tokens)} tokens` : ''}</p>
-                </button>
-              )
-            })}
-          </div>
-          {error ? <ErrorState message={error} /> : (
-            <AnimatePresence mode="wait">
-              <motion.div key={selected} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22 }}>
-                {current && <p className="mb-3 text-sm">Showing <b>{current.campaign_name ?? 'campaign'}</b> run <span className="font-mono text-xs">{current.run_id}</span></p>}
-                <AgentPanel trace={trace && trace.run_id === selected ? trace : null} runId={selected} />
-              </motion.div>
-            </AnimatePresence>
-          )}
-        </>
+    <div className="space-y-5">
+      <div role="listbox" aria-label="Recent runs" className="scrollbar-thin -mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
+        {items.map(r => {
+          const on = r.run_id === selected
+          return (
+            <button key={r.run_id} type="button" role="option" aria-selected={on} onClick={() => { const n = new URLSearchParams(sp); n.set('run', r.run_id); setSp(n, { replace: true }) }}
+              className={`relative w-60 shrink-0 rounded-2xl border p-3 text-left transition-all ${on ? 'border-brand bg-surface shadow-card' : 'border-line bg-surface/60 hover:border-brand/50 hover:bg-surface'}`}>
+              {on && <motion.span layoutId="run-pick" className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand" />}
+              <p className="truncate text-sm font-semibold">{r.campaign_name ?? r.campaign_id ?? r.run_id}</p>
+              <div className="mt-1.5 flex items-center justify-between gap-2"><StatusPill status={r.status} /><span className="text-xs text-muted">{fmt.ago(r.created_at)}</span></div>
+              <p className="mt-1.5 truncate text-[11px] text-muted">{r.mode === 'llm' ? r.model : 'Offline deterministic'}{r.total_tokens ? ` · ${fmt.n(r.total_tokens)} tokens` : ''}</p>
+            </button>
+          )
+        })}
+      </div>
+      {error ? <ErrorState message={error} /> : (
+        <AnimatePresence mode="wait">
+          <motion.div key={selected} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22 }}>
+            {current && <p className="mb-3 text-sm">Showing <b>{current.campaign_name ?? 'campaign'}</b> run <span className="font-mono text-xs">{current.run_id}</span></p>}
+            <AgentPanel trace={trace && trace.run_id === selected ? trace : null} runId={selected} />
+          </motion.div>
+        </AnimatePresence>
       )}
     </div>
   )

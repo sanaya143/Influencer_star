@@ -15,6 +15,11 @@ AGENT_META = {
     "CampaignBriefAgent": ("Campaign Brief Agent", "Turns a marketing request into a validated CampaignBrief."),
     "MatchingCoordinatorAgent": ("Matching Coordinator Agent", "Runs the deterministic Python L1 filter, L2 matcher and ranking engine."),
     "CampaignInsightsAgent": ("Campaign Insights Agent", "Explains the ranked results and suggests next steps."),
+    "ConciergeAgent": ("Concierge Agent", "Chat coordinator: decides which specialist agents to call and writes the answer."),
+    "InventoryAgent": ("Inventory Agent", "Catalogue, stock levels, orders and sales."),
+    "CreatorAgent": ("Creator Agent", "Browses and inspects the creator dataset."),
+    "MatchingAgent": ("Matching Agent", "Ranks creators for a product with the deterministic engine."),
+    "CampaignAgent": ("Campaign Agent", "Saved campaigns: results, explanations, launching the agent workflow."),
 }
 
 
@@ -36,6 +41,15 @@ def redact(obj: Any, depth: int = 0) -> Any:
     return obj
 
 
+def _short(obj: Any, n: int = 300) -> str:
+    import json
+    try:
+        s = json.dumps(obj, default=str, ensure_ascii=False)
+    except Exception:
+        s = str(obj)
+    return s if len(s) <= n else s[: n - 1] + "…"
+
+
 def estimate_tokens(text: str) -> int:
     """Documented approximation: ~4 characters per token (used only when the provider reports no usage)."""
     return max(1, len(text) // 4) if text else 0
@@ -51,7 +65,7 @@ class Recorder:
             "started_at": ts(), "completed_at": None, "mode": s.effective_mode(),
             "provider": s.llm_provider if s.effective_mode() == "llm" else "none (offline deterministic mode)",
             "model": s.llm_model if s.effective_mode() == "llm" else None, "summary": None, "steps": [],
-            "agents": [self._new_agent(n) for n in agent_names],
+            "agents": [self._new_agent(n) for n in agent_names], "brain": [],
         }
 
     @staticmethod
@@ -76,6 +90,16 @@ class Recorder:
     def _changed(self) -> None:
         if self.on_change:
             self.on_change(self.trace)
+
+    MAX_BRAIN = 300
+
+    def brain(self, agent: str, kind: str, **data: Any) -> None:
+        """Append one entry to the agent-brain timeline. kind: llm (a model turn), tool, rule (deterministic decision), note."""
+        b = self.trace["brain"]
+        if len(b) >= self.MAX_BRAIN:
+            return
+        b.append({"seq": len(b) + 1, "ts": ts(), "agent": agent, "kind": kind, **{k: v for k, v in data.items() if v not in (None, "", [])}})
+        self._changed()
 
     def step(self, agent: str, kind: str, detail: str) -> None:
         self.trace["steps"].append({"ts": ts(), "agent": agent, "kind": kind, "detail": detail})
@@ -111,6 +135,8 @@ class Recorder:
         if error:
             a["errors"].append(f"{tool}: {error}")
         self.step(agent, "tool_call", f"{tool}" + (f" failed: {error}" if error else " ok"))
+        out = redact(output)
+        self.brain(agent, "tool", name=tool, args=redact(tool_input), result=None if error else _short(out), error=error, duration_ms=round(duration_ms, 1))
         self._changed()
 
     def add_usage(self, agent: str, input_tokens: int | None, output_tokens: int | None, fallback_text_in: str = "", fallback_text_out: str = "") -> None:
@@ -131,6 +157,7 @@ class Recorder:
         a = self.agent(agent)
         a["errors"].append(msg)
         self.step(agent, "error", msg)
+        self.brain(agent, "note", level="error", text=msg[:400])
 
     def finish(self, status: str, summary: str) -> dict:
         self.trace["status"], self.trace["completed_at"], self.trace["summary"] = status, ts(), summary

@@ -16,7 +16,7 @@ from ..agents.workflow import run_brief, run_match
 from ..config import PROVIDERS, get_settings
 from ..db.database import CampaignRow, RunRow, jsonable, session
 from ..schemas.models import AGE_SEGMENTS, CATEGORIES, TARGETS, CampaignBrief, FilterConfig, ScoreWeights
-from ..services import inventory
+from ..services import creators, inventory
 from ..services.data_provider import get_provider
 
 router = APIRouter(prefix="/api")
@@ -114,18 +114,7 @@ def product(product_id: str):
 def mock_influencers(q: str = "", platform: str = "", category: str = "", min_followers: int = 0, max_followers: Optional[int] = None,
                      sort: Literal["id", "followers", "promo_views", "engagement"] = "id",
                      page: int = Query(1, ge=1), page_size: int = Query(25, ge=1, le=200)):
-    items = get_provider().influencers()
-    if q:
-        ql = q.lower()
-        items = [i for i in items if ql in i.display_name.lower() or ql in i.username.lower() or any(ql in t for t in i.content_tags)]
-    if platform:
-        items = [i for i in items if (i.platform or "").lower() == platform.lower()]
-    if category:
-        items = [i for i in items if category in i.fashion_categories]
-    items = [i for i in items if (i.follower_count or 0) >= min_followers and (max_followers is None or (i.follower_count or 0) <= max_followers)]
-    key = {"id": lambda i: i.influencer_id, "followers": lambda i: -(i.follower_count or 0),
-           "promo_views": lambda i: -(i.median_promotional_views or 0), "engagement": lambda i: -(i.engagement_rate or 0)}[sort]
-    items = sorted(items, key=key)
+    items = creators.search(q, platform, category, min_followers, max_followers, sort)
     out = paginate(items, page, page_size)
     out["items"] = [i.model_dump(exclude={"collaboration_history"}) for i in out["items"]]
     out["data_note"] = "Synthetic demonstration data served by the mock API."

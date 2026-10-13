@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { BarChart3, Table2 } from 'lucide-react'
 import type { Analytics, InventorySummary } from '../api'
 import { CRITERIA_LABELS, fmt } from '../api'
@@ -9,11 +9,11 @@ import { EmptyState } from '../shared/ui'
 // Colours come from CSS variables (index.css) so every chart switches with the theme. The categorical order
 // below was validated for colour-vision-deficiency separation in both themes; colour follows the criterion,
 // never its rank.
-const SERIES: Record<string, string> = {
+export const SERIES: Record<string, string> = {
   audience_fit: 'var(--series-1)', content_fit: 'var(--series-2)', engagement: 'var(--series-3)', promo_views: 'var(--series-4)',
   collaboration: 'var(--series-5)', brand_affinity: 'var(--series-6)', region: 'var(--series-7)',
 }
-const CRITERIA = Object.keys(SERIES)
+export const CRITERIA = Object.keys(SERIES)
 const ORD = ['var(--ord-1)', 'var(--ord-2)', 'var(--ord-3)', 'var(--ord-4)']
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -60,17 +60,19 @@ const TipRow = ({ color, label, value, strong = false }: { color?: string; label
 
 // ------------------------------------------------------------------ frame with chart/table toggle
 export interface TableSpec { columns: string[]; rows: (string | number)[][]; caption: string }
-export function ChartFrame({ title, subtitle, legend, table, children, action }: {
-  title: string; subtitle?: string; legend?: ReactNode; table?: TableSpec; children: ReactNode; action?: ReactNode
+export function ChartFrame({ title, subtitle, legend, table, tableView, defaultView = 'chart', children, action }: {
+  title: string; subtitle?: string; legend?: ReactNode; table?: TableSpec; tableView?: ReactNode; defaultView?: 'chart' | 'table'
+  children: ReactNode; action?: ReactNode
 }) {
-  const [view, setView] = useState<'chart' | 'table'>('chart')
+  const hasTable = !!(table || tableView)
+  const [view, setView] = useState<'chart' | 'table'>(hasTable ? defaultView : 'chart')
   return (
     <section className="shadow-card min-w-0 rounded-2xl border border-line bg-surface p-5" aria-label={title}>
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0"><h2 className="text-base font-semibold">{title}</h2>{subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}</div>
         <div className="flex items-center gap-2">
           {action}
-          {table && (
+          {hasTable && (
             <div className="inline-flex rounded-lg border border-line p-0.5" role="group" aria-label={`${title} view`}>
               {(['chart', 'table'] as const).map(v => (
                 <button key={v} type="button" aria-pressed={view === v} onClick={() => setView(v)} aria-label={v === 'chart' ? 'Show chart' : 'Show table'}
@@ -83,15 +85,19 @@ export function ChartFrame({ title, subtitle, legend, table, children, action }:
         </div>
       </div>
       {legend && view === 'chart' && <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted">{legend}</div>}
-      {view === 'chart' || !table ? children : (
-        <div className="scrollbar-thin max-h-96 overflow-auto rounded-xl border border-line">
-          <table className="dense w-full">
-            <caption className="sr-only">{table.caption}</caption>
-            <thead className="sticky top-0 bg-surface"><tr>{table.columns.map((c, i) => <th key={c} scope="col" className={i ? 'num' : ''}>{c}</th>)}</tr></thead>
-            <tbody>{table.rows.map((r, i) => <tr key={i}>{r.map((c, j) => j === 0 ? <th key={j} scope="row" className="font-medium">{c}</th> : <td key={j} className="num">{c}</td>)}</tr>)}</tbody>
-          </table>
-        </div>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={view} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.18 }}>
+          {view === 'chart' || !hasTable ? children : tableView ?? (
+            <div className="scrollbar-thin max-h-96 overflow-auto rounded-xl border border-line">
+              <table className="dense w-full">
+                <caption className="sr-only">{table!.caption}</caption>
+                <thead className="sticky top-0 bg-surface"><tr>{table!.columns.map((c, i) => <th key={c} scope="col" className={i ? 'num' : ''}>{c}</th>)}</tr></thead>
+                <tbody>{table!.rows.map((r, i) => <tr key={i}>{r.map((c, j) => j === 0 ? <th key={j} scope="row" className="font-medium">{c}</th> : <td key={j} className="num">{c}</td>)}</tr>)}</tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </section>
   )
 }
@@ -264,10 +270,6 @@ export function BreakdownChart({ data, onSelect }: { data: Analytics['breakdown'
   )
 }
 export const breakdownLegend = <>{CRITERIA.map(k => <Swatch key={k} color={SERIES[k]} label={CRITERIA_LABELS[k]} />)}</>
-export const breakdownTable = (data: Analytics['breakdown']): TableSpec => ({
-  caption: 'Weighted score contributions, top 10', columns: ['Creator', ...CRITERIA.map(k => CRITERIA_LABELS[k]), 'Overall'],
-  rows: data.slice(0, 10).map(r => [`#${r.rank} ${r.name}`, ...CRITERIA.map(k => (r.contributions[k] ?? 0).toFixed(1)), r.overall.toFixed(1)]),
-})
 
 // ------------------------------------------------------------------ 4. audience fit vs promotional performance
 export function ScatterChart({ data, onSelect }: { data: Analytics['scatter']; onSelect: (id: string) => void }) {
@@ -345,10 +347,6 @@ export function ScatterChart({ data, onSelect }: { data: Analytics['scatter']; o
   )
 }
 export const scatterLegend = <><Swatch color="var(--series-1)" shape="dot" label="Top 5 by overall score" /><Swatch color="var(--chart-deemph)" shape="dot" label="Other ranked creators" /><Swatch color="var(--chart-zone)" label="Sweet spot: match ≥ 70 and above-median views" /><span>Bubble size = followers (not used for ranking)</span></>
-export const scatterTable = (data: Analytics['scatter']): TableSpec => ({
-  caption: 'Ranked creators: views and match', columns: ['Creator', 'Rank', 'Median promo views', 'Match', 'Followers', 'Overall'],
-  rows: data.slice().sort((a, b) => a.rank - b.rank).slice(0, 40).map(d => [d.name, d.rank, fmt.n(d.views), d.match.toFixed(0), fmt.n(d.followers), d.overall.toFixed(1)]),
-})
 
 // ------------------------------------------------------------------ 5. revenue by day (single series columns)
 export function RevenueChart({ daily }: { daily: InventorySummary['daily'] }) {

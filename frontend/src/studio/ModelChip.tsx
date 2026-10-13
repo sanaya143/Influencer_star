@@ -12,7 +12,7 @@ interface SettingsView {
   providers: { id: string; label: string; models: string[]; needs_key: boolean }[]
 }
 
-export const SETTINGS_EVENT = 'threadora:settings'
+export const SETTINGS_EVENT = 'zylo:settings'
 const shortModel = (m: string) => m.split('/').pop() ?? m
 
 /** Header chip that always reflects the model the agents will use, with a quick switcher. */
