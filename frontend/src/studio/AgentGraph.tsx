@@ -7,9 +7,11 @@ import { Badge, Button, StatusPill } from '../shared/ui'
 
 // ------------------------------------------------------------------ layout (SVG user units)
 const BRIEF = 'CampaignBriefAgent', COORD = 'MatchingCoordinatorAgent', INSIGHTS = 'CampaignInsightsAgent'
-const W = 1420, H = 900
-const COL = { brief: 340, coord: 720, insights: 1080 }  // runs recorded with the (retired) Brief agent
-const COL2 = { coord: 600, insights: 1080 }  // current workflow: Matching Coordinator, then Insights
+// Graph space. Compact enough that "fit" shows the whole workflow at a readable zoom on a laptop screen.
+const W = 1300, H = 690
+const COL = { brief: 320, coord: 660, insights: 990 }  // runs recorded with the (retired) Brief agent
+const COL2 = { coord: 560, insights: 950, gather: 290, decide: 590 }  // current workflow: Matching Coordinator, then Insights
+const GATHER = 3  // coordinator tools 0-2 gather creators; 3-6 filter, rank and plan
 type Kind = 'io' | 'agent' | 'tool' | 'llm'
 interface GNode { id: string; kind: Kind; label: string; sub?: string; x: number; y: number; w: number; h: number; agent?: string; tool?: string }
 interface GEdge { id: string; from: string; to: string; kind: 'flow' | 'tool' | 'llm'; label?: string }
@@ -17,14 +19,27 @@ interface GEdge { id: string; from: string; to: string; kind: 'flow' | 'tool' | 
 const TOOL_LABELS: Record<string, string> = {
   search_products: 'Search products', submit_brief: 'Submit brief', retrieve_data: 'Retrieve creators',
   level1_eligibility_filter: 'Level 1 · eligibility', level2_audience_matcher: 'Level 2 · audience match', ranking_engine: 'Ranking engine',
-  template_insights: 'Template insights', resolve_target: 'Resolve product / collection', fetch_external_creators: 'Outside creators (MCP)',
+  template_insights: 'Template insights', resolve_target: 'Product or collection', fetch_external_creators: 'Outside creators (MCP)',
   roi_planner: 'ROI & budget plan',
 }
 const BRIEF_TOOLS = ['search_products', 'submit_brief']
 const COORD_TOOLS_V1 = ['retrieve_data', 'level1_eligibility_filter', 'level2_audience_matcher', 'ranking_engine']
 const COORD_TOOLS = ['resolve_target', 'retrieve_data', 'fetch_external_creators', 'level1_eligibility_filter', 'level2_audience_matcher', 'ranking_engine', 'roi_planner']
 interface LaneDef { x: number; w: number; label: string }
-const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
+const SANS = 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif'
+const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+let measureCtx: CanvasRenderingContext2D | null | undefined
+/** Trim text with an ellipsis so it fits `max` px at the given font: measured, not guessed by character count. */
+function fit(text: string, max: number, size: number, weight = 400, family = SANS): string {
+  if (measureCtx === undefined) { try { measureCtx = document.createElement('canvas').getContext('2d') } catch { measureCtx = null } }
+  const ctx = measureCtx
+  const width = (t: string) => { if (!ctx) return t.length * size * (family === MONO ? 0.6 : 0.56); ctx.font = `${weight} ${size}px ${family}`; return ctx.measureText(t).width }
+  if (width(text) <= max) return text
+  let lo = 0, hi = text.length
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (width(`${text.slice(0, mid).trimEnd()}…`) <= max) lo = mid; else hi = mid - 1 }
+  return `${text.slice(0, lo).trimEnd()}…`
+}
+const dur = (ms: number) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms < 10 ? ms.toFixed(1) : Math.round(ms)}ms`)
 
 function buildGraph(trace: Trace) {
   const insightTools = [...new Set(trace.agents.find(a => a.id === INSIGHTS)?.tools.map(t => t.name) ?? [])]
@@ -39,7 +54,7 @@ function buildGraph(trace: Trace) {
   const ranked = n(out(COORD, 'ranking_engine')?.ranked)
   const insightLane = trace.agents.find(a => a.id === INSIGHTS)?.tools.length ? 'INSIGHT TOOLS' : 'LLM OUTPUT'
   const llmNode = (cx: number): GNode => ({ id: 'llm', kind: 'llm', label: llm ? (trace.model ?? 'LLM') : 'No LLM call', sub: llm ? trace.provider : 'Offline deterministic mode', x: cx - 160, y: 24, w: 320, h: 72 })
-  const io = (id: string, label: string, sub: string, x: number): GNode => ({ id, kind: 'io', label, sub, x, y: agentRow + 17, w: 150, h: 70 })
+  const io = (id: string, label: string, sub: string, x: number): GNode => ({ id, kind: 'io', label, sub, x, y: agentRow + 17, w: 172, h: 70 })
 
   if (legacy) {  // a run from before the Brief agent was merged into the Matching Coordinator
     const nodes: GNode[] = [
@@ -47,7 +62,7 @@ function buildGraph(trace: Trace) {
       { id: BRIEF, kind: 'agent', label: 'Brief Agent', x: COL.brief - 120, y: agentRow, w: 240, h: 104, agent: BRIEF },
       { id: COORD, kind: 'agent', label: 'Matching Coordinator', x: COL.coord - 132, y: agentRow, w: 264, h: 104, agent: COORD },
       { id: INSIGHTS, kind: 'agent', label: 'Insights Agent', x: COL.insights - 120, y: agentRow, w: 240, h: 104, agent: INSIGHTS },
-      io('out', 'Ranked shortlist', 'Results & insights', W - 174),
+      io('out', 'Ranked shortlist', 'Results & insights', W - 188),
     ]
     BRIEF_TOOLS.forEach((t, i) => nodes.push({ id: `${BRIEF}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.brief - 110, y: toolRow + i * 80, w: 220, h: 56, agent: BRIEF, tool: t }))
     COORD_TOOLS_V1.forEach((t, i) => nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.coord - 125, y: toolRow - 12 + i * 84, w: 250, h: 56, agent: COORD, tool: t }))
@@ -74,27 +89,33 @@ function buildGraph(trace: Trace) {
   const ext = out(COORD, 'fetch_external_creators') as Record<string, unknown> | undefined
   const added = typeof ext?.new_creators === 'number' ? ext.new_creators : null
   const nodes: GNode[] = [
-    io('in', 'Campaign brief', 'Product or collection', 24), llmNode(COL2.insights),
+    io('in', 'Campaign brief', 'Product or collection', 16), llmNode(COL2.insights),
     { id: COORD, kind: 'agent', label: 'Matching Coordinator', x: COL2.coord - 140, y: agentRow, w: 280, h: 104, agent: COORD },
     { id: INSIGHTS, kind: 'agent', label: 'Insights Agent', x: COL2.insights - 120, y: agentRow, w: 240, h: 104, agent: INSIGHTS },
-    io('out', 'Shortlist & plan', 'Results, insights, ROI', W - 174),
+    io('out', 'Shortlist & plan', 'Results and ROI', W - 188),
   ]
-  const ty = (i: number) => 318 + i * 82
-  COORD_TOOLS.forEach((t, i) => nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL2.coord - 135, y: ty(i), w: 270, h: 52, agent: COORD, tool: t }))
-  nodes.push({ id: 'ext', kind: 'io', label: 'Outside data provider', sub: ext?.skipped ? 'Turned off in Settings' : 'MCP server · creator data', x: 150, y: ty(2) - 9, w: 210, h: 70 })
-  insightTools.forEach((t, i) => nodes.push({ id: `${INSIGHTS}:${t}`, kind: 'tool', label: TOOL_LABELS[t] ?? t, sub: t, x: COL2.insights - 110, y: toolRow + i * 80, w: 220, h: 56, agent: INSIGHTS, tool: t }))
-  const chain = (i: number, label?: string | null): GEdge => ({ id: `e-${COORD}-t${i}`, from: i ? `${COORD}:${COORD_TOOLS[i - 1]}` : COORD, to: `${COORD}:${COORD_TOOLS[i]}`, kind: 'tool', label: label ?? undefined })
+  // Two stages side by side instead of one tall column: 1 gather creators, 2 filter, rank and plan.
+  const ty = (row: number) => 340 + row * 80
+  COORD_TOOLS.forEach((t, i) => {
+    const stage = i < GATHER ? COL2.gather : COL2.decide, row = i < GATHER ? i : i - GATHER
+    nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: stage, y: ty(row), w: 240, h: 52, agent: COORD, tool: t })
+  })
+  nodes.push({ id: 'ext', kind: 'io', label: 'Outside provider', sub: ext?.skipped ? 'Off in Settings' : 'MCP server', x: 12, y: ty(2) - 9, w: 188, h: 70 })
+  insightTools.forEach((t, i) => nodes.push({ id: `${INSIGHTS}:${t}`, kind: 'tool', label: TOOL_LABELS[t] ?? t, sub: t, x: COL2.insights - 110, y: ty(i), w: 220, h: 52, agent: INSIGHTS, tool: t }))
+  const chain = (i: number, label?: string | null): GEdge => ({ id: `e-${COORD}-t${i}`, from: i ? `${COORD}:${COORD_TOOLS[i - 1]}` : COORD, to: `${COORD}:${COORD_TOOLS[i]}`,
+    kind: i === GATHER ? 'flow' : 'tool', label: label ?? undefined })
   const edges: GEdge[] = [
-    { id: 'e-in', from: 'in', to: COORD, kind: 'flow', label: 'reviewed brief' },
+    { id: 'e-in', from: 'in', to: COORD, kind: 'flow' },
     { id: 'e-c-i', from: COORD, to: INSIGHTS, kind: 'flow', label: ranked ? `${ranked} ranked` : undefined },
     { id: 'e-out', from: INSIGHTS, to: 'out', kind: 'flow' },
     { id: 'e-llm-i', from: 'llm', to: INSIGHTS, kind: 'llm' },
-    { id: 'e-ext', from: 'ext', to: `${COORD}:fetch_external_creators`, kind: 'flow', label: added != null ? `+${fmt.n(added)} via MCP` : 'MCP' },
-    chain(0), chain(1), chain(2, retrieved ? `${retrieved} own creators` : null), chain(3), chain(4, eligible ? `${eligible} eligible` : null),
+    { id: 'e-ext', from: 'ext', to: `${COORD}:fetch_external_creators`, kind: 'flow', label: added != null ? `+${fmt.n(added)}` : undefined },
+    chain(0), chain(1), chain(2, retrieved ? `${retrieved} own` : null), chain(3), chain(4, eligible ? `${eligible} eligible` : null),
     chain(5, matched ? `${matched} matched` : null), chain(6, ranked ? `${ranked} ranked` : null),
     ...insightTools.map((t, i) => ({ id: `e-${INSIGHTS}-t${i}`, from: i ? `${INSIGHTS}:${insightTools[i - 1]}` : INSIGHTS, to: `${INSIGHTS}:${t}`, kind: 'tool' as const })),
   ]
-  const lanes: LaneDef[] = [{ x: COL2.coord - 150, w: 300, label: 'DETERMINISTIC PYTHON' }, { x: COL2.insights - 140, w: 280, label: insightLane }]
+  const lanes: LaneDef[] = [{ x: COL2.gather - 14, w: 268, label: '1 · GATHER CREATORS' }, { x: COL2.decide - 14, w: 268, label: '2 · FILTER, RANK, PLAN' },
+    { x: COL2.insights - 130, w: 260, label: insightLane }]
   return { nodes, edges, lanes, coordTools: COORD_TOOLS }
 }
 
@@ -148,7 +169,7 @@ const STROKE: Record<Status, string> = {
 // ------------------------------------------------------------------ pan & zoom
 interface View { s: number; x: number; y: number }
 const MIN_S = 0.3, MAX_S = 2.5
-const READABLE_S = 0.72  // default zoom never drops below this; "Fit" shows everything on demand
+const READABLE_S = 0.5  // below this the labels are unreadable, so the first view anchors left at this zoom instead of fitting
 
 function usePanZoom(reduce: boolean | null) {
   const box = useRef<HTMLDivElement>(null)
@@ -442,7 +463,7 @@ function Workspace({ expanded, onToggle, trace, terminal, replay, details, child
   const tool = 'inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-ink transition-colors hover:bg-ice disabled:opacity-40'
   return (
     <div className={expanded ? 'flex min-h-0 flex-1 flex-col' : '@container'}>
-      <div className={expanded ? `grid min-h-0 flex-1 gap-4 ${sideColumn ? 'grid-cols-[minmax(0,1fr)_360px]' : ''}` : 'grid gap-4 @min-[1180px]:grid-cols-[minmax(0,1fr)_330px]'}>
+      <div className={expanded ? `grid min-h-0 flex-1 gap-4 ${sideColumn ? 'grid-cols-[minmax(0,1fr)_360px]' : ''}` : 'grid gap-4 @min-[1440px]:grid-cols-[minmax(0,1fr)_340px]'}>
         <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
           {/* toolbar */}
           <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
@@ -477,7 +498,7 @@ function Workspace({ expanded, onToggle, trace, terminal, replay, details, child
 
           {/* canvas */}
           <div ref={box} tabIndex={0} {...handlers} role="group" aria-roledescription="zoomable canvas" aria-label="Agent call graph. Drag to pan, plus and minus keys to zoom, 0 to fit, arrow keys to move."
-            className={`relative touch-pan-y select-none overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-brand ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${expanded ? 'min-h-0 flex-1' : 'h-[clamp(420px,62vh,640px)]'}`}
+            className={`relative touch-pan-y select-none overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-brand ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${expanded ? 'min-h-0 flex-1' : 'h-[clamp(360px,58vh,600px)]'}`}
             style={{ backgroundColor: 'var(--ice)', backgroundImage: 'radial-gradient(color-mix(in oklab, var(--muted) 35%, transparent) 1px, transparent 1.2px)',
               backgroundSize: `${22 * view.s}px ${22 * view.s}px`, backgroundPosition: `${view.x}px ${view.y}px` }}>
             <svg className="absolute inset-0 h-full w-full" role="group" aria-label="Agents, tools and data flow">
@@ -562,7 +583,7 @@ function Lane({ x, w, label }: { x: number; w: number; label: string }) {
   return (
     <g aria-hidden="true">
       <rect x={x} y={300} width={w} height={H - 312} rx={22} style={{ fill: 'var(--surface)', opacity: 0.55, stroke: 'var(--line)' }} strokeDasharray="6 6" />
-      <text x={x + w / 2} y={322} textAnchor="middle" fontSize={11} fontWeight={700} letterSpacing="0.14em" style={{ fill: 'var(--muted)' }}>{label}</text>
+      <text x={x + w / 2} y={H - 26} textAnchor="middle" fontSize={11} fontWeight={700} letterSpacing="0.12em" style={{ fill: 'var(--muted)' }}>{label}</text>
     </g>
   )
 }
@@ -623,7 +644,7 @@ function Node({ n, status, selected, onSelect, delay, run }: { n: GNode; status:
         <>
           <circle cx={n.x + 32} cy={cy} r={20} style={{ fill: dim ? 'var(--ice)' : 'color-mix(in oklab, var(--brand) 18%, var(--surface))' }} />
           <Icon x={n.x + 21} y={cy - 11} width={22} height={22} style={{ color: 'var(--brand-ink)' }} aria-hidden="true" />
-          <text x={n.x + 62} y={n.y + 33} fontSize={17} fontWeight={700} style={{ fill: 'var(--ink)' }}>{clip(n.label, 22)}</text>
+          <text x={n.x + 62} y={n.y + 33} fontSize={17} fontWeight={700} style={{ fill: 'var(--ink)' }}>{fit(n.label, n.w - 80, 17, 700)}</text>
           <circle cx={n.x + 66} cy={n.y + 55} r={4.5} style={{ fill: STROKE[status] }} />
           <text x={n.x + 77} y={n.y + 60} fontSize={14} fontWeight={600} style={{ fill: 'var(--ink)' }}>{status === 'Skipped' ? 'Not used' : status}</text>
           <text x={n.x + 62} y={n.y + 85} fontSize={13} className="tabular" style={{ fill: 'var(--muted)' }}>
@@ -635,15 +656,23 @@ function Node({ n, status, selected, onSelect, delay, run }: { n: GNode; status:
         <>
           <circle cx={n.x + 32} cy={cy} r={20} style={{ fill: dim ? 'var(--ice)' : 'color-mix(in oklab, var(--brand) 18%, var(--surface))' }} />
           <Icon x={n.x + 21} y={cy - 11} width={22} height={22} style={{ color: 'var(--brand-ink)' }} aria-hidden="true" />
-          <text x={n.x + 62} y={cy - 4} fontSize={15.5} fontWeight={700} style={{ fill: 'var(--ink)' }}>{clip(n.label, 28)}</text>
-          <text x={n.x + 62} y={cy + 17} fontSize={13} style={{ fill: 'var(--muted)' }}>{clip(n.sub ?? '', 34)}</text>
+          <text x={n.x + 62} y={cy - 4} fontSize={15.5} fontWeight={700} style={{ fill: 'var(--ink)' }}>{fit(n.label, n.w - 80, 15.5, 700)}</text>
+          <text x={n.x + 62} y={cy + 17} fontSize={13} style={{ fill: 'var(--muted)' }}>{fit(n.sub ?? '', n.w - 80, 13)}</text>
         </>
       ) : (
         <>
           <Icon x={n.x + 14} y={cy - 9} width={18} height={18} style={{ color: dim ? 'var(--muted)' : 'var(--brand-ink)' }} aria-hidden="true" />
-          <text x={n.x + 40} y={n.sub ? cy - 4 : cy + 5} fontSize={15} fontWeight={650} style={{ fill: 'var(--ink)' }}>{n.label}</text>
-          {n.sub && <text x={n.x + 40} y={cy + 16} fontSize={12} className="font-mono" style={{ fill: 'var(--muted)' }}>{clip(n.sub, 22)}</text>}
-          {call && status === 'Completed' && <text x={n.x + n.w - 14} y={cy + 15} textAnchor="end" fontSize={11} className="tabular" style={{ fill: 'var(--muted)' }}>{call.duration_ms}ms</text>}
+          {(() => {
+            const time = call && status === 'Completed' ? dur(call.duration_ms) : null
+            const timeW = time ? time.length * 6.6 + 10 : 0
+            return (
+              <>
+                <text x={n.x + 40} y={n.sub ? cy - 4 : cy + 5} fontSize={14.5} fontWeight={650} style={{ fill: 'var(--ink)' }}>{fit(n.label, n.w - 40 - 16, 14.5, 650)}</text>
+                {n.sub && <text x={n.x + 40} y={cy + 15} fontSize={11.5} style={{ fill: 'var(--muted)', fontFamily: n.kind === 'tool' ? MONO : SANS }}>{fit(n.sub, n.w - 40 - 12 - timeW, 11.5, 400, n.kind === 'tool' ? MONO : SANS)}</text>}
+                {time && <text x={n.x + n.w - 12} y={cy + 15} textAnchor="end" fontSize={11} className="tabular" style={{ fill: 'var(--muted)' }}>{time}</text>}
+              </>
+            )
+          })()}
         </>
       )}
       {(status === 'Completed' || status === 'Failed') && (

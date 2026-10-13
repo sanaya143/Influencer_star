@@ -67,3 +67,52 @@ describe('floating assistant', () => {
     expect(screen.queryByRole('button', { name: 'Open the Zylo assistant' })).toBeNull()
   })
 })
+
+describe('influencer table "Why" cell', () => {
+  it('previews long explanations and expands them in place', async () => {
+    const { WhyCell } = await import('./Results')
+    const long = 'Strongest on audience fit and content fit. '.repeat(8) + 'https://example.com/' + 'x'.repeat(200)
+    render(<WhyCell m={{ display_name: 'Ava Hart', insight: null, rationale: long, concerns: ['Audience is not concentrated in the target region.', 'No previous collaboration history.'] }} onOpen={() => {}} />)
+    const text = screen.getByText(/Strongest on audience fit/)
+    expect(text.className).toContain('line-clamp-3')
+    expect(screen.queryByText('No previous collaboration history.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /Show more.*1 concern.*Ava Hart/ }))
+    expect(text.className).not.toContain('line-clamp-3')
+    expect(screen.getByText('No previous collaboration history.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Show less/ })).toHaveAttribute('aria-expanded', 'true')
+  })
+  it('handles short and empty explanations without a toggle', async () => {
+    const { WhyCell } = await import('./Results')
+    const { rerender } = render(<WhyCell m={{ display_name: 'Leo', insight: 'Great fit.', rationale: '', concerns: [] }} />)
+    expect(screen.getByText('Great fit.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Show more/ })).toBeNull()
+    rerender(<WhyCell m={{ display_name: 'Leo', insight: null, rationale: '', concerns: [] }} />)
+    expect(screen.getByText('No explanation recorded.')).toBeInTheDocument()
+  })
+})
+
+describe('Zylo Reach branding', () => {
+  it('shows the Zylo Reach wordmark and names the browser tab while the back office is open', async () => {
+    const { ReachLogo, useReachDocument } = await import('./Brand')
+    document.title = 'Zylo shop'
+    function Probe() { useReachDocument(); return <ReachLogo /> }
+    const { unmount } = render(<Probe />)
+    expect(screen.getByRole('img', { name: 'Zylo Reach' })).toHaveAttribute('src', '/zylo-reach-wordmark.png')
+    expect(document.title).toBe('Zylo Reach')
+    unmount()
+    expect(document.title).toBe('Zylo shop')
+  })
+})
+
+describe('collapsible panels', () => {
+  it('keep their content hidden until opened', async () => {
+    const { default: Collapsible } = await import('./Collapsible')
+    render(<Collapsible title="Agent brain" subtitle="What each agent decided" meta="10 steps"><p>brain timeline</p></Collapsible>)
+    const toggle = screen.getByRole('button', { name: /Agent brain/ })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('brain timeline')).toBeNull()
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('brain timeline')).toBeInTheDocument()
+  })
+})

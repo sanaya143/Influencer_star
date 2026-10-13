@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Eye, Gauge, Sparkles, Users } from 'lucide-react'
+import { Eye, Gauge, UserRound, Users } from 'lucide-react'
 import { fmt, type Analytics as A } from '../api'
 import { useApi } from '../shared/hooks'
 import { Badge, ErrorState, Skeleton, Stat } from '../shared/ui'
@@ -27,7 +27,7 @@ export default function Analytics() {
     <div className="space-y-5">
       <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <motion.div variants={rise}><Stat label="Average score, top 10" value={<CountUp value={s.avg_score_top10} format={v => v.toFixed(1)} />} sub="out of 100" icon={<Gauge size={15} />} /></motion.div>
-        <motion.div variants={rise}><Stat label="Micro-influencers in top 10" value={<CountUp value={s.micro_in_top10} />} sub="10k–100k followers" icon={<Sparkles size={15} />} /></motion.div>
+        <motion.div variants={rise}><Stat label="Micro-influencers in top 10" value={<CountUp value={s.micro_in_top10} />} sub="10k–100k followers" icon={<UserRound size={15} />} /></motion.div>
         <motion.div variants={rise}><Stat label="Platform mix, top 10" value={<span className="text-base">{mix.map(([p, n]) => `${p} ${n}`).join(' · ') || '—'}</span>} icon={<Users size={15} />} /></motion.div>
         <motion.div variants={rise}><Stat label="Estimated views, top 3" value={<CountUp value={data.estimate.estimated_views_top3} />} sub={<Badge tone="warn">Estimate, not a forecast</Badge>} icon={<Eye size={15} />} /></motion.div>
       </motion.div>

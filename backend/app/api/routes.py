@@ -8,7 +8,7 @@ import json
 import uuid
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,7 @@ from ..config import PROVIDERS, get_settings
 from ..db.database import CampaignRow, RunRow, jsonable, session
 from ..schemas.models import AGE_SEGMENTS, CATEGORIES, TARGETS, CampaignBrief, Collection, FilterConfig, ScoreWeights
 from ..services import collections, creators, inventory, roi, usage
+from ..security import guard, limiter
 from ..services.data_provider import get_provider
 
 router = APIRouter(prefix="/api")
@@ -254,8 +255,11 @@ async def _run_and_store(run_id: str, campaign_id: str, brief: CampaignBrief) ->
 
 
 @router.post("/campaigns/{campaign_id}/match", status_code=202)
-async def match(campaign_id: str, req: MatchReq = MatchReq()):
+async def match(campaign_id: str, req: MatchReq = MatchReq(), request: Request = None):  # type: ignore[assignment]
     row = _campaign(campaign_id)
+    if request is not None:  # HTTP callers; the chat's start_campaign is already limited per chat message
+        guard("campaign_run", request)
+    limiter.start_run()  # at most a few runs in flight at once, however they were started
     brief = CampaignBrief(**row.brief)
     if req.filters:
         brief.filters = req.filters
@@ -270,9 +274,14 @@ async def match(campaign_id: str, req: MatchReq = MatchReq()):
     with session() as db:
         db.add(RunRow(id=run_id, campaign_id=campaign_id, kind="match", status="Pending", brief=brief.model_dump()))
         db.commit()
-    task = asyncio.create_task(_run_and_store(run_id, campaign_id, brief))
+    try:
+        task = asyncio.create_task(_run_and_store(run_id, campaign_id, brief))
+    except Exception:
+        limiter.end_run()
+        raise
     _tasks.add(task)
     task.add_done_callback(_tasks.discard)
+    task.add_done_callback(lambda _t: limiter.end_run())
     if req.wait:
         await task
     with session() as db:
@@ -377,11 +386,13 @@ def analytics(campaign_id: str):
     segs = target_age_segments(CampaignBrief(**brief))
     tgt = {s: round(100 / len(segs), 1) if s in segs else 0.0 for s in AGE_SEGMENTS}
     shortlist = ranked[:10]
-    inf_map = {i.influencer_id: i for i in get_provider().influencers()}
+    prov = get_provider()
+    # provider.influencer() also finds creators fetched from the outside provider over MCP (ids X...)
+    profiles = [p for p in (prov.influencer(m["influencer_id"]) for m in shortlist) if p is not None]
     avg = {s: 0.0 for s in AGE_SEGMENTS}
-    for m in shortlist:
+    for prof in profiles:
         for s in AGE_SEGMENTS:
-            avg[s] += inf_map[m["influencer_id"]].audience_age_distribution.get(s, 0.0) / max(1, len(shortlist))
+            avg[s] += prof.audience_age_distribution.get(s, 0.0) / max(1, len(profiles))
     reasons: dict[str, int] = {}
     for e in out["excluded"]:
         for c in e["reason_codes"]:

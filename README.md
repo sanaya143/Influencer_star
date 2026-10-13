@@ -151,10 +151,28 @@ Environment variables are an optional fallback only (see `.env.example`); anythi
 `GET /api/health` · `/api/products[/{id}]` (active products, live stock) · `/api/mock/influencers[/{id}]` · `POST /api/campaigns/parse-brief` · `POST /api/campaigns` · `POST /api/campaigns/{id}/match` · `GET /api/campaigns/{id}/results|excluded|analytics|export` · `GET /api/runs` · `GET /api/runs/{id}/trace|usage`.
 Back office: `GET /api/inventory/meta|summary|movements` · `GET|POST /api/inventory/products` · `GET|PUT|DELETE /api/inventory/products/{id}` · `POST /api/inventory/products/{id}/stock|status` · `GET|POST /api/orders` · `POST /api/uploads` (PNG/JPEG/WebP/GIF ≤ 4 MB). MCP at `/mcp` (activity log: `GET /api/mcp/calls`). Chat: `/api/chat/*`. Full OpenAPI at `/docs`.
 
+## Security (Zylo Reach)
+**Rate limits** (per client IP, `app/security.py`): chat messages 20/min and 300/day, campaign runs 6/min and 60/day, connection tests 10/min, and at most 3 campaign runs in flight. Over a limit the API returns **429** with `Retry-After`; the app shows the message. `X-Forwarded-For` is ignored (it is spoofable). Tune with `ZYLO_RATE_CHAT_MESSAGE=10,100`, `ZYLO_RATE_CAMPAIGN_RUN=…`, `ZYLO_RATE_MODEL_TEST=…`, or switch off with `ZYLO_RATE_LIMITS=off`.
+
+**Daily token budget** (optional): `ZYLO_DAILY_TOKEN_BUDGET=200000` refuses new model-using requests once today's recorded tokens reach it. Rule-based chat and offline runs keep working.
+
+**Security headers** on every `/admin`, `/api` and `/mcp` response: a strict Content-Security-Policy (scripts only from this server plus the one inline theme script, allowed by its SHA-256 hash computed from the built `index.html`; images only from this server and Unsplash; fonts from Google Fonts; no framing, no plugins), plus `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, a strict `Referrer-Policy` and `Permissions-Policy`, `Cross-Origin-Opener/Resource-Policy`, `Cache-Control: no-store` on API responses, and HSTS when served over HTTPS. The storefront pages are not changed.
+
+**Dependency scanning:** `pip-audit` (backend, in `requirements-dev.txt`) and `npm audit` (frontend, `npm run audit:deps`). Minimum safe versions are pinned in `requirements.txt` (`starlette>=1.3.1`, `google-adk>=1.28.1,<2`). Run everything with:
+```bash
+powershell -ExecutionPolicy Bypass -File scripts/security-audit.ps1
+```
+(or `sh scripts/security-audit.sh`): both dependency scans plus the security, MCP and settings test suites; exits non-zero on any finding.
+
+**Automated attack tests** (`backend/tests/test_security.py`): security headers and the CSP hash, rate limits (per minute, per day, per client, spoofed `X-Forwarded-For`, runs in flight), the token budget, path traversal, SQL-injection and script payloads, oversized and malformed input, tokens never returned, method restrictions, and the MCP write gate. These are an automated baseline, **not a substitute for a manual penetration test**.
+
+Also in place: write-only model tokens (masked in responses, logs and errors), MCP writes off unless `ZYLO_MCP_WRITES=1` **and** `ZYLO_MCP_TOKEN` are set, DNS-rebinding protection on `/mcp`, upload type checks by file signature (no SVG), and strict input validation. **Not yet:** user login and roles for `/admin`, and encryption of the stored model token.
+
 ## Tests
 ```bash
 cd backend && .venv/Scripts/python -m pytest      # filters, missing data, scoring, ranking, API, ADK (scripted model)
 cd frontend && npm test && npm run build
+powershell -ExecutionPolicy Bypass -File scripts/security-audit.ps1   # dependency scans + security tests
 ```
 
 ## Notes & limits

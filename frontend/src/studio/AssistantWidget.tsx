@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Brain, Maximize2, MessageSquarePlus, RotateCcw, SendHorizontal, Sparkles, TriangleAlert, X, Zap } from 'lucide-react'
+import { Brain, Maximize2, MessageSquarePlus, RotateCcw, SendHorizontal, MessageCircle, TriangleAlert, X, Zap } from 'lucide-react'
 import { fmt, type ChatTurn } from '../api'
 import { useToast } from '../shared/toast'
 import { Badge, Button, Skeleton } from '../shared/ui'
@@ -44,7 +44,7 @@ function Reply({ t, onRetry, busy }: { t: ChatTurn; onRetry: (text: string) => v
           </div>
         )}
         <AnimatePresence initial={false}>
-          {(brain || t.status === 'Running') && t.brain.length > 0 && (
+          {brain && t.brain.length > 0 && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden rounded-xl border border-line p-2">
               <BrainTimeline events={t.brain} live={t.status === 'Running'} running={t.status === 'Running'} maxHeight="16rem" />
             </motion.div>
@@ -97,7 +97,7 @@ export default function AssistantWidget() {
             transition={{ type: 'spring', stiffness: 420, damping: 34 }}
             className="shadow-pop fixed inset-0 z-50 flex origin-bottom-right flex-col overflow-hidden bg-surface sm:inset-auto sm:bottom-24 sm:right-5 sm:h-[min(680px,calc(100dvh-8rem))] sm:w-[420px] sm:rounded-2xl sm:border sm:border-line">
             <header className="flex items-center gap-2.5 border-b border-line bg-ice/60 px-4 py-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand"><Sparkles size={18} aria-hidden="true" /></span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand"><MessageCircle size={18} aria-hidden="true" /></span>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold leading-tight">Zylo assistant</p>
                 <p className="truncate text-[11px] text-muted">{caps.data ? (live ? `AI · ${caps.data.model}` : 'Rule-based router (no AI model)') : 'Connecting…'}</p>
@@ -144,7 +144,7 @@ export default function AssistantWidget() {
         className={`shadow-pop fixed bottom-5 right-5 z-50 items-center gap-2 rounded-full bg-brand py-3.5 pl-3.5 pr-3.5 font-semibold text-on-brand md:pr-5 ${open ? 'hidden sm:flex' : 'flex'}`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.span key={open ? 'x' : 's'} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }} className="flex">
-            {open ? <X size={22} aria-hidden="true" /> : <Sparkles size={22} aria-hidden="true" />}
+            {open ? <X size={22} aria-hidden="true" /> : <MessageCircle size={22} aria-hidden="true" />}
           </motion.span>
         </AnimatePresence>
         <span className="hidden text-sm md:inline">{open ? 'Close' : 'Ask Zylo'}</span>

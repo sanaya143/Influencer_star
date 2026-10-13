@@ -19,7 +19,7 @@ function ScrollTop() {
 
 const Loading = () => (
   <div className="flex min-h-screen items-center justify-center bg-ice" role="status" aria-label="Loading back office">
-    <div className="animate-pulse"><Logo size={32} tagline="Back office" /></div>
+    <div className="animate-pulse"><Logo size={32} tagline="Zylo Reach" /></div>
   </div>
 )
 

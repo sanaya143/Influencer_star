@@ -26,7 +26,7 @@ export const rise: Variants = { hidden: { opacity: 0, y: 14 }, show: { opacity: 
 
 export function Reveal({ children, delay = 0, className = '', y = 16 }: { children: ReactNode; delay?: number; className?: string; y?: number }) {
   return (
-    <motion.div className={className} initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
+    <motion.div className={`min-w-0 ${className}`} initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.5, delay, ease }}>
       {children}
     </motion.div>
@@ -34,7 +34,7 @@ export function Reveal({ children, delay = 0, className = '', y = 16 }: { childr
 }
 
 /** Number that counts up when it scrolls into view (instant when reduced motion is on). */
-export function CountUp({ value, format = (v: number) => Math.round(v).toLocaleString('en-GB'), duration = 0.9 }: { value: number; format?: (v: number) => string; duration?: number }) {
+export function CountUp({ value, format = (v: number) => Math.round(v).toLocaleString('en-GB'), duration = 0.9, delay = 0 }: { value: number; format?: (v: number) => string; duration?: number; delay?: number }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
   const reduce = useReducedMotionConfig()
@@ -43,9 +43,9 @@ export function CountUp({ value, format = (v: number) => Math.round(v).toLocaleS
   useEffect(() => {
     if (!inView) return
     if (reduce) { setShown(value); last.current = value; return }
-    const c = animate(last.current, value, { duration, ease, onUpdate: v => setShown(v) })
+    const c = animate(last.current, value, { duration, delay, ease, onUpdate: v => setShown(v) })
     last.current = value
     return () => c.stop()
-  }, [inView, value, reduce, duration])
+  }, [inView, value, reduce, duration, delay])
   return <span ref={ref}>{format(shown)}</span>
 }

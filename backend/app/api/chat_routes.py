@@ -6,7 +6,9 @@ import asyncio
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+
+from ..security import guard
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 
@@ -120,10 +122,11 @@ async def _run(turn_id: str, sid: str, text: str, history: list[dict], rules_onl
 
 
 @router.post("/sessions/{sid}/messages", status_code=202)
-async def send_message(sid: str, body: MessageIn):
+async def send_message(sid: str, body: MessageIn, request: Request):
     text = body.text.strip()
     if not text:
         raise HTTPException(422, "Type a message first.")
+    guard("chat_message", request, spends_tokens=not body.rules_only)  # rate limit + daily token budget
     with session() as db:
         sess = _session_or_404(db, sid)
         prior = db.query(ChatTurnRow).filter(ChatTurnRow.session_id == sid).order_by(ChatTurnRow.idx).all()

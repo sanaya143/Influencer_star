@@ -10,6 +10,7 @@ import { TERMINAL, useCampaign } from './CampaignLayout'
 import AgentGraph from './AgentGraph'
 import McpActivity from './McpActivity'
 import BrainTimeline from './Brain'
+import Collapsible from './Collapsible'
 
 export function AgentPanel({ trace, runId }: { trace: Trace | null; runId: string | null }) {
   const done = !!trace && TERMINAL.includes(trace.status)
@@ -28,16 +29,12 @@ export function AgentPanel({ trace, runId }: { trace: Trace | null; runId: strin
         <AgentGraph trace={trace} />
       </section>
 
-      <Card className="p-5">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="flex items-center gap-2 text-lg font-semibold"><BrainCircuit size={18} aria-hidden="true" className="text-brand-ink" />Agent brain</h2>
-            <p className="text-sm text-muted">What each agent saw, thought and decided, in order: model turns, tool calls and rule-based decisions. Select a step to expand it.</p>
-          </div>
-        </div>
+      <Collapsible title="Agent brain" icon={<BrainCircuit size={16} aria-hidden="true" />}
+        subtitle="What each agent saw, thought and decided: model turns, tool calls and rule-based decisions."
+        meta={`${(trace.brain ?? []).length} steps`}>
         <BrainTimeline events={trace.brain ?? []} live={!done} running={!done} filterable maxHeight="32rem"
           emptyHint={trace.mode === 'llm' ? 'This run was recorded before the agent brain existed.' : 'This run was recorded before the agent brain existed. New runs show every decision here.'} />
-      </Card>
+      </Collapsible>
 
       <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 lg:grid-cols-3">
         {trace.agents.map(a => <motion.div key={a.id} variants={rise}><AgentCard a={a} /></motion.div>)}
@@ -104,24 +101,43 @@ function AgentCard({ a }: { a: AgentRun }) {
 
 function UsageTable({ u }: { u: Usage }) {
   const max = Math.max(1, ...u.per_agent.map(p => p.total_tokens))
+  const tiles: [string, string, string?][] = [
+    ['Input', fmt.n(u.input_tokens), 'prompt tokens'], ['Output', fmt.n(u.output_tokens), 'response tokens'],
+    ['Total', fmt.n(u.total_tokens)], ['Source', u.token_source === 'none' ? 'n/a' : u.token_source === 'actual' ? 'Provider' : 'Estimate', u.token_source === 'actual' ? 'reported counts' : undefined],
+  ]
   return (
-    <div className="space-y-4 text-sm">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {([['Prompt / input', fmt.n(u.input_tokens)], ['Response / output', fmt.n(u.output_tokens)], ['Total', fmt.n(u.total_tokens)], ['Source', u.token_source === 'none' ? 'n/a' : u.token_source]] as const).map(([l, v]) => (
-          <div key={l} className="rounded-xl bg-ice p-3"><p className="text-xs text-muted">{l}</p><p className="text-xl font-semibold capitalize">{v}</p></div>
+    <div className="space-y-5 text-sm">
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-4">
+        {tiles.map(([l, v, sub]) => (
+          <div key={l} className="bg-surface px-4 py-3">
+            <dt className="text-xs text-muted">{l}</dt>
+            <dd className="tabular mt-0.5 text-xl font-semibold leading-7">{v}</dd>
+            <dd className="h-4 text-[11px] text-muted">{sub ?? ''}</dd>
+          </div>
         ))}
+      </dl>
+      <div className="scrollbar-thin overflow-x-auto">
+        <table className="dense w-full min-w-[440px] table-fixed">
+          <caption className="sr-only">Tokens per agent</caption>
+          <colgroup><col className="w-[42%]" /><col /><col className="w-20" /><col className="w-20" /><col className="w-20" /></colgroup>
+          <thead><tr><th scope="col">Agent</th><th scope="col"><span className="sr-only">Share</span></th><th scope="col" className="num">In</th><th scope="col" className="num">Out</th><th scope="col" className="num">Total</th></tr></thead>
+          <tbody>
+            {u.per_agent.map(p => (
+              <tr key={p.agent}>
+                <th scope="row" className="truncate !text-[13px] !font-medium !normal-case !tracking-normal !text-ink">{p.agent}</th>
+                <td><span className="block h-1.5 overflow-hidden rounded-full bg-ice" aria-hidden="true"><motion.span initial={{ width: 0 }} animate={{ width: `${(p.total_tokens / max) * 100}%` }} transition={{ duration: 0.6 }} className="block h-full rounded-full bg-brand" /></span></td>
+                <td className="num text-muted">{fmt.n(p.input_tokens)}</td><td className="num text-muted">{fmt.n(p.output_tokens)}</td><td className="num font-semibold">{fmt.n(p.total_tokens)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <ul className="space-y-2">
-        {u.per_agent.map(p => (
-          <li key={p.agent} className="grid grid-cols-[minmax(0,170px)_1fr_auto] items-center gap-3 text-xs">
-            <span className="truncate font-medium">{p.agent}</span>
-            <span className="h-2 overflow-hidden rounded-full bg-ice"><motion.span initial={{ width: 0 }} animate={{ width: `${(p.total_tokens / max) * 100}%` }} transition={{ duration: 0.6 }} className="block h-full rounded-full bg-brand" /></span>
-            <span className="tabular w-28 text-right"><b>{fmt.n(p.total_tokens)}</b> <span className="text-muted">({fmt.n(p.input_tokens)} in / {fmt.n(p.output_tokens)} out)</span></span>
-          </li>
-        ))}
-      </ul>
-      <p>Model: <b>{u.model ?? 'none (no LLM called)'}</b> · Provider: <b>{u.provider}</b> · Executed {new Date(u.executed_at).toLocaleString('en-GB')}</p>
-      <p>Estimated cost: <b>{u.estimated_cost_usd != null ? `$${u.estimated_cost_usd}` : 'not shown'}</b> <span className="text-xs text-muted">{u.cost_note}</span></p>
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-1.5 text-[13px]">
+        <dt className="text-muted">Model</dt><dd className="min-w-0 truncate font-mono text-[12.5px]" title={u.model ?? ''}>{u.model ?? 'none (no LLM called)'}</dd>
+        <dt className="text-muted">Provider</dt><dd>{u.provider}</dd>
+        <dt className="text-muted">Executed</dt><dd className="tabular">{new Date(u.executed_at).toLocaleString('en-GB')}</dd>
+        <dt className="text-muted">Estimated cost</dt><dd><b className="tabular">{u.estimated_cost_usd != null ? fmt.usd(u.estimated_cost_usd) : 'not priced'}</b>{u.cost_note && <span className="ml-2 text-xs text-muted">{u.cost_note}</span>}</dd>
+      </dl>
       {u.note && <p className="text-xs text-muted">{u.note}</p>}
     </div>
   )

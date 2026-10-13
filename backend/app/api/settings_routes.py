@@ -6,12 +6,13 @@ from typing import Optional
 
 from pydantic import Field
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from ..config import PROVIDERS, PROVIDER_ALIASES, env_key_for, get_settings
 import asyncio
 
+from ..security import guard
 from ..services import external_creators, llm_client, runtime_settings, usage
 
 router = APIRouter(prefix="/api/settings")
@@ -82,7 +83,8 @@ def update_settings(body: SettingsIn):
 
 
 @router.post("/test")
-async def test_settings(body: TestIn):
+async def test_settings(body: TestIn, request: Request):
+    guard("model_test", request)
     provider = _norm(body.provider)
     saved = (runtime_settings.overrides().get("keys") or {}).get(provider)
     key = (body.api_key or "").strip() or saved or env_key_for(provider)
@@ -134,5 +136,6 @@ def update_external(body: ExternalIn):
 
 
 @router.post("/external-data/test")
-async def test_external():
+async def test_external(request: Request):
+    guard("model_test", request, spends_tokens=False)
     return await asyncio.to_thread(external_creators.probe)

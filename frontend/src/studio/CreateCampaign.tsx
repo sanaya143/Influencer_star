@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ClipboardCheck, Layers, Rocket, Shirt, SlidersHorizontal, Users } from 'lucide-react'
@@ -14,8 +14,39 @@ interface PrepareRes {
 type Mode = 'product' | 'collection'
 
 const EXAMPLE: Record<Mode, string> = {
-  product: "UK women aged 18–24, streetwear, prioritise micro-influencers, budget £3,000",
+  product: 'UK women aged 18–24, streetwear, prioritise micro-influencers, budget £3,000',
   collection: 'UK fans aged 18–34, focus on sales, budget £5,000',
+}
+const AGE_TEXT: Record<string, string> = { children: 'parents of young children', teens: 'teens', '18-24': '18–24', '25-34': '25–34', '35-54': '35–54', '55+': 'over 55' }
+const WHO: Record<string, string> = { women: 'women', men: 'men', unisex: 'shoppers', couple: 'couples', family: 'families', kids: 'families' }
+
+function ageList(ages: string[]): string {
+  const adult = ages.filter(a => a !== 'children' && a !== 'teens').map(a => AGE_TEXT[a] ?? a)
+  const span = adult.length ? `aged ${adult.length > 1 ? `${adult[0].split('–')[0]}–${adult[adult.length - 1].split('–').pop()}` : adult[0]}` : ''
+  const extra = ages.filter(a => a === 'children' || a === 'teens').map(a => AGE_TEXT[a])
+  return [span, ...extra].filter(Boolean).join(' and ')
+}
+
+/** Who the campaign is for, in words the brief parser reads back (target + age segments). */
+function audience(target: string, ages: string[]): string {
+  if (ages.includes('children')) return `families with young children, parents ${ageList(ages.filter(a => a !== 'children')) || 'aged 25–54'}`
+  return `${WHO[target] ?? 'shoppers'} ${ageList(ages)}`
+}
+
+/** A ready-to-run request written from what was picked, so the example always fits the product or collection. */
+function exampleFor(product?: Product, collection?: CollectionView): string {
+  if (collection) {
+    const themes = collection.content_themes.slice(0, 2).join(' and ')
+    const goal = collection.kind === 'sale' ? 'focus on sales' : 'build awareness'
+    return `UK ${audience(collection.target, collection.target_age_segments)}, creators who post about ${themes}, ${goal}, budget £5,000`.replace(/\s+/g, ' ')
+  }
+  if (product) {
+    const style = product.style_tags.filter(t => !['kids', 'family', 'couple'].includes(t)).slice(0, 2).join(' and ') || product.category.toLowerCase()
+    const micro = product.price_gbp < 40 ? ', prioritise micro-influencers' : ''
+    const budget = product.price_gbp >= 60 ? '£5,000' : '£3,000'
+    return `UK ${audience(product.target_gender_or_collection, product.target_age_segments)}, ${style} content${micro}, budget ${budget}`.replace(/\s+/g, ' ')
+  }
+  return ''
 }
 const KIND_LABEL: Record<CollectionView['kind'], string> = { licensed: 'Licensed', seasonal: 'Seasonal', sale: 'Sale', edit: 'Edit' }
 
@@ -64,6 +95,14 @@ export default function CreateCampaign() {
 
   const product = useMemo(() => products.find(p => p.product_id === productId), [products, productId])
   const collection = useMemo(() => collections.find(c => c.collection_id === collectionId), [collections, collectionId])
+  // The request fills itself in for whatever is picked, unless the marketer has written their own.
+  const suggestion = exampleFor(mode === 'product' ? product : undefined, mode === 'collection' ? collection : undefined)
+  const autoText = useRef('')
+  useEffect(() => {
+    const previous = autoText.current  // read before the updater runs: React calls it later, during the next render
+    autoText.current = suggestion
+    setText(t => (t.trim() === '' || t === previous ? suggestion : t))
+  }, [suggestion])
   const briefCollection = useMemo(() => collections.find(c => c.collection_id === brief?.collection_id), [collections, brief?.collection_id])
   useEffect(() => { if (sp.get('product')) { setProductId(sp.get('product')!); setMode('product') } }, [sp])
   useEffect(() => { setBrief(null); setPrep(null) }, [mode, productId, collectionId])
@@ -137,12 +176,13 @@ export default function CreateCampaign() {
           </div>
         )}
 
-        <Field label="Anything specific? (optional)" hint="Ages, gender, city, budget, follower or view minimums, micro-influencers, objective. Read by rules, instantly.">
-          <textarea className={`${inputCls} h-20 resize-y`} value={text} onChange={e => setText(e.target.value)} placeholder={EXAMPLE[mode]} />
+        <Field label="Campaign request" hint={suggestion && text === suggestion ? 'Suggested from your selection. Edit it freely: ages, gender, city, budget, follower or view minimums, micro-influencers, objective.' : 'Ages, gender, city, budget, follower or view minimums, micro-influencers, objective. Read by rules, instantly.'}>
+          <textarea className={`${inputCls} h-20 resize-y`} value={text} onChange={e => setText(e.target.value)} placeholder={suggestion || EXAMPLE[mode]} />
         </Field>
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={prepare} disabled={busy !== null || !canPrepare}>{busy === 'prepare' ? <Spinner /> : <ClipboardCheck size={16} aria-hidden="true" />} Prepare brief</Button>
-          <Button variant="ghost" size="sm" onClick={() => setText(EXAMPLE[mode])}>Use example</Button>
+          {suggestion && text !== suggestion && <Button variant="ghost" size="sm" onClick={() => setText(suggestion)}>Use suggestion</Button>}
+          {!suggestion && <Button variant="ghost" size="sm" onClick={() => setText(EXAMPLE[mode])}>Use example</Button>}
           <span className="text-xs text-muted">Open-ended question instead? Ask the assistant (bottom right).</span>
         </div>
         {error && <ErrorState message={error} />}

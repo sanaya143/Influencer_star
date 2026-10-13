@@ -42,15 +42,30 @@ export default function Overview() {
   const overall = run?.leaders.find(g => g.key === 'overall')?.items ?? []
   return (
     <div className="mx-auto max-w-7xl space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1>Overview</h1>
+          <p className="mt-1 text-sm text-muted">Campaign performance, creators and stock at a glance.</p>
+        </div>
+        <Link to="/admin/campaigns/new"><Button><Plus size={16} aria-hidden="true" />New campaign</Button></Link>
+      </header>
+
+      <motion.section aria-label="Key metrics" variants={stagger} initial="hidden" animate="show" className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: 'Creators in dataset', value: <CountUp value={data.total_influencers} />, sub: 'Synthetic mock social data', icon: <Users size={15} /> },
+          { label: 'Campaigns', value: <CountUp value={data.campaigns} />, sub: s ? `${fmt.n(s.ranked)} ranked in the latest run` : 'No runs yet', icon: <Network size={15} /> },
+          { label: 'Revenue, last 30 days', value: <CountUp value={inv.revenue_30d} format={v => fmt.money(v)} />, sub: `${fmt.n(inv.orders_30d)} orders`, icon: <Coins size={15} /> },
+          { label: 'Tokens, latest run', value: run?.usage ? <CountUp value={run.usage.total_tokens} /> : '—', sub: run?.usage ? (run.usage.mode === 'offline' ? 'Offline mode: no LLM used' : run.usage.token_source === 'actual' ? 'Provider-reported' : 'Estimated') : '—', icon: <Cpu size={15} /> },
+        ].map(k => <motion.div key={k.label} variants={rise}><Stat label={k.label} value={k.value} sub={k.sub} icon={k.icon} /></motion.div>)}
+      </motion.section>
+
       {/* Hero: latest campaign with its top 3 */}
-      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-        className="shadow-card relative overflow-hidden rounded-3xl border border-line bg-surface">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/15 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-brand/10 blur-3xl" />
-        <div className="relative grid items-center gap-8 p-6 md:p-8 lg:grid-cols-[1.25fr_1fr]">
-          <div>
-            <Badge tone="brand">{run ? 'Latest campaign' : 'Welcome'}</Badge>
-            <h1 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">{run ? (run.campaign_name ?? 'Campaign') : 'Find creators who actually fit the product'}</h1>
+      <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} aria-labelledby="latest-h"
+        className="shadow-card rounded-2xl border border-line bg-surface">
+        <div className="grid items-center gap-6 p-5 md:p-6 lg:grid-cols-[1.25fr_1fr]">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{run ? 'Latest campaign' : 'Get started'}</p>
+            <h2 id="latest-h" className="mt-1.5 text-xl font-semibold leading-tight">{run ? (run.campaign_name ?? 'Campaign') : 'Find creators who actually fit the product'}</h2>
             {run ? (
               <div className="mt-3 space-y-3">
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted"><StatusPill status={run.status} /><span>Run {fmt.ago(run.created_at)}</span></div>
@@ -59,20 +74,19 @@ export default function Overview() {
             ) : (
               <p className="mt-3 max-w-lg text-muted">Pick a product, describe the campaign, and the agents shortlist creators with deterministic Python filters and transparent scores.</p>
             )}
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               {run && <Link to={`/admin/campaigns/${run.campaign_id}`}><Button>Open results<ArrowRight size={16} aria-hidden="true" /></Button></Link>}
               {run && <Link to={`/admin/campaigns/${run.campaign_id}/agents`}><Button variant="outline"><Network size={16} aria-hidden="true" />Agent graph</Button></Link>}
-              <Link to="/admin/campaigns/new"><Button variant={run ? 'ghost' : 'primary'}><Plus size={16} aria-hidden="true" />New campaign</Button></Link>
             </div>
           </div>
-          <div className="min-h-[200px]">
+          <div className="min-w-0">
             {run && overall.length ? (
               <>
-                <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.14em] text-muted">Top 3 creators</p>
+                <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.12em] text-muted">Top 3 creators</p>
                 <Podium items={overall} campaignId={run.campaign_id} />
               </>
             ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line p-8 text-center text-sm text-muted">
+              <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
                 <Users aria-hidden="true" />Launch a campaign to see the top creators here.
               </div>
             )}
@@ -90,14 +104,6 @@ export default function Overview() {
         </section>
       )}
 
-      <motion.section aria-label="Key metrics" variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { label: 'Creators in dataset', value: <CountUp value={data.total_influencers} />, sub: 'Synthetic mock social data', icon: <Users size={15} /> },
-          { label: 'Campaigns', value: <CountUp value={data.campaigns} />, sub: s ? `${fmt.n(s.ranked)} ranked in the latest run` : 'No runs yet', icon: <Network size={15} /> },
-          { label: 'Revenue, last 30 days', value: <CountUp value={inv.revenue_30d} format={v => fmt.money(v)} />, sub: `${fmt.n(inv.orders_30d)} orders`, icon: <Coins size={15} /> },
-          { label: 'Tokens, latest run', value: run?.usage ? <CountUp value={run.usage.total_tokens} /> : '—', sub: run?.usage ? (run.usage.mode === 'offline' ? 'Offline mode: no LLM used' : run.usage.token_source === 'actual' ? 'Provider-reported' : 'Estimated') : '—', icon: <Cpu size={15} /> },
-        ].map(k => <motion.div key={k.label} variants={rise}><Stat label={k.label} value={k.value} sub={k.sub} icon={k.icon} /></motion.div>)}
-      </motion.section>
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Reveal className="lg:col-span-2">

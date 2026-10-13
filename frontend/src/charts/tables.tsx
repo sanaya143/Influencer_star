@@ -66,7 +66,7 @@ export function BreakdownTable({ data, onSelect }: { data: Analytics['breakdown'
             <motion.tr key={r.influencer_id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
               className="group cursor-pointer transition-colors hover:bg-ice" onClick={() => onSelect(r.influencer_id)}>
               <td><span className={`tabular inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-xs font-bold ${r.rank <= 3 ? 'bg-brand text-on-brand' : 'bg-ice'}`}>{r.rank}</span></td>
-              <th scope="row" className="sticky left-0 z-[1] bg-surface text-left font-medium normal-case tracking-normal text-ink transition-colors group-hover:bg-ice">
+              <th scope="row" className="sticky left-0 z-[1] border-t border-line bg-surface text-left font-medium normal-case tracking-normal text-ink transition-colors group-hover:bg-ice">
                 <button type="button" onClick={e => { e.stopPropagation(); onSelect(r.influencer_id) }} className="flex items-center gap-2 text-left hover:text-brand-ink">
                   <Avatar name={r.name} size={26} /><span className="whitespace-nowrap">{r.name}</span>
                 </button>
@@ -164,7 +164,7 @@ export function ScatterTable({ data, onSelect }: { data: Analytics['scatter']; o
                 <motion.tr key={d.influencer_id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
                   className="group cursor-pointer transition-colors hover:bg-ice" onClick={() => onSelect(d.influencer_id)}>
                   <td><span className={`tabular inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-xs font-bold ${meta.top5.has(d.influencer_id) ? 'bg-brand text-on-brand' : 'bg-ice'}`}>{d.rank}</span></td>
-                  <th scope="row" className="sticky left-0 z-[1] bg-surface text-left font-medium normal-case tracking-normal text-ink transition-colors group-hover:bg-ice">
+                  <th scope="row" className="sticky left-0 z-[1] border-t border-line bg-surface text-left font-medium normal-case tracking-normal text-ink transition-colors group-hover:bg-ice">
                     <button type="button" onClick={e => { e.stopPropagation(); onSelect(d.influencer_id) }} className="flex items-center gap-2 text-left hover:text-brand-ink">
                       <Avatar name={d.name} size={26} />
                       <span><span className="block whitespace-nowrap">{d.name}</span><span className="block text-[11px] font-normal text-muted">{d.platform}{d.is_micro ? ' · micro' : ''}</span></span>

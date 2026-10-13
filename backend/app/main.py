@@ -17,6 +17,7 @@ from .api.settings_routes import router as settings_router
 from .config import ROOT, get_settings
 from .db.database import init_db
 from .mcp_server import McpHttpMount
+from .security import SecurityHeadersMiddleware
 from .services import runtime_settings
 from .services.data_provider import get_provider
 
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Zylo Influencer Matching & Campaign Intelligence API", version="1.0.0", lifespan=lifespan,
               description="Agentic (Google ADK) orchestration over deterministic Python filtering and ranking. All data is synthetic.")
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().cors_origins.split(","), allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(SecurityHeadersMiddleware)  # CSP and hardening headers on every Zylo Reach response (see app/security.py)
 app.include_router(router)
 app.include_router(inventory_router)
 app.include_router(mcp_router)

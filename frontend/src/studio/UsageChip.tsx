@@ -43,7 +43,7 @@ export default function UsageChip() {
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="dialog"
         aria-label={t ? `Token usage, ${PERIOD_LABEL[period]}: ${t.total_tokens.toLocaleString('en-GB')} tokens, ${cost(t.cost_usd, t.unpriced_calls)}` : 'Token usage'}
-        className="flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 text-xs font-medium transition-colors hover:border-brand">
+        className="flex h-9 items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 text-xs font-medium transition-colors hover:border-brand">
         <Coins size={15} aria-hidden="true" className="text-brand-ink" />
         {t ? <><span className="tabular">{fmt.k(t.total_tokens)}</span><span className="hidden text-muted sm:inline">tokens ·</span><span className="tabular hidden sm:inline">{cost(t.cost_usd, t.unpriced_calls)}</span></> : <span className="text-muted">…</span>}
         <ChevronDown size={14} aria-hidden="true" className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`} />

@@ -25,11 +25,11 @@ export function Button({ variant = 'primary', size = 'md', className = '', ...p 
     ghost: 'text-ink hover:bg-ice',
     danger: 'border border-red-200 bg-surface text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10',
   }[variant]
-  return <button type="button" {...p} className={`${base} ${sz} ${v} ${className}`} />
+  return <button type="button" data-ui="button" data-variant={variant} {...p} className={`${base} ${sz} ${v} ${className}`} />
 }
 
 export const Card = ({ children, className = '', hover = false }: { children: ReactNode; className?: string; hover?: boolean }) => (
-  <div className={`shadow-card min-w-0 rounded-2xl border border-line bg-surface ${hover ? 'transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-pop' : ''} ${className}`}>{children}</div>
+  <div className={`min-w-0 rounded-xl border border-line bg-surface ${hover ? 'transition-colors duration-200 hover:border-ink/20' : ''} ${className}`}>{children}</div>
 )
 
 export type Tone = 'neutral' | 'brand' | 'warn' | 'ok' | 'bad'
@@ -41,7 +41,7 @@ export function Badge({ children, tone = 'neutral', className = '' }: { children
     ok: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-400/10 dark:text-emerald-300 dark:border-emerald-400/30',
     bad: 'bg-red-50 text-red-800 border-red-200 dark:bg-red-400/10 dark:text-red-300 dark:border-red-400/30',
   }[tone]
-  return <span className={`inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${t} ${className}`}>{children}</span>
+  return <span data-ui="badge" className={`inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium ${t} ${className}`}>{children}</span>
 }
 
 export const Skeleton = ({ className = 'h-6 w-full' }: { className?: string }) => <div className={`skeleton ${className}`} aria-hidden="true" />
@@ -113,11 +113,11 @@ export function Avatar({ name, size = 36, className = '' }: { name: string; size
 
 export function Segmented<T extends string>({ value, options, onChange, label, size = 'md' }: { value: T; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void; label: string; size?: 'sm' | 'md' }) {
   return (
-    <div role="tablist" aria-label={label} className="relative inline-flex rounded-xl border border-line bg-surface p-1 text-sm">
+    <div role="tablist" aria-label={label} className="relative inline-flex max-w-full overflow-x-auto rounded-lg border border-line bg-ice p-0.5 text-sm">
       {options.map(o => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
-          className={`relative rounded-lg font-medium transition-colors ${size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5'} ${value === o.value ? 'text-on-brand' : 'text-muted hover:text-ink'}`}>
-          {value === o.value && <motion.span layoutId={`seg-${label}`} className="absolute inset-0 rounded-lg bg-brand" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+          className={`relative shrink-0 whitespace-nowrap rounded-md font-medium transition-colors ${size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5'} ${value === o.value ? 'text-ink' : 'text-muted hover:text-ink'}`}>
+          {value === o.value && <motion.span layoutId={`seg-${label}`} className="absolute inset-0 rounded-md border border-line bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.06)]" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
           <span className="relative">{o.label}</span>
         </button>
       ))}
@@ -144,7 +144,7 @@ export function Modal({ open, onClose, title, children, wide = false }: { open: 
           <motion.div role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}
             initial={{ y: 40, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 30, opacity: 0, scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-            className={`shadow-pop max-h-[90vh] w-full overflow-auto rounded-t-2xl border border-line bg-raised p-5 sm:rounded-2xl ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
+            className={`shadow-pop max-h-[90vh] w-full overflow-auto rounded-t-xl border border-line bg-raised p-5 sm:rounded-xl ${wide ? 'max-w-4xl' : 'max-w-lg'}`}>
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">{title}</h2>
               <button ref={closeRef} type="button" onClick={onClose} aria-label="Close" className="rounded-full p-1.5 text-muted hover:bg-ice hover:text-ink"><X size={18} aria-hidden="true" /></button>
@@ -159,16 +159,16 @@ export function Modal({ open, onClose, title, children, wide = false }: { open: 
 
 export function Stat({ label, value, sub, icon, accent = false }: { label: string; value: ReactNode; sub?: ReactNode; icon?: ReactNode; accent?: boolean }) {
   return (
-    <Card hover className={`h-full p-4 ${accent ? 'border-brand/40' : ''}`}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium text-muted">{label}</p>
-        {icon && <span className="rounded-lg bg-brand/10 p-1.5 text-brand-ink">{icon}</span>}
+    <Card className={`flex h-full flex-col p-4 ${accent ? 'border-brand/40' : ''}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[13px] font-medium text-muted">{label}</p>
+        {icon && <span className="text-muted/80 [&_svg]:h-4 [&_svg]:w-4">{icon}</span>}
       </div>
-      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
-      {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
+      <p className="tabular mt-2 text-[26px] font-semibold leading-8 tracking-tight">{value}</p>
+      {sub && <p className="mt-auto pt-1 text-xs text-muted">{sub}</p>}
     </Card>
   )
 }
 
-export const inputCls = 'w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted/70 transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30'
+export const inputCls = 'w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted/70 transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20'
 export const selectCls = 'rounded-lg border border-line bg-surface px-2 py-1.5 text-sm text-ink focus:border-brand focus:outline-none'

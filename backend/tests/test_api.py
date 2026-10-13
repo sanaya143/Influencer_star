@@ -157,3 +157,23 @@ def test_external_data_setting(client):
     v = client.get("/api/settings/external-data").json()
     assert v["transport"] == "stdio" and "enabled" in v
     assert client.put("/api/settings/external-data", json={"enabled": False}).json()["enabled"] is False
+
+
+def test_analytics_and_roi_work_when_outside_creators_are_shortlisted(client):
+    """Regression: analytics looked creators up only in Zylo's own dataset, so an outside (MCP) creator in the top 10 crashed it."""
+    before = client.get("/api/settings/external-data").json()["enabled"]
+    client.put("/api/settings/external-data", json={"enabled": True})  # a saved setting wins over the environment
+    try:
+        pb = client.post("/api/campaigns/parse-brief", json={"text": "", "collection_id": "COL-MARVEL-DC"}).json()
+        cid = client.post("/api/campaigns", json={"brief": pb["brief"]}).json()["campaign_id"]
+        client.post(f"/api/campaigns/{cid}/match", json={"wait": True})
+    finally:
+        client.put("/api/settings/external-data", json={"enabled": before})
+    res = client.get(f"/api/campaigns/{cid}/results").json()
+    outside = [m for m in res["ranked"] if m["source"] != "zylo"]
+    assert outside, "the outside provider should contribute ranked creators"
+    a = client.get(f"/api/campaigns/{cid}/analytics")
+    assert a.status_code == 200, a.text
+    assert sum(a.json()["demographics"]["shortlist_average"].values()) > 90
+    assert client.get(f"/api/campaigns/{cid}/roi").status_code == 200
+    assert client.get(f"/api/campaigns/{cid}/results/{outside[0]['influencer_id']}").status_code == 200

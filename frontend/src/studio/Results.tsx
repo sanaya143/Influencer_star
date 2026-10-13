@@ -106,32 +106,34 @@ export default function Results() {
               <EmptyState title="No influencers match these criteria" hint="Try lowering the follower or promotional-view thresholds, clearing the filters above, or widening the target age segments." />
             ) : (
               <Card className="overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="dense w-full min-w-[940px]">
+                <div className="scrollbar-thin overflow-x-auto">
+                  <table className="dense w-full min-w-[1100px] table-fixed">
                     <caption className="sr-only">Ranked influencer recommendations, page {page} of {pages}</caption>
+                    {/* Fixed layout: every column gets a deliberate width and "Why" takes the rest, so long explanations
+                        wrap inside their cell instead of stretching the table. */}
+                    <colgroup><col className="w-10" /><col className="w-14" /><col className="w-[13.75rem]" /><col className="w-[5.75rem]" /><col className="w-[5.75rem]" /><col className="w-[5.5rem]" /><col className="w-[6.5rem]" /><col className="w-[6.5rem]" /><col /></colgroup>
                     <thead><tr><th scope="col"><span className="sr-only">Compare</span></th><th scope="col">Rank</th><th scope="col">Creator</th><th scope="col" className="num">Followers</th><th scope="col" className="num">Promo views</th><th scope="col" className="num">Engagement</th><th scope="col">Audience fit</th><th scope="col">Overall</th><th scope="col">Why</th></tr></thead>
                     <tbody>
                       {rows.map((m, i) => (
-                        <motion.tr key={m.influencer_id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 12) * 0.025 }}
-                          className={`transition-colors hover:bg-ice ${picked.includes(m.influencer_id) ? 'bg-brand/5' : ''}`}>
-                          <td><input type="checkbox" aria-label={`Compare ${m.display_name}`} className="accent-[#01ABDD]" checked={picked.includes(m.influencer_id)} onChange={() => toggle(m.influencer_id)} disabled={!picked.includes(m.influencer_id) && picked.length >= 3} /></td>
-                          <td><span className={`tabular inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-xs font-bold ${m.rank <= 3 ? 'bg-brand text-on-brand' : 'bg-ice'}`}>{m.rank}</span></td>
+                        <motion.tr key={m.influencer_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: Math.min(i, 12) * 0.015 }}
+                          className={`align-top transition-colors hover:bg-ice ${picked.includes(m.influencer_id) ? 'bg-brand/5' : ''}`}>
+                          <td><input type="checkbox" aria-label={`Compare ${m.display_name}`} className="mt-1.5 accent-[#01ABDD]" checked={picked.includes(m.influencer_id)} onChange={() => toggle(m.influencer_id)} disabled={!picked.includes(m.influencer_id) && picked.length >= 3} /></td>
+                          <td><span className={`tabular mt-0.5 inline-flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-xs font-bold ${m.rank <= 3 ? 'bg-brand text-on-brand' : 'bg-ice'}`}>{m.rank}</span></td>
                           <td>
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex min-w-0 items-start gap-2.5">
                               <Avatar name={m.display_name} size={32} />
                               <div className="min-w-0">
-                                <Link to={`/admin/campaigns/${campaignId}/influencer/${m.influencer_id}`} className="font-semibold hover:text-brand-ink">{m.display_name}</Link>
-                                <div className="text-xs text-muted">{m.username} · {m.platform}</div>
-                                <div className="mt-0.5 flex flex-wrap gap-1">{m.is_micro && <Badge tone="brand">Micro</Badge>}<Badge tone={CONF[m.data_confidence]}>{m.data_confidence} confidence</Badge>
-                                  {m.source && m.source !== 'zylo' && <Badge tone="neutral">via MCP</Badge>}
-                                  {!!m.matched_themes?.length && <span className="text-[11px] text-muted">#{m.matched_themes.slice(0, 2).join(' #')}</span>}</div>
+                                <Link to={`/admin/campaigns/${campaignId}/influencer/${m.influencer_id}`} className="block truncate font-semibold hover:text-brand-ink">{m.display_name}</Link>
+                                <div className="truncate text-xs text-muted" title={`${m.username} · ${m.platform}`}>{m.username} · {m.platform}</div>
+                                <div className="mt-1 flex flex-wrap gap-1">{m.is_micro && <Badge tone="brand">Micro</Badge>}<Badge tone={CONF[m.data_confidence]}>{m.data_confidence} confidence</Badge>
+                                  {m.source && m.source !== 'zylo' && <Badge tone="neutral">via MCP</Badge>}</div>
+                                {!!m.matched_themes?.length && <div className="mt-1 truncate text-[11px] text-muted" title={m.matched_themes.join(', ')}>#{m.matched_themes.slice(0, 3).join(' #')}</div>}
                               </div>
                             </div>
                           </td>
                           <td className="num">{fmt.n(m.follower_count)}</td><td className="num">{fmt.n(m.median_promotional_views)}</td><td className="num">{fmt.pct(m.engagement_rate)}</td>
                           <td><Bar v={m.scores.audience_fit} /></td><td><Bar v={m.overall_score} strong /></td>
-                          <td className="max-w-xs text-xs text-muted">{m.insight ?? m.rationale}{m.concerns[0] && <div className="mt-1 flex gap-1 text-amber-800 dark:text-amber-300"><TriangleAlert size={12} aria-hidden="true" className="mt-0.5 shrink-0" />{m.concerns[0]}</div>}
-                            <button type="button" onClick={() => nav(`/admin/campaigns/${campaignId}/influencer/${m.influencer_id}`)} className="mt-1 block font-semibold text-brand-ink hover:underline">Score breakdown →</button></td>
+                          <td><WhyCell m={m} onOpen={() => nav(`/admin/campaigns/${campaignId}/influencer/${m.influencer_id}`)} /></td>
                         </motion.tr>
                       ))}
                     </tbody>
@@ -173,6 +175,30 @@ function RunningState() {
         </motion.li>))}</ol>
       <Skeleton className="h-32" />
     </Card>
+  )
+}
+
+/** The "Why" explanation: a three-line preview that expands in place, so nothing is cut off silently. */
+export function WhyCell({ m, onOpen }: { m: Pick<Match, 'insight' | 'rationale' | 'concerns' | 'display_name'>; onOpen?: () => void }) {
+  const [open, setOpen] = useState(false)
+  const text = (m.insight ?? m.rationale ?? '').trim()
+  const long = text.length > 150 || m.concerns.length > 1
+  return (
+    <div className="min-w-0 text-[13px] leading-5 text-muted">
+      {text ? <p className={`break-words [overflow-wrap:anywhere] ${!open && long ? 'line-clamp-3' : ''}`}>{text}</p> : <p className="italic">No explanation recorded.</p>}
+      {m.concerns.length > 0 && (
+        <ul className="mt-1.5 space-y-1 text-amber-800 dark:text-amber-300">
+          {(open ? m.concerns : m.concerns.slice(0, 1)).map(c => (
+            <li key={c} className="flex gap-1.5 break-words [overflow-wrap:anywhere]"><TriangleAlert size={12} aria-hidden="true" className="mt-1 shrink-0" /><span><span className="sr-only">Concern: </span>{c}</span></li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        {long && <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className="font-semibold text-ink underline-offset-2 hover:underline">
+          {open ? 'Show less' : `Show more${m.concerns.length > 1 ? ` (+${m.concerns.length - 1} concern${m.concerns.length > 2 ? 's' : ''})` : ''}`}<span className="sr-only"> about {m.display_name}</span></button>}
+        {onOpen && <button type="button" onClick={onOpen} className="font-semibold text-brand-ink underline-offset-2 hover:underline">Score breakdown<span className="sr-only"> for {m.display_name}</span> →</button>}
+      </div>
+    </div>
   )
 }
 
@@ -245,13 +271,14 @@ function Excluded({ campaignId, runId }: { campaignId: string; runId: string | n
       </div>
       {loading && !data ? <Skeleton className="h-64" /> : !data?.items.length ? <EmptyState title="No excluded creators for this filter" /> : (
         <Card className={`overflow-x-auto transition-opacity ${loading ? 'opacity-60' : ''}`}>
-          <table className="dense w-full min-w-[720px]">
+          <table className="dense w-full min-w-[760px] table-fixed">
             <caption className="sr-only">Excluded influencers and Python-generated reasons</caption>
+            <colgroup><col className="w-[13rem]" /><col className="w-16" /><col className="w-32" /><col className="w-[12rem]" /><col /></colgroup>
             <thead><tr><th scope="col">Creator</th><th scope="col">Level</th><th scope="col">Status</th><th scope="col">Reason codes</th><th scope="col">Explanation</th></tr></thead>
             <tbody>{data.items.map(e => (
-              <tr key={e.influencer_id}><td><span className="font-semibold">{e.display_name}</span><div className="text-xs text-muted">{e.username}</div></td><td>L{e.level}</td>
+              <tr key={e.influencer_id} className="align-top"><td><span className="block truncate font-semibold">{e.display_name}</span><div className="truncate text-xs text-muted">{e.username}</div></td><td>L{e.level}</td>
                 <td><Badge tone={e.status === 'needs_review' ? 'warn' : 'bad'}>{e.status === 'needs_review' ? 'Needs review' : 'Excluded'}</Badge></td>
-                <td className="font-mono text-xs">{e.reason_codes.join(', ')}</td><td className="text-xs text-muted">{e.reasons.join(' ')}</td></tr>))}</tbody>
+                <td className="break-words font-mono text-xs [overflow-wrap:anywhere]">{e.reason_codes.join(', ')}</td><td className="break-words text-[13px] leading-5 text-muted [overflow-wrap:anywhere]">{e.reasons.join(' ')}</td></tr>))}</tbody>
           </table>
         </Card>
       )}

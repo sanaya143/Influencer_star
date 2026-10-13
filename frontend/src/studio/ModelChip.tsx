@@ -59,16 +59,15 @@ export default function ModelChip() {
   }
 
   return (
-    <div ref={box} className="relative">
+    <div ref={box} className="relative min-w-0">
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="dialog"
         aria-label={h ? `AI model: ${h.use_ai ? `${h.provider_label} ${h.configured_model}${live ? '' : ' (no access token, running offline)'}` : 'offline, rule-based'}` : 'AI model'}
-        className="group flex h-9 max-w-[52vw] items-center gap-2 rounded-full border border-line bg-surface pl-2.5 pr-2 text-xs font-medium transition-colors hover:border-brand sm:max-w-xs">
+        className="group flex h-9 items-center gap-2 rounded-lg border border-line bg-surface pl-2.5 pr-2 text-xs font-medium transition-colors hover:border-brand sm:max-w-[15rem] xl:max-w-xs">
         <span className="relative flex h-2.5 w-2.5 shrink-0" title={live ? 'Live' : h?.use_ai ? 'Selected, but no access token yet' : 'AI turned off'}>
-          {live && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />}
           <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${live ? 'bg-emerald-500' : h?.use_ai ? 'bg-amber-500' : 'bg-muted/60'}`} />
         </span>
         <BrainCircuit size={15} aria-hidden="true" className="hidden shrink-0 text-brand-ink sm:block" />
-        <span className="truncate">
+        <span className="hidden min-w-0 truncate sm:inline">
           {!h ? 'Loading model…' : h.use_ai ? <><span className="text-muted">{h.provider_label} · </span>{shortModel(h.configured_model)}</> : 'Offline · rule-based'}
         </span>
         <ChevronDown size={14} aria-hidden="true" className={`shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} />

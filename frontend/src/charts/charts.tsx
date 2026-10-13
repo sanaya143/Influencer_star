@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BarChart3, Table2 } from 'lucide-react'
 import type { Analytics, InventorySummary } from '../api'
@@ -17,16 +17,21 @@ export const CRITERIA = Object.keys(SERIES)
 const ORD = ['var(--ord-1)', 'var(--ord-2)', 'var(--ord-3)', 'var(--ord-4)']
 const ease = [0.22, 1, 0.36, 1] as const
 
-function useWidth<T extends HTMLElement>(min = 260) {
+/** Width of the chart's container. The SVG scales to 100% of it (viewBox = measured size), so a chart can never
+ *  push its card or the page wider than the space it was given; `min` only sets the drawing resolution. */
+function useWidth<T extends HTMLElement>(min = 240) {
   const ref = useRef<T>(null)
-  const [w, setW] = useState(560)
-  useEffect(() => {
-    if (!ref.current) return
-    const ro = new ResizeObserver(e => setW(Math.max(min, Math.floor(e[0].contentRect.width))))
-    ro.observe(ref.current)
+  const [w, setW] = useState(0)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const set = (v: number) => setW(Math.max(min, Math.floor(v)))
+    set(el.getBoundingClientRect().width || min)  // measure before first paint: no oversized first frame
+    const ro = new ResizeObserver(e => set(e[0].contentRect.width))
+    ro.observe(el)
     return () => ro.disconnect()
   }, [min])
-  return [ref, w] as const
+  return [ref, w || min] as const
 }
 
 /** Bar path with a 4px rounded data end and a square baseline. */
@@ -122,7 +127,7 @@ export function FunnelChart({ data, compact: compactProp = false }: { data: Anal
   const h = data.length * rowH
   return (
     <div ref={ref} className="relative w-full min-w-0" onMouseLeave={() => setTip(null)}>
-      <svg width={w} height={h} role="img" aria-label={`Matching funnel: ${data.map(d => `${d.stage} ${d.count}`).join(', ')}`}>
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label={`Matching funnel: ${data.map(d => `${d.stage} ${d.count}`).join(', ')}`}>
         {data.map((d, i) => {
           const y = i * rowH + (compact ? 18 : 8)
           const bw = Math.max(3, x(d.count))
@@ -167,7 +172,7 @@ export function AlignmentChart({ data }: { data: Analytics['demographics'] }) {
   const h = segs.length * rowH + 22
   return (
     <div ref={ref} className="relative w-full min-w-0" onMouseLeave={() => setTip(null)}>
-      <svg width={w} height={h} role="img" aria-label="Audience age alignment: shortlist average audience share versus target share for each age segment">
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label="Audience age alignment: shortlist average audience share versus target share for each age segment">
         {x.ticks(4).map(t => (
           <g key={t}>
             <line x1={labelW + x(t)} x2={labelW + x(t)} y1={0} y2={h - 22} style={{ stroke: 'var(--chart-grid)' }} />
@@ -225,7 +230,7 @@ export function BreakdownChart({ data, onSelect }: { data: Analytics['breakdown'
   })
   return (
     <div ref={ref} className="relative w-full min-w-0" onMouseLeave={() => { setTip(null); setHover(null) }}>
-      <svg width={w} height={h} role="img" aria-label="Stacked bars of each shortlisted creator's weighted score contributions">
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label="Stacked bars of each shortlisted creator's weighted score contributions">
         {x.ticks(5).map(t => (
           <g key={t}>
             <line x1={labelW + x(t)} x2={labelW + x(t)} y1={0} y2={h - 22} style={{ stroke: 'var(--chart-grid)' }} />
@@ -315,7 +320,7 @@ export function ScatterChart({ data, onSelect }: { data: Analytics['scatter']; o
   const ordered = [...pts].sort((a, b) => Number(a.top) - Number(b.top) || b.r - a.r)
   return (
     <div ref={ref} className="relative w-full min-w-0">
-      <svg width={w} height={h} role="img" aria-label="Scatter plot: median promotional views (log scale) against audience and product match; top 5 creators highlighted">
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label="Scatter plot: median promotional views (log scale) against audience and product match; top 5 creators highlighted">
         <g transform={`translate(${m.l},${m.t})`}>
           <rect x={zoneX} y={0} width={Math.max(0, iw - zoneX)} height={Math.max(0, zoneY)} style={{ fill: 'var(--chart-zone)' }} rx={6} />
           {y.ticks(5).map(t => <g key={t}><line x1={0} x2={iw} y1={y(t)} y2={y(t)} style={{ stroke: 'var(--chart-grid)' }} /><text x={-8} y={y(t)} textAnchor="end" dominantBaseline="middle" fontSize={11} className="tabular" style={{ fill: 'var(--muted)' }}>{t}</text></g>)}
@@ -362,7 +367,7 @@ export function RevenueChart({ daily }: { daily: InventorySummary['daily'] }) {
   const day = (s: string) => new Date(s + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
   return (
     <div ref={ref} className="relative w-full min-w-0" onMouseLeave={() => setTip(null)}>
-      <svg width={w} height={h} role="img" aria-label="Revenue per day over the last 30 days">
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label="Revenue per day over the last 30 days">
         <g transform={`translate(${m.l},${m.t})`}>
           {y.ticks(4).map(t => <g key={t}><line x1={0} x2={iw} y1={y(t)} y2={y(t)} style={{ stroke: 'var(--chart-grid)' }} /><text x={-8} y={y(t)} textAnchor="end" dominantBaseline="middle" fontSize={11} className="tabular" style={{ fill: 'var(--muted)' }}>£{fmt.k(t)}</text></g>)}
           {daily.map((d, i) => {
@@ -398,7 +403,7 @@ export function CategoryBars({ data }: { data: InventorySummary['by_category'] }
   const x = d3.scaleLinear().domain([0, Math.max(1, d3.max(data, d => d.units_sold_30d)!)]).range([0, plotW])
   return (
     <div ref={ref} className="w-full min-w-0">
-      <svg width={w} height={data.length * rowH} role="img" aria-label={`Units sold in the last 30 days by category: ${data.map(d => `${d.category} ${d.units_sold_30d}`).join(', ')}`}>
+      <svg width="100%" height={data.length * rowH} viewBox={`0 0 ${w} ${data.length * rowH}`} preserveAspectRatio="xMinYMin meet" className="block max-w-full" role="img" aria-label={`Units sold in the last 30 days by category: ${data.map(d => `${d.category} ${d.units_sold_30d}`).join(', ')}`}>
         {data.map((d, i) => {
           const y = i * rowH + (rowH - barH) / 2
           return (

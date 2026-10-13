@@ -117,3 +117,57 @@ table.dense td.num, table.dense th.num { text-align: right; font-variant-numeric
 input, select, textarea { color: var(--ink); }
 select option { background: var(--surface); color: var(--ink); }
 .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+/* ------------------------------------------------------------------------------------------------------------
+   Zylo Reach (back office) design system. Scoped to .studio so the storefront keeps its own look.
+   Spacing follows a 4px scale (Tailwind's 1 = 4px); type scale: page title 26 / section 18 / card title 15 /
+   body 14 / table 13.5 / meta 12. Unlayered rules here win over Tailwind utilities, which is what lets one
+   place set the hierarchy for every page.
+   ------------------------------------------------------------------------------------------------------------ */
+.studio { font-size: 14px; line-height: 1.5; }
+.studio main h1 { font-size: 1.625rem; line-height: 2rem; font-weight: 650; letter-spacing: -0.015em; }
+.studio main h2.text-lg, .studio main h2.text-xl { font-size: 1.125rem; line-height: 1.5rem; font-weight: 600; }
+.studio main h2.text-base, .studio main h3.text-base, .studio main h3.font-semibold:not([class*="text-"]) { font-size: 0.9375rem; line-height: 1.375rem; }
+@media (max-width: 640px) { .studio main h1 { font-size: 1.375rem; line-height: 1.75rem; } }
+
+/* Tables: readable cells, quiet headers, long text wraps inside its cell instead of widening the table. */
+.studio table.dense th { font-size: 0.71875rem; letter-spacing: 0.05em; padding: 0.625rem 0.75rem; }
+.studio table.dense td { font-size: 0.84375rem; padding: 0.75rem; overflow-wrap: break-word; }
+.studio table.dense tbody tr:first-child td { border-top-color: var(--line); }
+.studio table.table-fixed th { overflow: hidden; text-overflow: ellipsis; }
+.studio table.table-fixed td { white-space: normal; min-width: 0; }
+
+/* Calmer elevation in the back office: hairline borders do the separating, shadows stay subtle. */
+.studio .shadow-card { box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04); }
+.dark .studio .shadow-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+
+/* Charts never decide their container's width (see useWidth in charts.tsx). */
+.studio svg[role="img"] { max-width: 100%; }
+
+/* ---- Zylo Reach finish: neutral surfaces, one accent, hairlines over shadows, Inter for every heading. ---- */
+.studio {
+  --page: #fafafa; --ice: #f5f6f7; --line: #e4e6ea; --muted: #5d6670; --ink: #0f1216;
+  --shadow: 0 1px 2px rgba(15, 18, 22, 0.05);
+}
+.dark .studio {
+  --page: #0b0d10; --surface: #111418; --raised: #161a1f; --ice: #0d1013; --line: #23282f; --muted: #8b949f; --ink: #e7e9ec;
+}
+.studio h1, .studio h2, .studio h3, .studio .font-display { font-family: var(--font-sans); letter-spacing: -0.018em; }
+.studio [data-ui="button"] { border-radius: 8px; font-weight: 550; }
+.studio [data-ui="button"]:active { transform: none; }
+.studio [data-ui="button"][data-variant="primary"] { box-shadow: 0 1px 2px rgba(1, 80, 105, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.studio [data-ui="button"][data-variant="primary"]:hover { transform: none; }
+.studio [data-ui="badge"] { border-radius: 6px; font-weight: 500; }
+.studio table.dense th { text-transform: none; letter-spacing: 0; font-size: 0.75rem; font-weight: 500; }
+.studio table.dense tbody tr { transition: background-color .15s; }
+
+/* Criterion colours in the back office: one blue family instead of a rainbow. Each criterion keeps its own
+   shade (dark to light), so legends, bars and stacked charts still tell them apart. */
+.studio {
+  --series-1: #0b3a53; --series-2: #105d82; --series-3: #1679a7; --series-4: #2797c5;
+  --series-5: #52b1d7; --series-6: #86c9e4; --series-7: #b6deee;
+}
+.dark .studio {
+  --series-1: #d2ebf5; --series-2: #a2d8ed; --series-3: #6fc2e2; --series-4: #3ea9d4;
+  --series-5: #1d89b4; --series-6: #176b8d; --series-7: #114f68;
+}

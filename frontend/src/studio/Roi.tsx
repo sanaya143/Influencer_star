@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BadgePoundSterling, Info, PiggyBank, Scale, TrendingUp } from 'lucide-react'
+import { BadgePoundSterling, Info, PiggyBank, Scale } from 'lucide-react'
 import { fmt, type CreatorEconomics, type PlanSummary, type RoiAnalysis } from '../api'
 import { useApi } from '../shared/hooks'
 import { Avatar, Badge, Card, EmptyState, ErrorState, Segmented, Skeleton, inputCls } from '../shared/ui'
 import { useCampaign } from './CampaignLayout'
+import { CountUp } from '../shared/motion'
 
 const PRESETS = [1000, 2500, 5000, 10000, 25000]
 const FLAG_TONE = { 'good value': 'ok', fair: 'neutral', 'above market': 'warn' } as const
@@ -30,28 +31,68 @@ const ROWS: { key: keyof PlanSummary; label: string; f: (v: number) => string; b
   { key: 'roas', label: 'Revenue per £1 spent (ROAS)', f: v => `£${v.toFixed(2)}`, better: 'high' },
 ]
 
-function Compare({ a }: { a: RoiAnalysis }) {
-  const ours = a.plan.summary, theirs = a.baseline.summary
+/** Relative change from the follower-led plan to Zylo's, phrased so "better" always reads as better. */
+function delta(r: (typeof ROWS)[number], x: number | null, y: number | null): { text: string; good: boolean } | null {
+  if (x == null || y == null || !y || r.key === 'spend_gbp' || r.key === 'creators') return null
+  const ratio = x / y
+  if (r.better === 'low') { const pct = Math.round((1 - ratio) * 100); return pct ? { text: `${Math.abs(pct)}% ${pct > 0 ? 'lower' : 'higher'}`, good: pct > 0 } : null }
+  return Math.abs(ratio - 1) < 0.005 ? null : { text: ratio >= 2 ? `${ratio.toFixed(1)}×` : `${ratio > 1 ? '+' : '−'}${Math.abs(Math.round((ratio - 1) * 100))}%`, good: ratio > 1 }
+}
+
+/** The comparison that sells the product: same budget, fit-and-price picks vs biggest accounts. One frame, no scrolling. */
+function HowZyloHelps({ a }: { a: RoiAnalysis }) {
+  const ours = a.plan.summary, theirs = a.baseline.summary, cmp = a.comparison
+  const lead = a.optimised_for === 'revenue' && cmp.orders_multiple
+    ? { value: `${cmp.orders_multiple}×`, what: 'the expected orders' }
+    : cmp.relevant_views_multiple ? { value: `${cmp.relevant_views_multiple}×`, what: 'the views from your target audience' } : null
+  const supporting = [
+    cmp.cpm_saving_pct != null && cmp.cpm_saving_pct > 0 ? { value: `${cmp.cpm_saving_pct}%`, what: 'lower cost per 1,000 views' } : null,
+    cmp.orders_multiple && a.optimised_for !== 'revenue' ? { value: `${cmp.orders_multiple}×`, what: 'the expected orders' } : null,
+    cmp.cost_per_order_saving_pct != null && cmp.cost_per_order_saving_pct > 0 ? { value: `${cmp.cost_per_order_saving_pct}%`, what: 'lower cost per order' } : null,
+  ].filter(Boolean) as { value: string; what: string }[]
   return (
-    <div className="overflow-x-auto">
-      <table className="dense w-full min-w-[420px]">
-        <caption className="sr-only">Zylo plan compared with booking the biggest accounts, same budget</caption>
-        <thead><tr><th scope="col">Same £{a.budget_gbp.toLocaleString('en-GB')} budget</th><th scope="col" className="num">Zylo plan</th><th scope="col" className="num" title={a.baseline.label}>Biggest accounts</th></tr></thead>
-        <tbody>
-          {ROWS.map(r => {
-            const x = ours[r.key], y = theirs[r.key]
-            const win = x != null && y != null && x !== y && (r.better === 'high' ? x > y : x < y) && r.key !== 'spend_gbp' && r.key !== 'creators'
-            return (
-              <tr key={r.key}>
-                <th scope="row" className="font-normal normal-case tracking-normal text-muted">{r.label}</th>
-                <td className={`num ${win ? 'font-bold text-emerald-700 dark:text-emerald-400' : ''}`}>{x == null ? '—' : r.f(x)}</td>
-                <td className="num">{y == null ? '—' : r.f(y)}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+    <section aria-labelledby="zylo-helps-h" className="overflow-hidden rounded-xl border border-line bg-surface">
+      <div className="grid gap-6 border-b border-line p-5 md:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted"><Scale size={14} aria-hidden="true" />How Zylo helps</p>
+          <h2 id="zylo-helps-h" className="mt-2 text-[22px] font-semibold leading-tight tracking-tight">Same {fmt.money(a.budget_gbp)} budget, better creators</h2>
+          <p className="mt-2 text-sm text-muted">Picking by audience fit and price, instead of by follower count, changes what the money buys.</p>
+        </div>
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+          {lead && (
+            <div className="rounded-lg bg-brand/10 p-4">
+              <p className="tabular font-display text-[40px] font-semibold leading-none tracking-tight text-brand-ink"><CountUp value={parseFloat(lead.value)} format={v => `${v.toFixed(2)}×`} /></p>
+              <p className="mt-2 text-sm font-medium">{lead.what}</p>
+            </div>
+          )}
+          <ul className="grid content-center gap-2">
+            {supporting.map(x => (
+              <li key={x.what} className="flex items-baseline gap-2 border-b border-line pb-2 last:border-0 last:pb-0">
+                <span className="tabular w-16 shrink-0 text-lg font-semibold text-ink">{x.value}</span><span className="text-sm text-muted">{x.what}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div role="table" aria-label={`Zylo plan compared with booking the biggest accounts, same ${fmt.money(a.budget_gbp)} budget`} className="px-5 pb-2 pt-1 md:px-6">
+        <div role="row" className="hidden grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] gap-4 border-b border-line py-2.5 text-xs font-medium text-muted sm:grid">
+          <span role="columnheader">Metric</span><span role="columnheader" className="text-right text-ink">Zylo plan</span>
+          <span role="columnheader" className="text-right" title={a.baseline.label}>Biggest accounts</span><span role="columnheader" className="text-right">Difference</span>
+        </div>
+        {ROWS.map(r => {
+          const x = ours[r.key], y = theirs[r.key], d = delta(r, x, y)
+          return (
+            <div role="row" key={r.key} className="grid grid-cols-2 gap-x-4 gap-y-1 border-b border-line py-2.5 text-sm last:border-0 sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] sm:items-center">
+              <span role="rowheader" className="col-span-2 text-muted sm:col-span-1">{r.label}</span>
+              <span role="cell" className="tabular font-semibold sm:text-right"><span className="mr-1 text-[11px] font-normal text-muted sm:hidden">Zylo</span>{x == null ? '—' : r.f(x)}</span>
+              <span role="cell" className="tabular text-right text-muted"><span className="mr-1 text-[11px] sm:hidden">Biggest</span>{y == null ? '—' : r.f(y)}</span>
+              <span role="cell" className="hidden text-right sm:block">{d ? <span className={`tabular inline-block rounded-md px-1.5 py-0.5 text-xs font-semibold ${d.good ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300' : 'bg-amber-50 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300'}`}>{d.text}</span> : <span className="text-muted">–</span>}</span>
+            </div>
+          )
+        })}
+      </div>
+      <p className="border-t border-line bg-ice/60 px-5 py-3 text-xs text-muted md:px-6">“Biggest accounts” books the largest creators in the right fashion category that pass the same eligibility rules until the budget runs out, the way creators are often picked without a tool like this. Estimates from synthetic data.</p>
+    </section>
   )
 }
 
@@ -99,9 +140,6 @@ export default function Roi() {
   if (!done) return <Card className="p-6"><p className="text-sm text-muted">The ROI plan appears when the run finishes.</p><Skeleton className="mt-3 h-40" /></Card>
   if (res.error) return <ErrorState message={res.error} onRetry={res.reload} />
   if (!a) return <div className="space-y-4"><Skeleton className="h-24" /><Skeleton className="h-72" /></div>
-  const cmp = a.comparison
-  const headline = cmp.orders_multiple && a.optimised_for === 'revenue' ? `${cmp.orders_multiple}× the expected orders`
-    : cmp.relevant_views_multiple ? `${cmp.relevant_views_multiple}× the views from your target audience` : null
 
   return (
     <div className="space-y-5">
@@ -123,30 +161,23 @@ export default function Roi() {
       {res.loading && <p className="text-xs text-muted" role="status">Recalculating…</p>}
       {!a.plan.creators.length ? <EmptyState title="No creator fits this budget" hint="Raise the budget: every shortlisted creator asks more than this." /> : (
         <>
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="h-full space-y-3 p-5">
-                <h3 className="flex items-center gap-2 font-semibold"><Scale size={17} aria-hidden="true" className="text-brand-ink" />How Zylo helps: same budget, better creators</h3>
-                {headline && <p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900 dark:bg-emerald-400/10 dark:text-emerald-200"><TrendingUp size={15} aria-hidden="true" className="mr-1.5 inline" />
-                  Picking by fit and price instead of follower count gives about <b>{headline}</b>{cmp.cpm_saving_pct != null && cmp.cpm_saving_pct > 0 ? <>, at a <b>{cmp.cpm_saving_pct}% lower</b> cost per 1,000 views</> : null}.</p>}
-                <Compare a={a} />
-                <p className="text-[11px] text-muted">“Biggest accounts” books the largest creators in the right fashion category that pass the same eligibility rules, until the budget runs out: how creators are often picked without a tool like this.</p>
-              </Card>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-              <Card className="h-full space-y-3 p-5">
-                <h3 className="flex items-center gap-2 font-semibold"><PiggyBank size={17} aria-hidden="true" className="text-brand-ink" />What creators charge</h3>
-                <p className="text-sm text-muted">Each shortlisted creator's asking price is compared with what creators of the same size and platform charge for the same number of views.</p>
-                <dl className="grid grid-cols-3 gap-2 text-center">
-                  {(['good value', 'fair', 'above market'] as const).map(k => (
-                    <div key={k} className="rounded-xl border border-line p-2.5"><dt className="text-[11px] text-muted">{k}</dt><dd className="tabular text-xl font-semibold">{a.value_flags[k] ?? 0}</dd></div>
-                  ))}
-                </dl>
-                {a.negotiation_saving_gbp > 0 && <p className="text-sm">Negotiating above-market creators down to the market rate would save about <b>{fmt.money(a.negotiation_saving_gbp)}</b> across the top {a.rates.length}.</p>}
-                <p className="text-xs text-muted">Revenue uses a unit price of {fmt.gbp(a.unit_price_gbp)}.</p>
-              </Card>
-            </motion.div>
-          </div>
+          <motion.div className="min-w-0" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}><HowZyloHelps a={a} /></motion.div>
+
+          <section aria-labelledby="charge-h" className="rounded-xl border border-line bg-surface p-5 md:p-6">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-center">
+              <div className="min-w-0">
+                <h2 id="charge-h" className="flex items-center gap-2 text-[15px] font-semibold"><PiggyBank size={16} aria-hidden="true" className="text-muted" />What creators charge</h2>
+                <p className="mt-1 text-sm text-muted">Each shortlisted creator's asking price against what creators of the same size and platform charge for the same number of views.</p>
+                {a.negotiation_saving_gbp > 0 && <p className="mt-3 text-sm">Negotiating above-market creators down to the market rate would save about <b className="tabular">{fmt.money(a.negotiation_saving_gbp)}</b> across the top {a.rates.length}.</p>}
+                <p className="mt-2 text-xs text-muted">Revenue uses a unit price of {fmt.gbp(a.unit_price_gbp)}.</p>
+              </div>
+              <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line text-center">
+                {(['good value', 'fair', 'above market'] as const).map(k => (
+                  <div key={k} className="bg-surface px-3 py-4"><dt className="text-xs capitalize text-muted">{k}</dt><dd className="tabular mt-1 text-2xl font-semibold"><CountUp value={a.value_flags[k] ?? 0} /></dd></div>
+                ))}
+              </dl>
+            </div>
+          </section>
 
           <Card className="overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3">

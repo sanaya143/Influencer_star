@@ -52,7 +52,7 @@ export default function StoreLayout() {
           <nav aria-label="Account" className="hidden items-center gap-1 md:flex">
             <Link to="/wishlist" aria-label={`Wishlist, ${wishlist.length} items`} className="relative rounded-full p-2 transition-colors hover:bg-ice"><Heart size={20} aria-hidden="true" /><Count n={wishlist.length} /></Link>
             <Link to="/bag" aria-label={`Bag, ${count} items`} className="relative rounded-full p-2 transition-colors hover:bg-ice"><ShoppingBag size={20} aria-hidden="true" /><Count n={count} /></Link>
-            <Link to="/admin" className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold transition-colors hover:border-brand hover:bg-ice"><Briefcase size={14} aria-hidden="true" />Back office</Link>
+            <Link to="/admin" className="ml-2 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-semibold transition-colors hover:border-brand hover:bg-ice"><Briefcase size={14} aria-hidden="true" />Zylo Reach</Link>
           </nav>
         </div>
         <nav aria-label="Categories" className="hidden border-t border-line md:block">
