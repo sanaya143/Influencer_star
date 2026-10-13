@@ -24,7 +24,7 @@ def clean(msg: str, secret: str | None) -> str:
         msg = msg.replace(secret, "***")
         if len(secret) >= 10:  # providers sometimes echo a partially masked key (sk-abc***1234)
             msg = msg.replace(secret[:8], "***").replace(secret[-4:], "***")
-    msg = re.sub(r"(?:sk|AIza|gsk|xai)[-_A-Za-z0-9*]{6,}", "***", msg)
+    msg = re.sub(r"\b(?:sk|AIza|gsk|xai)[-_A-Za-z0-9*]{6,}", "***", msg)
     return msg[:500]
 
 

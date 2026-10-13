@@ -132,3 +132,46 @@ def parse_request(text: str, preselected: Product | None, products: list[Product
         pid = cands[0]["product_id"]
         return next(p for p in products if p.product_id == pid), fields, cands
     return None, fields, cands
+
+
+def interpret(text: str, product_id: str | None = None, collection_id: str | None = None) -> dict:
+    """Prepare a campaign brief from the form and the request text, instantly and without a model.
+
+    Replaces the old Campaign Brief Agent, whose only job was this one structured step. The marketer reviews the
+    result before anything runs; open-ended requests can go to the chat assistant instead.
+    Returns {brief, needs_clarification, candidates, collection_candidates, picked_up, target_kind}.
+    """
+    from ..services import collections
+    from ..services.data_provider import get_provider
+    prov = get_provider()
+    fields = extract_fields(text or "")
+    picked_up = {k: v for k, v in fields.items() if v not in (None, "", [], False)}
+    target = None
+    if collection_id:
+        target = prov.product(collection_id)
+    elif product_id:
+        target = prov.product(product_id)
+    cands, col_ids = [], []
+    if target is None and not (collection_id or product_id):
+        cands = search_products(text, prov.products())
+        col_ids = collections.find_in_text(text)
+        strong_product = bool(cands) and cands[0]["score"] >= 3 and (len(cands) == 1 or cands[0]["score"] >= cands[1]["score"] + 2)
+        says_collection = bool(re.search(r"\b(collections?|range|edit|sale)\b", (text or "").lower()))
+        if col_ids and (says_collection or not strong_product):
+            target = prov.product(col_ids[0])
+        elif strong_product:
+            target = prov.product(cands[0]["product_id"])
+    col_cands = [{"collection_id": c.collection_id, "name": c.name} for c in (collections.get(i) for i in col_ids) if c]
+    if target is None:
+        if collection_id or product_id:
+            return {"brief": None, "needs_clarification": [f"'{collection_id or product_id}' was not found."], "candidates": [],
+                    "collection_candidates": [], "picked_up": picked_up, "target_kind": None}
+        msg = ["Pick a product or a collection: the request does not name one clearly."]
+        return {"brief": None, "needs_clarification": msg, "candidates": cands, "collection_candidates": col_cands,
+                "picked_up": picked_up, "target_kind": None}
+    is_col = target.category == "Collection"
+    brief = assemble_brief(target, fields)
+    if is_col:
+        brief.collection_id, brief.content_themes = target.product_id, list(target.content_themes)
+    return {"brief": brief, "needs_clarification": [], "candidates": cands, "collection_candidates": col_cands,
+            "picked_up": picked_up, "target_kind": "collection" if is_col else "product"}

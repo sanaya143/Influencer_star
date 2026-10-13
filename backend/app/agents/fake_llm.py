@@ -1,4 +1,4 @@
-"""Scripted ADK model used by tests (LLM_PROVIDER=fake) to exercise the LLM-mode agent path
+"""Scripted ADK model used by tests (LLM_PROVIDER=fake) to exercise the LLM-mode agent paths (chat coordinator, insights)
 without network access or an API key. Not used in normal operation."""
 from __future__ import annotations
 
@@ -9,8 +9,6 @@ from typing import AsyncGenerator
 from google.adk.models import BaseLlm, LlmRequest, LlmResponse
 from google.genai import types
 
-from ..services.data_provider import get_provider
-from .brief_parser import parse_request
 
 
 class FakeLlm(BaseLlm):
@@ -54,29 +52,6 @@ class FakeLlm(BaseLlm):
         if has_tools and isinstance(sysi, str) and "You are Zylo Concierge" in sysi:
             parts = self._concierge_turn(contents)
             out_tokens = 25
-        elif has_tools:
-            responded = any(p.function_response for c in contents for p in (c.parts or []))
-            if responded:
-                parts = [types.Part(text="Brief submitted.")]
-            else:
-                text = flat.split("\n\n(Pre-selected")[0]
-                m = re.search(r"Pre-selected product: (\w+)", flat)
-                prov = get_provider()
-                product, fields, cands = parse_request(text, prov.product(m.group(1)) if m else None, prov.products())
-                if product is None:
-                    args = {"product_id": cands[0]["product_id"] if cands else "P001", "objective": "", "target_age_segments": [],
-                            "target": "", "location": "", "budget_gbp": 0.0, "preferred_interests": [], "prioritise_micro": False,
-                            "min_followers": 0, "min_promo_views": 0,
-                            "needs_clarification": ["Product is ambiguous; please choose one."]}
-                else:
-                    args = {"product_id": product.product_id, "objective": fields.get("objective", ""),
-                            "target_age_segments": fields.get("target_age_segments", []), "target": fields.get("target", ""),
-                            "location": fields.get("location", ""), "budget_gbp": fields.get("budget_gbp", 0.0),
-                            "preferred_interests": fields.get("preferred_interests", []),
-                            "prioritise_micro": fields.get("prioritise_micro", False), "min_followers": fields.get("min_followers", 0),
-                            "min_promo_views": fields.get("min_promo_views", 0), "needs_clarification": []}
-                parts = [types.Part(function_call=types.FunctionCall(name="submit_brief", args=args))]
-            out_tokens = 20
         else:
             m = re.search(r"Input JSON:\s*(\{.*\})\s*Respond with JSON", flat, re.S)
             from .workflow import template_insights

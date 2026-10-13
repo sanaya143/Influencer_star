@@ -99,20 +99,44 @@ def collaboration_score(inf: Influencer, product: Product) -> tuple[float | None
     return round(base, 1), f"{len(hist)} previous collaboration(s), avg outcome {base:.0f}/100"
 
 
+def campaign_themes(brief: CampaignBrief, product: Product) -> list[str]:
+    """Content themes a creator must post about: the brief's own list, else the collection's (empty for one product)."""
+    return [t.lower() for t in (brief.content_themes or product.content_themes)]
+
+
+def theme_fit(inf: Influencer, themes: list[str]) -> tuple[float, list[str], str]:
+    """Share of the collection's themes the creator posts about. Two or more themes = full marks."""
+    hit = [t for t in themes if t in {x.lower() for x in inf.content_themes}]
+    score = round(min(1.0, len(hit) / 2) * 100, 1)
+    return score, hit, (f"posts about {', '.join(hit)}" if hit else f"no posts about {', '.join(themes[:4])}")
+
+
 def level2_filter(eligible: list[Influencer], brief: CampaignBrief, product: Product) -> tuple[list[dict], list[Exclusion]]:
     passed, excluded = [], []
+    themes = campaign_themes(brief, product)
     for inf in eligible:
         a_score, relevant, a_detail = audience_fit(inf, brief)
         c_score, c_detail = content_fit(inf, brief, product)
         r_score, r_detail = region_relevance(inf, brief)
-        match = 0.5 * a_score + 0.5 * c_score
         crit = [
             Criterion(name="Audience age/gender", status=_st(a_score, 70, 40), detail=a_detail),
             Criterion(name="Content & style", status=_st(c_score, 60, 30), detail=c_detail),
             Criterion(name="Target region", status=_st(r_score, 70, 40), detail=r_detail),
         ]
+        hit: list[str] = []
+        if themes:  # collection campaign: what the creator posts about matters as much as their style
+            t_score, hit, t_detail = theme_fit(inf, themes)
+            c_score = round(0.5 * c_score + 0.5 * t_score, 1)
+            c_detail = f"{c_detail}; {t_detail}"
+            crit.insert(2, Criterion(name="Collection themes", status=_st(t_score, 100, 50), detail=t_detail))
+            if not hit and brief.filters.require_content_theme:
+                excluded.append(Exclusion(influencer_id=inf.influencer_id, display_name=inf.display_name, username=inf.username,
+                                          level=2, status="excluded", reason_codes=["NO_CONTENT_THEME"],
+                                          reasons=[f"Does not post about the collection's themes ({', '.join(themes)})."]))
+                continue
+        match = 0.5 * a_score + 0.5 * c_score
         entry = {"inf": inf, "audience": a_score, "relevant": relevant, "content": c_score, "region": r_score,
-                 "match": round(match, 1), "criteria": crit, "details": (a_detail, c_detail, r_detail)}
+                 "match": round(match, 1), "criteria": crit, "details": (a_detail, c_detail, r_detail), "themes": hit}
         if match < brief.filters.min_audience_match:
             codes, reasons = ["LOW_AUDIENCE_MATCH"], [f"Audience/content match {match:.0f} below minimum {brief.filters.min_audience_match:.0f} ({a_detail}; {c_detail})."]
             if a_score < 30:

@@ -12,11 +12,12 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from ..agents.workflow import run_brief, run_match
+from ..agents.brief_parser import interpret
+from ..agents.workflow import run_match
 from ..config import PROVIDERS, get_settings
 from ..db.database import CampaignRow, RunRow, jsonable, session
-from ..schemas.models import AGE_SEGMENTS, CATEGORIES, TARGETS, CampaignBrief, FilterConfig, ScoreWeights
-from ..services import creators, inventory
+from ..schemas.models import AGE_SEGMENTS, CATEGORIES, TARGETS, CampaignBrief, Collection, FilterConfig, ScoreWeights
+from ..services import collections, creators, inventory, roi, usage
 from ..services.data_provider import get_provider
 
 router = APIRouter(prefix="/api")
@@ -133,22 +134,51 @@ def mock_influencer(influencer_id: str):
 class ParseBriefReq(BaseModel):
     text: str = ""
     product_id: Optional[str] = None
+    collection_id: Optional[str] = None
 
 
 @router.post("/campaigns/parse-brief")
-async def parse_brief(req: ParseBriefReq):
-    if req.product_id and not get_provider().product(req.product_id):
-        raise HTTPException(404, f"Product '{req.product_id}' not found")
-    if not req.text.strip() and not req.product_id:
-        raise HTTPException(422, "Provide a campaign brief text or a product_id.")
-    text = req.text.strip() or f"Promote {get_provider().product(req.product_id).product_name}"
-    res = await run_brief(text, req.product_id)
-    run_id = res["trace"]["run_id"]
-    with session() as db:
-        db.add(RunRow(id=run_id, kind="brief", status=res["trace"]["status"], brief=res["brief"], trace=jsonable(res["trace"]), usage=jsonable(res["usage"])))
-        db.commit()
-    return {"run_id": run_id, "status": res["trace"]["status"], "brief": res["brief"], "needs_clarification": res["clarification"],
-            "candidates": res["candidates"], "error": res.get("error"), "warning": res.get("warning"), "trace": res["trace"], "usage": res["usage"]}
+def parse_brief(req: ParseBriefReq):
+    """Prepare the brief for review: instant, deterministic, no model call (this replaced the Campaign Brief Agent)."""
+    for pid in (req.product_id, req.collection_id):
+        if pid and not get_provider().product(pid):
+            raise HTTPException(404, f"Product or collection '{pid}' not found")
+    if not req.text.strip() and not req.product_id and not req.collection_id:
+        raise HTTPException(422, "Provide a campaign request, a product_id or a collection_id.")
+    res = interpret(req.text, req.product_id, req.collection_id)
+    brief = res["brief"].model_dump() if res["brief"] else None
+    return {"run_id": None, "status": "Completed" if brief else "Needs Review", "brief": brief, "needs_clarification": res["needs_clarification"],
+            "candidates": res["candidates"], "collection_candidates": res["collection_candidates"], "picked_up": res["picked_up"],
+            "target_kind": res["target_kind"], "interpreted_by": "rules"}
+
+
+# ------------------------------------------------------------------ collections
+@router.get("/collections")
+def list_collections():
+    infl = get_provider().influencers()
+    return {"items": [collections.view(c, infl) for c in collections.all_collections()]}
+
+
+@router.get("/collections/{collection_id}")
+def get_collection(collection_id: str):
+    c = collections.get(collection_id)
+    if c is None:
+        raise HTTPException(404, f"Collection '{collection_id}' not found")
+    return collections.view(c, get_provider().influencers())
+
+
+@router.post("/collections", status_code=201)
+def create_collection(c: Collection):
+    if not c.collection_id.startswith("COL-"):
+        c.collection_id = "COL-" + "-".join(c.collection_id.upper().split())
+    missing = [pid for pid in c.product_ids if inventory.get_product(pid) is None]
+    if missing:
+        raise HTTPException(422, f"Unknown product id(s): {', '.join(missing)}")
+    try:
+        collections.create(c)
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+    return collections.view(c, get_provider().influencers())
 
 
 class CreateCampaignReq(BaseModel):
@@ -161,17 +191,12 @@ class CreateCampaignReq(BaseModel):
 def create_campaign(req: CreateCampaignReq):
     prod = get_provider().product(req.brief.product_id)
     if not prod:
-        raise HTTPException(404, f"Product '{req.brief.product_id}' not found")
+        raise HTTPException(404, f"Product or collection '{req.brief.product_id}' not found")
     if prod.status == "archived":
         raise HTTPException(409, f"'{prod.product_name}' is archived; restore it in Inventory before planning a campaign.")
     cid = f"cmp_{uuid.uuid4().hex[:8]}"
-    brief_trace = None
-    if req.brief_run_id:
-        with session() as db:
-            r = db.get(RunRow, req.brief_run_id)
-            brief_trace = r.trace if r else None
     with session() as db:
-        db.add(CampaignRow(id=cid, name=req.name or f"{prod.product_name} campaign", brief=req.brief.model_dump(), brief_trace=brief_trace))
+        db.add(CampaignRow(id=cid, name=req.name or f"{prod.product_name} campaign", brief=req.brief.model_dump(), brief_trace=None))
         db.commit()
     return {"campaign_id": cid, "name": req.name or f"{prod.product_name} campaign", "brief": req.brief.model_dump()}
 
@@ -203,9 +228,9 @@ class MatchReq(BaseModel):
     wait: bool = False  # block until the run finishes (used by tests / scripts)
 
 
-async def _run_and_store(run_id: str, campaign_id: str, brief: CampaignBrief, brief_trace: dict | None) -> None:
+async def _run_and_store(run_id: str, campaign_id: str, brief: CampaignBrief) -> None:
     from ..agents.recorder import Recorder
-    from ..agents.workflow import BRIEF, COORD, INSIGHTS
+    from ..agents.workflow import COORD, INSIGHTS
 
     def on_change(trace: dict) -> None:
         with session() as db:
@@ -214,10 +239,10 @@ async def _run_and_store(run_id: str, campaign_id: str, brief: CampaignBrief, br
                 r.status, r.trace = trace["status"], jsonable(trace)
                 db.commit()
 
-    rec = Recorder("match", campaign_id, [BRIEF, COORD, INSIGHTS], on_change)
+    rec = Recorder("match", campaign_id, [COORD, INSIGHTS], on_change)
     rec.trace["run_id"] = run_id
     try:
-        res = await run_match(brief, campaign_id, brief_trace, on_change, rec)
+        res = await run_match(brief, campaign_id, on_change, rec)
     except Exception as e:  # last-resort guard so a run never stays 'Running'
         rec.error(COORD, str(e))
         rec.finish("Failed", f"Workflow failed: {e}")
@@ -245,7 +270,7 @@ async def match(campaign_id: str, req: MatchReq = MatchReq()):
     with session() as db:
         db.add(RunRow(id=run_id, campaign_id=campaign_id, kind="match", status="Pending", brief=brief.model_dump()))
         db.commit()
-    task = asyncio.create_task(_run_and_store(run_id, campaign_id, brief, row.brief_trace))
+    task = asyncio.create_task(_run_and_store(run_id, campaign_id, brief))
     _tasks.add(task)
     task.add_done_callback(_tasks.discard)
     if req.wait:
@@ -272,7 +297,7 @@ def results(campaign_id: str, sort: Literal["overall_score", "audience_fit", "pr
             "promo_views": lambda m: (-m["median_promotional_views"], m["influencer_id"]), "engagement": lambda m: (-m["engagement_rate"], m["influencer_id"])}[sort]
     ranked = sorted(ranked, key=keyf)[:limit]
     return {"campaign_id": campaign_id, "name": row.name, "run_id": run.id, "status": run.status, "brief": run.brief or row.brief,
-            "stats": out["stats"], "ranked": ranked, "leaders": top, "insights": out.get("insights"),
+            "stats": out["stats"], "ranked": ranked, "leaders": top, "insights": out.get("insights"), "roi": out.get("roi"), "sources": out.get("sources"),
             "label": "Synthetic demonstration data; scores are not outcome predictions."}
 
 
@@ -287,8 +312,25 @@ def result_detail(campaign_id: str, influencer_id: str):
     brief = run.brief
     from ..services.audience_matcher import target_age_segments
     segs = target_age_segments(CampaignBrief(**brief))
+    product = get_provider().product(brief["product_id"])
+    share = match_["audience_fit_pct"] if match_ else sum(inf.audience_age_distribution.get(s, 0.0) for s in segs)
+    econ = roi.economics(inf, product.price_gbp if product else 30.0, match_["overall_score"] if match_ else None, share)
     return {"influencer": inf.model_dump(), "match": match_, "exclusion": excl, "target_age_segments": segs,
-            "weights": brief["weights"], "run_id": run.id}
+            "weights": brief["weights"], "run_id": run.id, "economics": econ}
+
+
+@router.get("/campaigns/{campaign_id}/roi")
+def campaign_roi(campaign_id: str, budget: Optional[float] = Query(None, gt=0, le=10_000_000), top_n: int = Query(40, ge=5, le=200)):
+    """Creator fees, value against the market rate, and the best plan for a budget (all estimates, recomputed live)."""
+    _campaign(campaign_id)
+    run = _completed_run(campaign_id)
+    return {"campaign_id": campaign_id, "run_id": run.id, **roi.analyse(CampaignBrief(**run.brief), run.output["ranked"], budget, top_n)}
+
+
+# ------------------------------------------------------------------ token usage and cost
+@router.get("/usage/summary")
+def usage_summary(days: int = Query(30, ge=1, le=365)):
+    return usage.summary(days)
 
 
 @router.get("/campaigns/{campaign_id}/excluded")

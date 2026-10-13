@@ -13,7 +13,8 @@ from app.main import app
 from app.mcp_server import build_server
 
 READ_TOOLS = {"list_products", "get_product", "inventory_summary", "stock_movements", "list_orders", "search_creators", "get_creator",
-              "preview_matching", "list_campaigns", "get_campaign_results", "get_campaign_analytics", "explain_creator_in_campaign"}
+              "preview_matching", "list_campaigns", "get_campaign_results", "get_campaign_analytics", "explain_creator_in_campaign",
+              "get_campaign_roi", "list_collections"}
 WRITE_TOOLS = {"create_product", "adjust_stock", "set_product_status", "place_order"}
 
 
@@ -54,7 +55,7 @@ def test_inventory_tools(api):
     sc = ls.structuredContent
     assert sc["total"] > 0 and len(sc["items"]) <= 5 and all(p["category"] == "Kids" for p in sc["items"]) and "description" not in sc["items"][0]
     assert one.structuredContent["product_id"] == "P001" and "movements" in one.structuredContent
-    assert summ.structuredContent["counts"]["active"] == 60 and "daily" not in summ.structuredContent
+    assert summ.structuredContent["counts"]["active"] == 73 and "daily" not in summ.structuredContent
     assert "items" in mv.structuredContent
     (missing,) = run([("get_product", {"product_id": "NOPE"})])
     assert missing.isError and "not found" in missing.content[0].text
@@ -245,4 +246,4 @@ def test_http_calls_are_logged_with_client_and_transport(monkeypatch):
         rpc(c, "tools/call", {"name": "get_product", "arguments": {"product_id": "P002"}}, id_=5, headers=h)
         d = c.get("/api/mcp/calls").json()
         assert d["items"][0]["name"] == "get_product" and d["items"][0]["transport"] == "http" and d["items"][0]["client"] == "pytest 1"
-        assert d["server"] == {"running": True, "writes": False, "token_required": False, "tools": 12, "endpoint": "/mcp"}
+        assert d["server"] == {"running": True, "writes": False, "token_required": False, "tools": 14, "endpoint": "/mcp"}

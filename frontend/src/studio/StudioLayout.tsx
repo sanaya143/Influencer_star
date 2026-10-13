@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Activity, Compass, LayoutDashboard, Menu, MessageSquareText, Package, PlusCircle, Receipt, Settings as Cog, Store, X } from 'lucide-react'
+import { Activity, Compass, LayoutDashboard, Menu, Package, PlusCircle, Receipt, Settings as Cog, Store, X } from 'lucide-react'
 import { Logo } from '../shared/ui'
 import { ThemeToggle } from '../shared/theme'
 import { AnimatedOutlet } from '../shared/motion'
 import ModelChip from './ModelChip'
+import UsageChip from './UsageChip'
+import AssistantWidget from './AssistantWidget'
 
 const groups = [
   { title: 'Marketing', links: [
     { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
-    { to: '/admin/assistant', label: 'Assistant', icon: MessageSquareText },
     { to: '/admin/campaigns/new', label: 'Create campaign', icon: PlusCircle },
     { to: '/admin/discovery', label: 'Influencer discovery', icon: Compass },
     { to: '/admin/agents', label: 'Agent execution', icon: Activity },
@@ -105,13 +106,15 @@ export default function StudioLayout() {
                 className="truncate font-display text-base font-semibold">{titleFor(pathname)}</motion.p>
             </AnimatePresence>
           </div>
+          <UsageChip />
           <ModelChip />
           <ThemeToggle />
           <Link to="/" aria-label="View storefront" className="hidden h-9 items-center gap-1.5 rounded-full border border-line px-3 text-xs font-semibold transition-colors hover:border-brand hover:bg-ice lg:inline-flex"><Store size={15} aria-hidden="true" />Store</Link>
         </header>
-        <main id="main" className="min-w-0 flex-1 p-4 md:p-8">
+        <main id="main" className="min-w-0 flex-1 p-4 pb-24 md:p-8 md:pb-28">
           <AnimatedOutlet keyOf={shellKey} />
         </main>
+        <AssistantWidget />
       </div>
     </div>
   )

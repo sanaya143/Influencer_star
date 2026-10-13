@@ -65,10 +65,10 @@ export interface McpCalls {
   server: { running: boolean; writes: boolean; token_required: boolean; tools: number; endpoint: string }
 }
 export interface Health { status: string; mode: 'llm' | 'offline'; provider: string; model: string | null; provider_label: string; configured_model: string; use_ai: boolean; key_source: string; influencers: number; products: number }
-export interface Filters { min_followers: number; min_promo_views: number; require_brand_safety: boolean; min_audience_match: number }
+export interface Filters { min_followers: number; min_promo_views: number; require_brand_safety: boolean; min_audience_match: number; require_content_theme?: boolean }
 export interface Weights { audience_fit: number; content_fit: number; engagement: number; promo_views: number; collaboration: number; brand_affinity: number; region: number }
 export interface Brief {
-  product_id: string; objective: string; target_age_segments: string[]; target: string; location: string; budget_gbp: number | null
+  product_id: string; collection_id?: string | null; content_themes?: string[]; objective: string; target_age_segments: string[]; target: string; location: string; budget_gbp: number | null
   preferred_interests: string[]; prioritise_micro: boolean; filters: Filters; weights: Weights; notes: string[]; needs_clarification: string[]
 }
 export interface Criterion { name: string; status: 'satisfied' | 'partial' | 'not_satisfied'; detail: string }
@@ -77,6 +77,7 @@ export interface Match {
   median_promotional_views: number; engagement_rate: number; is_micro: boolean; audience_fit_pct: number
   relevant_audience: Record<string, number>; scores: Record<string, number>; contributions: Record<string, number>
   overall_score: number; criteria: Criterion[]; rationale: string; concerns: string[]; data_confidence: 'high' | 'medium' | 'low'; insight?: string | null
+  source?: string; matched_themes?: string[]
 }
 export interface Stats {
   retrieved: number; eligible: number; excluded_l1: number; review_required: number; passed_l2: number; excluded_l2: number; ranked: number
@@ -87,7 +88,7 @@ export interface Insights {
 }
 export interface Results {
   campaign_id: string; name: string; run_id: string; status: string; brief: Brief; stats: Stats; ranked: Match[]; leaders: LeaderGroup[]
-  insights: Insights | null; label: string
+  insights: Insights | null; label: string; roi?: RoiSummary | null; sources?: { zylo: number; outside: number } | null
 }
 export interface Exclusion { influencer_id: string; display_name: string; username: string; level: 1 | 2; status: 'excluded' | 'needs_review'; reason_codes: string[]; reasons: string[] }
 export interface Paged<T> { items: T[]; total: number; page: number; page_size: number; pages: number }
@@ -115,6 +116,7 @@ export interface Influencer {
   brand_affinity_score: number | null
   collaboration_history: { collaboration_id: string; product_id: string; campaign_type: string; promotional_views: number; engagement: number; campaign_outcome: string; recorded_at: string }[]
   brand_safety_status: string; data_quality_status: string
+  content_themes?: string[]; rate_card?: Record<string, number>; source?: string
 }
 export interface Analytics {
   run_id: string
@@ -125,6 +127,45 @@ export interface Analytics {
   summary: { avg_score_top10: number; micro_in_top10: number; platform_mix_top10: Record<string, number>; exclusion_reasons: Record<string, number> }
   estimate: { label: string; estimated_views_top3: number; assumptions: string }
   weights: Weights; thresholds: Filters
+}
+export interface CollectionView {
+  collection_id: string; name: string; tagline: string; description: string; kind: 'licensed' | 'seasonal' | 'sale' | 'edit'
+  content_themes: string[]; product_ids: string[]; target: string; target_age_segments: string[]; style_tags: string[]; discount_pct: number
+  image: string; avg_price_gbp: number; total_stock: number; creators_with_themes: number | null
+  products: { product_id: string; product_name: string; price_gbp: number; product_image: string; colour: string; category: string; total_stock: number }[]
+}
+export interface PlanSummary {
+  creators: number; spend_gbp: number; views: number; relevant_views: number; expected_orders: number; expected_revenue_gbp: number
+  cpm_gbp: number | null; cost_per_1k_relevant_gbp: number | null; roas: number | null; roi_pct: number | null; cost_per_order_gbp: number | null
+}
+export interface CreatorEconomics {
+  influencer_id: string; display_name: string; platform: string; followers: number; tier: string | null; source: string; rank?: number
+  fee_gbp: number; fee_estimated: boolean; deliverable: string | null; rate_card: Record<string, number>; fair_fee_gbp: number | null
+  price_vs_market: number | null; value_flag: 'good value' | 'fair' | 'above market' | null; suggested_offer_gbp: number | null
+  views: number; relevant_views: number; audience_in_target_pct: number; cpm_gbp: number; cost_per_1k_relevant_gbp: number | null
+  purchase_rate_pct: number; fit_factor: number; expected_orders: number; expected_revenue_gbp: number; roas: number; roi_pct: number; match_score: number | null
+}
+export interface RoiComparison { orders_multiple: number | null; relevant_views_multiple: number | null; cpm_saving_pct: number | null; cost_per_order_saving_pct: number | null }
+export interface RoiSummary {
+  budget_gbp: number; optimised_for: 'revenue' | 'relevant_views'; plan: PlanSummary; baseline: PlanSummary; comparison: RoiComparison
+  plan_creators: string[]; value_flags: Record<string, number>; negotiation_saving_gbp: number
+}
+export interface RoiAnalysis {
+  campaign_id: string; run_id: string; budget_gbp: number; optimised_for: 'revenue' | 'relevant_views'; unit_price_gbp: number; product_name: string
+  plan: { summary: PlanSummary; creators: CreatorEconomics[] }; baseline: { label: string; summary: PlanSummary; creators: CreatorEconomics[] }
+  comparison: RoiComparison; rates: CreatorEconomics[]; value_flags: Record<string, number>; negotiation_saving_gbp: number
+  benchmarks: { tier: string; platform: string; median_cpm: number; median_fee_per_follower: number; creators: number }[]
+  assumptions: string[]; label: string
+}
+export interface UsageTotals { calls: number; input_tokens: number; output_tokens: number; total_tokens: number; cost_usd: number; unpriced_calls: number; estimated_tokens: boolean }
+export interface ModelPrice { input: number; output: number; source: string }
+export interface UsageSummary {
+  period_days: number; totals: UsageTotals; today: UsageTotals
+  by_source: (UsageTotals & { source: string })[]
+  by_model: (UsageTotals & { model: string; price: ModelPrice | null })[]
+  by_agent: { agent: string; input_tokens: number; output_tokens: number; total_tokens: number }[]
+  recent: { kind: string; id: string; label: string; at: string; model: string | null; in: number; out: number; cost_usd: number | null; link: string; token_source: string | null }[]
+  current_model: string | null; current_price: ModelPrice | null; unpriced_models: string[]; note: string
 }
 export interface Meta { age_segments: string[]; targets: string[]; default_filters: Filters; default_weights: Weights; categories: string[] }
 
@@ -175,6 +216,7 @@ export const fmt = {
   pct: (v: number | null | undefined, d = 1) => (v == null ? '—' : `${v.toFixed(d)}%`),
   gbp: (v: number) => `£${v.toFixed(2).replace(/\.00$/, '')}`,
   money: (v: number) => `£${v.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`,
+  usd: (v: number) => (v === 0 ? '$0' : v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(2)}`),
   ago: (iso: string) => {
     const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000)
     if (s < 60) return 'just now'

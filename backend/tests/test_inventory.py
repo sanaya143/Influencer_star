@@ -32,7 +32,7 @@ def new_product(**over):
 
 def test_seeded_catalogue_and_orders(client):
     s = client.get("/api/inventory/summary").json()
-    assert s["counts"]["active"] == 60 and s["orders_30d"] > 0 and len(s["bestsellers"]) == 3
+    assert s["counts"]["active"] == 73 and s["orders_30d"] > 0 and len(s["bestsellers"]) == 3
     assert len(s["daily"]) == 30 and s["units_in_stock"] > 0
     assert client.get("/api/orders", params={"page_size": 5}).json()["total"] >= 1000
 

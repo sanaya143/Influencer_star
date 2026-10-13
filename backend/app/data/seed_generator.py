@@ -315,7 +315,98 @@ def generate_influencers(n: int = DEFAULT_INFLUENCERS, seed: int = 42) -> tuple[
             campaign_outcome=outcome, recorded_at=str(today - timedelta(days=rnd.randint(10, 400))))
         inf.collaboration_history.append(c)
         collabs.append(c)
+    enrich(infl, seed)
     return infl, posts, collabs
+
+
+# ------------------------------------------------------------------ content themes and rate cards
+# Added after the original generator, from separate random streams, so every earlier field stays identical.
+STYLE_TO_ARCHETYPE = {a["style"]: name for name, a in ARCHETYPES.items()}
+ARCHETYPE_THEMES = {
+    "gen_z_streetwear": ["festival", "music", "summer"], "lad_streetwear": ["football", "gaming", "sneakers"],
+    "young_pro_women": ["travel", "career"], "menswear": ["outerwear", "travel"],
+    "mum_family": ["parenting", "family days out", "christmas"], "kids_parent": ["parenting", "school", "family days out"],
+    "teen": ["school", "student life", "gaming"], "couple": ["travel", "holiday", "christmas"],
+    "mature_style": ["knitwear", "gardening"], "sport": ["fitness", "summer"],
+    "lifestyle": ["travel", "holiday", "beach"], "accessories": ["festival", "summer"],
+}
+FANDOM_SUPERHERO = {"lad_streetwear": 0.24, "teen": 0.24, "gen_z_streetwear": 0.18, "sport": 0.16}  # others 0.07
+FANDOM_DISNEY = {"mum_family": 0.34, "kids_parent": 0.34, "teen": 0.2, "couple": 0.18, "gen_z_streetwear": 0.12}  # others 0.05
+SUPERHERO_SETS = [["marvel", "superheroes", "comics"], ["dc", "superheroes", "comics"], ["marvel", "dc", "superheroes", "comics", "cosplay"]]
+DISNEY_EXTRAS = ["pixar", "theme parks", "princess"]
+WINTER = ["winter", "knitwear", "cosy", "christmas", "outerwear"]
+SUMMER = ["summer", "beach", "festival", "travel", "holiday"]
+# Asking price per follower for one feed post (GBP), by tier. Real rates vary a lot; these are demo assumptions.
+RATE_PER_FOLLOWER = {"nano": 0.012, "micro": 0.010, "mid": 0.007, "macro": 0.005}
+PRIMARY_DELIVERABLE = {"Instagram": "post", "TikTok": "short_video", "YouTube": "long_video"}
+
+
+def tier(followers: int | None) -> str | None:
+    if followers is None:
+        return None
+    return "nano" if followers < 10_000 else "micro" if followers < 100_000 else "mid" if followers < 500_000 else "macro"
+
+
+def rate_card(rnd: random.Random, followers: int | None, engagement: float | None, platform: str | None) -> dict[str, int]:
+    t = tier(followers)
+    if t is None:
+        return {}
+    eng_mult = max(0.8, min(1.6, 0.75 + (engagement or 3.0) / 12))
+    noise = rnd.lognormvariate(0, 0.35)  # some creators ask well above the going rate, some well below
+    post = max(25, int(round(followers * RATE_PER_FOLLOWER[t] * eng_mult * noise, -1)))
+    r10 = lambda v: max(10, int(round(v, -1)))
+    if platform == "TikTok":
+        return {"short_video": post, "story": r10(post * 0.3)}
+    if platform == "YouTube":
+        return {"long_video": r10(post * 2.5), "short_video": r10(post * 0.8)}
+    return {"post": post, "story": r10(post * 0.35), "short_video": r10(post * 1.3)}
+
+
+def enrich(infl: list[Influencer], seed: int) -> None:
+    """Give each creator content themes (fandoms, seasons, life moments) and an asking-price rate card."""
+    rnd = random.Random(seed + 101)
+    for inf in infl:
+        a = STYLE_TO_ARCHETYPE.get(inf.creator_content_style or "", "lifestyle")
+        base = ARCHETYPE_THEMES[a]
+        themes = rnd.sample(base, rnd.randint(1, len(base)))
+        if rnd.random() < FANDOM_SUPERHERO.get(a, 0.07):
+            themes += rnd.choice(SUPERHERO_SETS)
+        if rnd.random() < FANDOM_DISNEY.get(a, 0.05):
+            themes += ["disney", "animation"] + rnd.sample(DISNEY_EXTRAS, rnd.randint(0, 2))
+        if rnd.random() < 0.32:
+            themes += rnd.sample(WINTER, rnd.randint(1, 3))
+        if rnd.random() < 0.36:
+            themes += rnd.sample(SUMMER, rnd.randint(1, 3))
+        if a in ("mum_family", "kids_parent", "teen") and rnd.random() < 0.45:
+            themes.append("back to school")
+        inf.content_themes = list(dict.fromkeys(themes))
+        card = rate_card(rnd, inf.follower_count, inf.engagement_rate, inf.platform)
+        inf.rate_card = {} if rnd.random() < 0.06 else card  # some creators have not shared a rate card
+
+
+# ------------------------------------------------------------------ outside provider (served over MCP)
+EXTERNAL_DIR = Path(__file__).resolve().parents[3] / "data" / "external"
+EXTERNAL_SOURCE = "SocialGraph (mock MCP provider)"
+
+
+def generate_external_creators(n: int = 300, seed: int = 2027) -> list[Influencer]:
+    """Creators that only an outside data provider knows about. Served by app/external/social_data_server.py over MCP."""
+    infl, _, _ = generate_influencers(n, seed)
+    for k, inf in enumerate(infl, start=1):
+        inf.influencer_id = f"X{k:04d}"
+        inf.username = inf.username.replace("@", "@x.")
+        inf.source = EXTERNAL_SOURCE
+        for c in inf.collaboration_history:
+            c.influencer_id = inf.influencer_id
+            c.collaboration_id = "X" + c.collaboration_id
+    return infl
+
+
+def write_external(n: int = 300, seed: int = 2027, out: Path = EXTERNAL_DIR) -> Path:
+    out.mkdir(parents=True, exist_ok=True)
+    f = out / "creators.json"
+    f.write_text(json.dumps([i.model_dump() for i in generate_external_creators(n, seed)], separators=(",", ":")), "utf-8")
+    return f
 
 
 def write_seed(n_influencers: int = DEFAULT_INFLUENCERS, seed: int = 42, out: Path = SEED_DIR) -> None:
@@ -323,7 +414,9 @@ def write_seed(n_influencers: int = DEFAULT_INFLUENCERS, seed: int = 42, out: Pa
     products = generate_products(seed)
     infl, posts, collabs = generate_influencers(n_influencers, seed)
     compact = {"separators": (",", ":")}  # large files stay compact; products stay human-readable
-    (out / "products.json").write_text(json.dumps([p.model_dump() for p in products], indent=1), "utf-8")
+    from .collections import collection_products  # lazy: collections imports this module
+    catalogue = products + collection_products()
+    (out / "products.json").write_text(json.dumps([p.model_dump(exclude={"content_themes"}) for p in catalogue], indent=1), "utf-8")
     (out / "influencers.json").write_text(json.dumps([i.model_dump() for i in infl], **compact), "utf-8")
     (out / "promo_posts.json").write_text(json.dumps([p.model_dump() for p in posts], **compact), "utf-8")
     (out / "collaborations.json").write_text(json.dumps([c.model_dump() for c in collabs], **compact), "utf-8")
@@ -359,4 +452,5 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
     write_seed(args.influencers, args.seed)
-    print(f"Wrote seed data to {SEED_DIR}")
+    write_external()
+    print(f"Wrote seed data to {SEED_DIR} and the outside provider's data to {EXTERNAL_DIR}")

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { NavLink, useOutletContext, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BarChart3, Download, ListOrdered, Network } from 'lucide-react'
+import { BadgePoundSterling, BarChart3, Download, ListOrdered, Network } from 'lucide-react'
 import { api, type Filters, type Trace, type Weights } from '../api'
 import { useApi, usePolling } from '../shared/hooks'
 import { Badge, Button, ErrorState, Skeleton, StatusPill } from '../shared/ui'
@@ -38,6 +38,7 @@ export default function CampaignLayout() {
   const tabs = [
     { to: `/admin/campaigns/${campaignId}`, label: 'Results', icon: ListOrdered, end: true },
     { to: `/admin/campaigns/${campaignId}/analytics`, label: 'Analytics', icon: BarChart3 },
+    { to: `/admin/campaigns/${campaignId}/roi`, label: 'ROI & budget', icon: BadgePoundSterling },
     { to: `/admin/campaigns/${campaignId}/agents`, label: 'Agent execution', icon: Network },
   ]
   return (

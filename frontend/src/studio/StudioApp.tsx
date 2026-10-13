@@ -14,6 +14,7 @@ import Inventory from './Inventory'
 import ProductForm from './ProductForm'
 import Orders from './Orders'
 import Assistant from './Assistant'
+import Roi from './Roi'
 
 export default function StudioApp() {
   return (
@@ -24,6 +25,7 @@ export default function StudioApp() {
         <Route path="campaigns/:campaignId" element={<CampaignLayout />}>
           <Route index element={<Results />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="roi" element={<Roi />} />
           <Route path="agents" element={<Agents />} />
           <Route path="influencer/:influencerId" element={<Profile />} />
         </Route>

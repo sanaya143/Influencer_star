@@ -89,6 +89,13 @@ def attachments_from(tool: str, res: Any) -> list[dict]:
                             "promo_views": m["median_promotional_views"], "score": m["overall_score"], "is_micro": m["is_micro"]} for m in res["top"]]}]
     if tool == "list_campaigns":
         return [{"type": "campaigns", "title": "Recent campaigns", "items": res.get("campaigns", [])}] if res.get("campaigns") else []
+    if tool == "get_campaign_roi":
+        p, c = res["plan"], res["comparison"]
+        return [{"type": "kpis", "title": f"Budget plan · £{res['budget_gbp']:,.0f} (estimate)", "items": [
+            {"label": "Creators booked", "value": str(len(p["creators"]))}, {"label": "Spend", "value": f"£{p['spend_gbp']:,.0f}"},
+            {"label": "Expected views", "value": f"{p['views']:,}"}, {"label": "Cost per 1k views", "value": f"£{p['cpm_gbp'] or 0:.2f}"},
+            {"label": "Expected orders", "value": f"{p['expected_orders']:.0f}"},
+            {"label": "vs biggest accounts", "value": f"{c['orders_multiple']:g}x orders" if c.get("orders_multiple") else "n/a"}]}] if p["creators"] else []
     if tool == "start_campaign":
         return [{"type": "campaign_started", "campaign_id": res["campaign_id"], "name": res["name"], "page": res["page"], "agents_page": res["agents_page"]}]
     if tool == "explain_creator_in_campaign":
@@ -143,7 +150,7 @@ async def _run_model(rec: Recorder, session_id: str, text: str, context: str, ca
 
 
 # ---------------------------------------------------------------------- the rule-based router (no model)
-PRODUCT_ID, CREATOR_ID, CAMPAIGN_ID = re.compile(r"\bP\d{3}\b", re.I), re.compile(r"\bI\d{4}\b", re.I), re.compile(r"\bcmp_[0-9a-f]{8}\b")
+PRODUCT_ID, CREATOR_ID, CAMPAIGN_ID = re.compile(r"\bP\d{3}\b", re.I), re.compile(r"\b[IX]\d{4}\b", re.I), re.compile(r"\bcmp_[0-9a-f]{8}\b")
 CATEGORIES = {"women": "Women", "men": "Men", "kids": "Kids", "unisex": "Unisex", "accessories": "Accessories", "couple": "Couple Looks"}
 
 
@@ -151,6 +158,12 @@ def find_product(text: str) -> tuple[dict | None, list[dict]]:
     """The product a message is about: an explicit id, or a clear single best match on its words."""
     m = PRODUCT_ID.search(text)
     prov = get_provider()
+    from ..services.collections import find_in_text, get as get_collection
+    if re.search(r"\b(collections?|range|edit|sale)\b", text.lower()):  # "the Disney collection" means the whole range
+        for cid in find_in_text(text):
+            c = get_collection(cid)
+            if c:
+                return {"product_id": c.collection_id, "product_name": c.name}, []
     if m:
         p = prov.product(m.group(0).upper())
         if p:
@@ -158,6 +171,10 @@ def find_product(text: str) -> tuple[dict | None, list[dict]]:
     cands = search_products(text, prov.products(), limit=4)
     if cands and (len(cands) == 1 or cands[0]["score"] >= cands[1]["score"] + 2) and cands[0]["score"] >= 3:
         return cands[0], cands
+    for cid in find_in_text(text):  # no clear product: "Marvel", "Disney", "winter"... point at a collection
+        c = get_collection(cid)
+        if c:
+            return {"product_id": c.collection_id, "product_name": c.name}, cands
     return None, cands
 
 
@@ -175,6 +192,11 @@ def plan(text: str) -> tuple[str, list[tuple[str, dict]], str]:
     if re.search(r"\b(why|explain|reason|excluded|rejected)\b", t) and creator:
         calls = [("explain_creator_in_campaign", {"campaign_id": cmp_id.group(0) if cmp_id else "", "influencer_id": creator.group(0).upper()})]
         return "explain a creator's result", calls, "Needs a campaign id; the latest campaign is used when none is given."
+    if re.search(r"\b(roi|return on|budget|charg\w*|fees?|rates?|cost per|cpm|worth (the|it)|overpric\w*|spend)\b", t):
+        return "creator fees and ROI", [("get_campaign_roi", {"campaign_id": cmp_id.group(0) if cmp_id else "", "budget_gbp": float(extract_fields(text).get("budget_gbp") or 0)})], \
+            "Uses the latest campaign unless one is named."
+    if re.search(r"\bcollections?\b", t) and not re.search(r"\b(influencers?|creators?|match\w*|promote|campaign)\b", t):
+        return "browse collections", [("list_collections", {})], "Collections a campaign can target."
     about_campaign = bool(re.search(r"\bcampaigns?\b", t)) and not product  # "the latest campaign's top creators" is about saved results
     if re.search(r"\b(influencers?|creators?|micro|shortlist|match(ing)?|promote|promotion|tiktok|instagram|youtube)\b", t) and not about_campaign:
         if creator and not product:
@@ -202,7 +224,8 @@ def plan(text: str) -> tuple[str, list[tuple[str, dict]], str]:
     return "help", [], ""
 
 
-HELP = ("I can help with **stock and sales** (\"which products are low on stock?\", \"summarise sales\"), **creators** (\"top TikTok creators\"), "
+HELP = ("I can help with **stock and sales** (\"which products are low on stock?\", \"summarise sales\"), **collections** (\"show the collections\"), "
+        "**creator fees and ROI** (\"what would a £3,000 budget get for the latest campaign?\"), **creators** (\"top TikTok creators\"), "
         "**matching** (\"find micro-influencers for the Oversized Graphic Hoodie aimed at 18-24 women\"), **saved campaigns** "
         "(\"show the latest campaign's top creators\", \"why was I0007 excluded?\"), and I can **launch a campaign** when you ask me to.")
 
@@ -249,6 +272,20 @@ def compose(intent: str, results: list[tuple[str, dict, Any]], note: str) -> str
         return (f"For **{res['product']['product_name']}**, {st['retrieved']:,} creators were evaluated, {st['eligible']:,} were eligible and **{st['ranked']:,} ranked**. Best-fit {kind}:\n" +
                 _fmt_list([f"{m['name']} ({m['platform']}): {m['overall_score']:.0f}/100" + (", micro-influencer" if m["is_micro"] else "") for m in top], 3) +
                 "\nThis is a preview and nothing was saved. Scores rank fit, not sales.")
+    if tool == "get_campaign_roi":
+        p, b, c = res["plan"], res["biggest_accounts_plan"], res["comparison"]
+        if not p["creators"]:
+            return f"No creator in **{res['product']}**'s shortlist fits a budget of £{res['budget_gbp']:,.0f}. Try a larger budget."
+        out = (f"For **{res['product']}** with a **£{res['budget_gbp']:,.0f}** budget, the best plan books **{len(p['creators'])} creators** for £{p['spend_gbp']:,.0f}: "
+               f"about {p['views']:,} views at £{p['cpm_gbp']:.2f} per 1,000, {p['expected_orders']:.0f} expected orders and £{p['expected_revenue_gbp']:,.0f} revenue (ROAS {p['roas']:.2f}).\n")
+        if c.get("orders_multiple"):
+            out += f"Booking the biggest accounts with the same budget would bring about {b['expected_orders']:.0f} orders, so this plan gets **{c['orders_multiple']:g}x the orders**.\n"
+        out += _fmt_list([f"{x['display_name']} ({x['platform']}): asks £{x['fee_gbp']:,}" + (f", market rate about £{x['fair_fee_gbp']:,} ({x['value_flag']})" if x.get("value_flag") else "") for x in p["creators"]], 5)
+        return out + "\nAll figures are estimates from synthetic data."
+    if tool == "list_collections":
+        cs = res["collections"]
+        return f"**{len(cs)} collections** can be promoted as a whole:\n" + _fmt_list(
+            [f"{c['name']}: {len(c['products'])} products; creators must post about {', '.join(c['content_themes'][:3])} ({c['creators_with_themes']} do)" for c in cs], 8)
     if tool == "list_campaigns":
         cs = res.get("campaigns", [])
         if not cs:

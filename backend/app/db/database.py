@@ -142,6 +142,23 @@ class StockMovementRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
 
 
+class CollectionRow(Base):
+    """Product collections a campaign can target (Marvel & DC, Disney, Summer Sale...). `data` holds the Collection model."""
+    __tablename__ = "collections"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    data: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class ExternalCreatorRow(Base):
+    """Creators fetched from an outside data provider over MCP, cached so profiles and results still open later."""
+    __tablename__ = "external_creators"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    source: Mapped[str] = mapped_column(String)
+    data: Mapped[dict] = mapped_column(JSON)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+
+
 _engine = None
 _Session = None
 
@@ -158,9 +175,12 @@ def init_db(url: str | None = None) -> None:
     _engine = create_engine(url, **kwargs)
     Base.metadata.create_all(_engine)
     _Session = sessionmaker(_engine, expire_on_commit=False)
-    from ..services.inventory import apply_rebrand, seed_if_empty  # lazy: the service imports this module
+    from ..services.inventory import apply_rebrand, ensure_collection_products, seed_if_empty  # lazy: the service imports this module
+    from ..services.collections import ensure_defaults
     seed_if_empty()
     apply_rebrand()
+    ensure_collection_products()
+    ensure_defaults()
 
 
 def session() -> Session:

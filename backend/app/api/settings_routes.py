@@ -4,11 +4,15 @@ from __future__ import annotations
 
 from typing import Optional
 
+from pydantic import Field
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..config import PROVIDERS, PROVIDER_ALIASES, env_key_for, get_settings
-from ..services import llm_client, runtime_settings
+import asyncio
+
+from ..services import external_creators, llm_client, runtime_settings, usage
 
 router = APIRouter(prefix="/api/settings")
 
@@ -84,3 +88,51 @@ async def test_settings(body: TestIn):
     key = (body.api_key or "").strip() or saved or env_key_for(provider)
     base = (body.base_url or "").strip() or PROVIDERS[provider].get("default_base_url")
     return await llm_client.test_connection(provider, body.model, key, base)
+
+
+# ------------------------------------------------------------------ model prices (for the token cost dropdown)
+class PriceIn(BaseModel):
+    model: str = Field(min_length=1, max_length=200)
+    input_per_m: Optional[float] = Field(default=None, ge=0, le=1000)  # USD per 1M input tokens; both None = remove
+    output_per_m: Optional[float] = Field(default=None, ge=0, le=1000)
+
+
+def _prices() -> dict:
+    s = get_settings()
+    saved = runtime_settings.overrides().get("prices") or {}
+    models = list(dict.fromkeys([s.llm_model, *saved, *[m for spec in PROVIDERS.values() for m in spec["models"]], *usage.DEFAULT_PRICES]))
+    return {"current_model": s.llm_model, "prices": [{"model": m, "price": usage.price_for(m, s.llm_provider if m == s.llm_model else None),
+                                                     "saved": m in saved} for m in models if m],
+            "note": "USD per 1 million tokens. Defaults are published list prices when this was written; check your provider and edit as needed."}
+
+
+@router.get("/prices")
+def read_prices():
+    return _prices()
+
+
+@router.put("/prices")
+def update_price(body: PriceIn):
+    usage.save_price(body.model.strip(), body.input_per_m, body.output_per_m)
+    return _prices()
+
+
+# ------------------------------------------------------------------ outside creator data over MCP
+class ExternalIn(BaseModel):
+    enabled: bool
+
+
+@router.get("/external-data")
+def read_external():
+    return {**external_creators.config(), **external_creators.cache_stats()}
+
+
+@router.put("/external-data")
+def update_external(body: ExternalIn):
+    external_creators.set_enabled(body.enabled)
+    return read_external()
+
+
+@router.post("/external-data/test")
+async def test_external():
+    return await asyncio.to_thread(external_creators.probe)

@@ -55,6 +55,12 @@ class Influencer(BaseModel):
     brand_safety_status: Literal["clear", "flagged", "unknown"] = "clear"
     data_quality_status: Literal["verified", "partial", "unreliable"] = "verified"
     is_synthetic: bool = True
+    # What the creator posts about beyond fashion style (fandoms, seasons, life moments). Collection campaigns
+    # filter on these, e.g. "marvel" / "comics" for a Marvel & DC collection.
+    content_themes: list[str] = Field(default_factory=list)
+    # Asking price in GBP per deliverable (post, story, short_video, long_video). Empty = unknown.
+    rate_card: dict[str, int] = Field(default_factory=dict)
+    source: str = "zylo"  # "zylo" = our own dataset; anything else = fetched from an outside provider over MCP
 
 
 CATEGORIES: list[str] = ["Women", "Men", "Kids", "Unisex", "Couple Looks", "Accessories"]
@@ -80,6 +86,24 @@ class Product(BaseModel):
     colour: str = ""
     stock: dict[str, int] = Field(default_factory=dict)  # units on hand per size
     status: ProductStatus = "active"  # only "active" products are sold in the storefront
+    content_themes: list[str] = Field(default_factory=list)  # set for collections (not stored per product)
+
+
+class Collection(BaseModel):
+    """A group of products promoted together (licensed range, seasonal edit, sale). Campaigns can target a whole
+    collection; its content themes decide which creators qualify."""
+    collection_id: str
+    name: str
+    tagline: str = ""
+    description: str = ""
+    kind: Literal["licensed", "seasonal", "sale", "edit"] = "edit"
+    content_themes: list[str] = Field(min_length=1)
+    product_ids: list[str] = Field(default_factory=list)
+    target: str = "unisex"
+    target_age_segments: list[str] = Field(default_factory=list)
+    style_tags: list[str] = Field(default_factory=list)
+    discount_pct: float = Field(default=0, ge=0, le=90)
+    image: str = ""
 
 
 class ProductIn(BaseModel):
@@ -152,6 +176,7 @@ class FilterConfig(BaseModel):
     min_promo_views: int = 500
     require_brand_safety: bool = True
     min_audience_match: float = 55.0  # Level 2 minimum audience+style match (0-100)
+    require_content_theme: bool = True  # collection campaigns: creator must post about at least one of its themes
 
 
 class ScoreWeights(BaseModel):
@@ -170,7 +195,9 @@ class ScoreWeights(BaseModel):
 
 
 class CampaignBrief(BaseModel):
-    product_id: str
+    product_id: str  # a product id, or a collection id for collection campaigns
+    collection_id: Optional[str] = None
+    content_themes: list[str] = Field(default_factory=list)  # collection themes creators must post about
     objective: str = "awareness"
     target_age_segments: list[str]
     target: str
@@ -220,6 +247,8 @@ class MatchResult(BaseModel):
     concerns: list[str]
     data_confidence: Literal["high", "medium", "low"]
     insight: Optional[str] = None  # LLM-generated, optional
+    source: str = "zylo"  # where the creator's data came from (an outside MCP provider for external creators)
+    matched_themes: list[str] = Field(default_factory=list)  # collection themes the creator posts about
 
 
 class FilterStats(BaseModel):

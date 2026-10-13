@@ -2532,5 +2532,563 @@
    "XL": 36
   },
   "status": "active"
+ },
+ {
+  "product_id": "P101",
+  "product_name": "Marvel Avengers Graphic Tee",
+  "description": "Marvel Avengers Graphic Tee in white from the Zylo Marvel & DC collection. Officially licensed design (demo data).",
+  "category": "Unisex",
+  "price_gbp": 22.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "teens",
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "unisex",
+   "marvel & dc"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Marvel & DC",
+  "badges": [
+   "New"
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 41,
+   "S": 48,
+   "M": 18,
+   "L": 25,
+   "XL": 32
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P102",
+  "product_name": "Spider-Man Web Hoodie",
+  "description": "Spider-Man Web Hoodie in black from the Zylo Marvel & DC collection. Officially licensed design (demo data).",
+  "category": "Unisex",
+  "price_gbp": 42.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "teens",
+   "18-24"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "streetwear",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "casual",
+   "unisex",
+   "marvel & dc"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1773984159844-35cba1600d92?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Marvel & DC",
+  "badges": [
+   "New"
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 42,
+   "S": 49,
+   "M": 19,
+   "L": 26,
+   "XL": 33
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P103",
+  "product_name": "DC Batman Logo Bomber",
+  "description": "DC Batman Logo Bomber in red from the Zylo Marvel & DC collection. Officially licensed design (demo data).",
+  "category": "Men",
+  "price_gbp": 58.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "streetwear",
+   "men",
+   "marvel & dc"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1663374723561-885d23959717?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Marvel & DC",
+  "badges": [
+   "New"
+  ],
+  "colour": "Red",
+  "stock": {
+   "XS": 43,
+   "S": 50,
+   "M": 20,
+   "L": 27,
+   "XL": 34
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P104",
+  "product_name": "Wonder Woman Ribbed Tank",
+  "description": "Wonder Woman Ribbed Tank in cream from the Zylo Marvel & DC collection. Officially licensed design (demo data).",
+  "category": "Women",
+  "price_gbp": 18.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "casual",
+   "y2k"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "y2k",
+   "women",
+   "marvel & dc"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1737085725626-dcdacbaf33d2?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Marvel & DC",
+  "badges": [
+   "New"
+  ],
+  "colour": "Cream",
+  "stock": {
+   "XS": 44,
+   "S": 14,
+   "M": 21,
+   "L": 28,
+   "XL": 35
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P105",
+  "product_name": "Kids Marvel Hero Pyjamas",
+  "description": "Kids Marvel Hero Pyjamas in teal from the Zylo Marvel & DC collection. Officially licensed design (demo data).",
+  "category": "Kids",
+  "price_gbp": 18.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "casual",
+   "kids",
+   "marvel & dc"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1778283222098-da1f8fc1e5ea?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Marvel & DC",
+  "badges": [
+   "New"
+  ],
+  "colour": "Teal",
+  "stock": {
+   "3-4Y": 45,
+   "5-6Y": 15,
+   "7-8Y": 22,
+   "9-10Y": 29
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P106",
+  "product_name": "Mickey Mouse Classic Sweatshirt",
+  "description": "Mickey Mouse Classic Sweatshirt in lilac from the Zylo Disney collection. Officially licensed design (demo data).",
+  "category": "Unisex",
+  "price_gbp": 36.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "unisex",
+   "disney"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1781935542639-72c9373f085f?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Disney",
+  "badges": [
+   "New"
+  ],
+  "colour": "Lilac",
+  "stock": {
+   "XS": 46,
+   "S": 16,
+   "M": 23,
+   "L": 30,
+   "XL": 37
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P107",
+  "product_name": "Minnie Bow Kids Dress",
+  "description": "Minnie Bow Kids Dress in floral print from the Zylo Disney collection. Officially licensed design (demo data).",
+  "category": "Kids",
+  "price_gbp": 24.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "occasion"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "occasion",
+   "kids",
+   "disney"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1560707856-3af2ff5ea652?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Disney",
+  "badges": [
+   "New"
+  ],
+  "colour": "Floral print",
+  "stock": {
+   "3-4Y": 47,
+   "5-6Y": 17,
+   "7-8Y": 24,
+   "9-10Y": 31
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P108",
+  "product_name": "Stitch Oversized Hoodie",
+  "description": "Stitch Oversized Hoodie in white from the Zylo Disney collection. Officially licensed design (demo data).",
+  "category": "Unisex",
+  "price_gbp": 40.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "teens",
+   "18-24"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "casual",
+   "streetwear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "streetwear",
+   "unisex",
+   "disney"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Disney",
+  "badges": [
+   "New"
+  ],
+  "colour": "White",
+  "stock": {
+   "XS": 48,
+   "S": 18,
+   "M": 25,
+   "L": 32,
+   "XL": 39
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P109",
+  "product_name": "Disney Princess Pyjama Set",
+  "description": "Disney Princess Pyjama Set in red check from the Zylo Disney collection. Officially licensed design (demo data).",
+  "category": "Kids",
+  "price_gbp": 20.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "family"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "family",
+   "kids",
+   "disney"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1670906230394-d5b332a2113b?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Disney",
+  "badges": [
+   "New"
+  ],
+  "colour": "Red check",
+  "stock": {
+   "3-4Y": 49,
+   "5-6Y": 19,
+   "7-8Y": 26,
+   "9-10Y": 33
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P110",
+  "product_name": "Toy Story Kids Tee",
+  "description": "Toy Story Kids Tee in navy from the Zylo Disney collection. Officially licensed design (demo data).",
+  "category": "Kids",
+  "price_gbp": 12.0,
+  "sizes": [
+   "3-4Y",
+   "5-6Y",
+   "7-8Y",
+   "9-10Y"
+  ],
+  "target_age_segments": [
+   "children"
+  ],
+  "target_gender_or_collection": "kids",
+  "style_tags": [
+   "kids",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "kids",
+   "casual",
+   "kids",
+   "disney"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1778788732561-a6f28431a2bd?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Disney",
+  "badges": [
+   "New"
+  ],
+  "colour": "Navy",
+  "stock": {
+   "3-4Y": 50,
+   "5-6Y": 20,
+   "7-8Y": 27,
+   "9-10Y": 34
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P111",
+  "product_name": "Fair Isle Christmas Jumper",
+  "description": "Fair Isle Christmas Jumper in oatmeal from the Zylo Winter collection. Officially licensed design (demo data).",
+  "category": "Unisex",
+  "price_gbp": 38.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "unisex",
+  "style_tags": [
+   "classic",
+   "casual"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "classic",
+   "casual",
+   "unisex",
+   "winter"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1630254688956-40da9f30216a?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Winter",
+  "badges": [
+   "New"
+  ],
+  "colour": "Oatmeal",
+  "stock": {
+   "XS": 14,
+   "S": 21,
+   "M": 28,
+   "L": 35,
+   "XL": 42
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P112",
+  "product_name": "Longline Puffer Coat",
+  "description": "Longline Puffer Coat in black from the Zylo Winter collection. Officially licensed design (demo data).",
+  "category": "Women",
+  "price_gbp": 85.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "25-34",
+   "35-54"
+  ],
+  "target_gender_or_collection": "women",
+  "style_tags": [
+   "casual",
+   "classic"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "classic",
+   "women",
+   "winter"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1636529109797-0749811c4916?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Winter",
+  "badges": [
+   "New"
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 15,
+   "S": 22,
+   "M": 29,
+   "L": 36,
+   "XL": 43
+  },
+  "status": "active"
+ },
+ {
+  "product_id": "P113",
+  "product_name": "Linen Beach Shorts",
+  "description": "Linen Beach Shorts in black from the Zylo Summer collection. Officially licensed design (demo data).",
+  "category": "Men",
+  "price_gbp": 20.0,
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "target_age_segments": [
+   "18-24",
+   "25-34"
+  ],
+  "target_gender_or_collection": "men",
+  "style_tags": [
+   "casual",
+   "sportswear"
+  ],
+  "target_region": "UK",
+  "campaign_keywords": [
+   "casual",
+   "sportswear",
+   "men",
+   "summer"
+  ],
+  "product_image": "https://images.unsplash.com/photo-1785926262431-ad6a88990c2e?auto=format&fit=crop&w=800&h=1067&q=75",
+  "seasonal_collection": "Summer",
+  "badges": [
+   "New"
+  ],
+  "colour": "Black",
+  "stock": {
+   "XS": 16,
+   "S": 23,
+   "M": 30,
+   "L": 37,
+   "XL": 44
+  },
+  "status": "active"
  }
 ]

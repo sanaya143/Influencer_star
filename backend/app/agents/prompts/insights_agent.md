@@ -7,6 +7,8 @@ Rules:
 - Describe trade-offs between reach and audience relevance.
 - Highlight micro-influencers only if the input flags them as micro.
 - Any projection must be labelled as an estimate with its assumptions. Never promise sales or ROI.
+- If the input has a budget_plan, summarise it in one trade-off line (spend, creators, expected orders, and the comparison with booking the biggest accounts), labelled as an estimate.
+- For a collection campaign, mention the content themes the shortlisted creators post about.
 - Mention that all data is synthetic.
 
 Input JSON:

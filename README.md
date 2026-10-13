@@ -21,14 +21,31 @@
 | Seed generator (reproducible) | `backend/app/data/seed_generator.py` → `data/seed/*.json` |
 
 ### Agent workflow (Google ADK)
-1. **Campaign Brief Agent** (`LlmAgent`, tools `search_products`, `submit_brief`) → validated `CampaignBrief`; asks for clarification instead of guessing.
-2. **Matching Coordinator Agent** (ADK `BaseAgent`) → calls the Python L1 filter, L2 matcher and ranking engine as tools. No LLM scoring.
-3. **Campaign Insights Agent** (`LlmAgent`) → JSON explanation; retried once, then falls back to a deterministic template (run is marked *Needs Review*).
+The brief is prepared **instantly by rules** (`brief_parser.interpret`: product or collection, ages, gender, city, budget, thresholds, micro-influencers, objective) and reviewed by the marketer, so no model call is spent on it. Open-ended requests go to the chat assistant. (Earlier versions had a separate Campaign Brief Agent; it made one tool call and added nothing the parser could not, so it was merged. Old runs still display with it.)
+
+1. **Matching Coordinator Agent** (ADK `BaseAgent`, no LLM). Tools, in order: `resolve_target` (product or collection) → `retrieve_data` (Zylo's creators) → `fetch_external_creators` (an outside provider, **over MCP**) → `level1_eligibility_filter` → `level2_audience_matcher` → `ranking_engine` → `roi_planner`.
+2. **Campaign Insights Agent** (`LlmAgent`) → JSON explanation, including the budget plan; retried once, then falls back to a deterministic template (run is marked *Needs Review*).
 
 Each run records per-agent status (Pending / Running / Completed / Failed / Needs Review), tool inputs/outputs (secrets redacted), timings, retries and token usage (`/api/runs/{id}/trace`, `/usage`). Tokens are **actual** when the provider reports them, otherwise an **estimate** (~4 chars/token) clearly labelled. Cost shows only if you set pricing env vars.
 
 ### Scoring (configurable in the UI)
 Audience fit 25 · Content/style fit 25 · Engagement 15 · Median promo views 15 · Past collaborations 10 · Brand affinity 5 · Region 5. Follower count is an **eligibility threshold only** (default ≥1,000 followers and ≥500 median promo views; both configurable demo defaults). Missing metrics are flagged *needs review* at Level 1 and receive a neutral-low sub-score (never a high one) later; they lower the confidence indicator.
+
+## Collections
+A campaign can promote one product or a whole **collection**: Marvel & DC Exclusive, Disney Collection, Summer Sale (−30%), Winter Collection, Back to School (table `collections`, `GET|POST /api/collections`). A collection is matched as one "virtual product" (its audience, styles and average price), and creators must also post about its **content themes** (e.g. `marvel`, `comics`, `cosplay`): those who do not are excluded with reason `NO_CONTENT_THEME`, and theme overlap counts for half of content fit. Every creator now has `content_themes` (fandoms, seasons, life moments) and a `rate_card`, generated from separate random streams so all earlier profile fields are unchanged. The licensed collections add 13 products (P101–P113); existing databases get them on start.
+
+## ROI and creator fees
+**Campaign → ROI & budget** (`GET /api/campaigns/{id}/roi?budget=`), all deterministic and labelled as estimates:
+- what each shortlisted creator **asks** for their main deliverable vs the **market rate** (median cost per 1,000 views for creators of the same size and platform), flagged *good value / fair / above market*, with a suggested offer;
+- cost per 1,000 views, expected orders (views × the creator's past purchase rate × a match-score factor) and revenue (× product or collection price);
+- a **budget plan** that books the creators giving the most value per pound (target-audience views, or revenue when the objective is *sales*), compared with booking the **biggest accounts** in the category for the same budget;
+- the market-rate table and every assumption. Profiles show the rate card and the same economics; the chat answers "what would £3,000 get?".
+
+## Outside creator data over MCP
+The Matching Coordinator is also an **MCP client**: each run asks an outside creator-data provider for creators who post about the campaign's themes and adds them to the pool (marked "via MCP" in results). By default it launches the bundled mock provider `app/external/social_data_server.py` (300 synthetic creators, ids `X0001…`) over **stdio**; set `ZYLO_EXTERNAL_MCP_URL` (and optionally `ZYLO_EXTERNAL_MCP_TOKEN`) to use a real provider over Streamable HTTP. Every outbound call appears in **MCP activity** (marked *outbound*), fetched profiles are cached in `external_creators`, and if the provider is unreachable the run carries on with Zylo's own creators. Switch it off in **Settings → Outside creator data** (or `ZYLO_EXTERNAL_MCP=off`).
+
+## Token usage and cost
+The header's **token chip** opens a dropdown with tokens and cost for today / 7 / 30 days, by source (campaign runs, assistant chat), by model (with its price), by agent, and the latest calls (`GET /api/usage/summary?days=`). Cost = tokens × price per million: free (`:free`) and local models cost $0, a few list prices are built in, and any model's price can be set in **Settings → Model prices** (`GET|PUT /api/settings/prices`). Unpriced models are flagged rather than guessed.
 
 ## Back office: inventory → storefront
 Products live in the SQLite `products` table (seeded once from `data/seed/products.json`). The back office writes there and everything else reads from it:
@@ -39,16 +56,16 @@ Products live in the SQLite `products` table (seeded once from `data/seed/produc
 - New products appear in the Create campaign picker, so the influencer-matching engine can promote them straight away.
 
 ## Assistant (chat) and the agent brain
-**Back office → Assistant** is a chat where the system explores a non-deterministic path: a language model (Google ADK, the model chosen in Settings) decides which specialist agent to consult and which of its tools to call, can chain several calls, and writes the answer from the results.
+The **Ask Zylo** button at the bottom right of every back-office page opens the assistant (the expand icon opens the full page with the brain beside each reply). It is a chat where the system explores a non-deterministic path: a language model (Google ADK, the model chosen in Settings) decides which specialist agent to consult and which of its tools to call, can chain several calls, and writes the answer from the results.
 
 | Specialist agent | Tools |
 |---|---|
-| Inventory | `list_products`, `get_product`, `inventory_summary`, `recent_orders` |
+| Inventory | `list_products`, `get_product`, `list_collections`, `inventory_summary`, `recent_orders` |
 | Creator | `search_creators`, `get_creator` |
 | Matching | `preview_matching` (deterministic engine; nothing saved; `micro_only` for micro-influencers) |
-| Campaign | `list_campaigns`, `get_campaign_results`, `explain_creator_in_campaign`, `start_campaign` |
+| Campaign | `list_campaigns`, `get_campaign_results`, `get_campaign_roi`, `explain_creator_in_campaign`, `start_campaign` (a product or a collection id) |
 
-The specialists do the real work in deterministic Python (the same code the MCP server uses, in `services/agent_tools.py`); the model never scores anyone. `start_campaign` launches the full Brief → Matching → Insights workflow and is only called when you explicitly ask to create, launch or run a campaign. Chat cannot change stock or products. Under each reply the interface shows result cards built from the tool results (not by the model): products, creators, rankings, orders, KPIs, campaign links.
+The specialists do the real work in deterministic Python (the same code the MCP server uses, in `services/agent_tools.py`); the model never scores anyone. `start_campaign` launches the Matching → Insights workflow and is only called when you explicitly ask to create, launch or run a campaign. Chat cannot change stock or products. Under each reply the interface shows result cards built from the tool results (not by the model): products, creators, rankings, orders, KPIs, campaign links.
 
 If no model is configured, or the model fails or times out (free models often do), a rule-based keyword router calls the same tools and fills a fixed template. The reply is labelled "Rule-based router" with the reason, so it is never mistaken for the model. Tick *Skip the AI model* to force this instant path.
 
@@ -84,7 +101,7 @@ claude mcp add --transport http zylo http://localhost:8000/mcp --header "Authori
 Safety defaults: the endpoint only accepts local `Host`/`Origin` headers (DNS-rebinding protection; add deployed ones with `ZYLO_MCP_ALLOWED_HOSTS`); tools that change data are **off** unless `ZYLO_MCP_WRITES=1` **and** `ZYLO_MCP_TOKEN` is set, and they are never available over stdio (stock changes are serialised inside the API process). Creator bios and product descriptions returned by tools are data, not instructions. Test with the MCP Inspector: `npx @modelcontextprotocol/inspector` → Streamable HTTP → `http://localhost:8000/mcp`.
 
 ## Data
-All synthetic: **1,200 creators** (the first 300 are identical to earlier seeds), ~1,500 collaborations, ~2,300 promotional posts, **1,200 historical orders** (timestamps relative to first start) and 60 products. Regenerate with `python -m app.data.seed_generator --influencers 1200`.
+All synthetic: **1,200 creators** (the first 300 are identical to earlier seeds), ~1,500 collaborations, ~2,300 promotional posts, **1,200 historical orders** (timestamps relative to first start), 73 products and 5 collections, plus 300 creators held by the outside MCP provider (`data/external/creators.json`). Regenerate with `python -m app.data.seed_generator --influencers 1200` (also rewrites the outside provider's file).
 Product photos are hand-picked [Unsplash](https://unsplash.com/license) images matched to each product name (served from `images.unsplash.com`); offline, each tile falls back to a line illustration of the right garment type in the product colour.
 
 ## UI
@@ -123,7 +140,7 @@ Environment variables are an optional fallback only (see `.env.example`); anythi
 
 ## Demo script (≈3 min)
 1. Open the storefront, choose **Oversized Graphic Hoodie** → **Promote this product**.
-2. Paste: *"Find suitable UK-based influencers to promote our new women's streetwear collection for customers aged 18–24. Prioritize strong promotional views and relevant micro-influencers."* → **Interpret brief** → review → **Launch**.
+2. Paste: *"Find suitable UK-based influencers to promote our new women's streetwear collection for customers aged 18–24. Prioritize strong promotional views and relevant micro-influencers."* → **Prepare brief** (instant) → review → **Launch**. Or switch to **A collection**, pick Marvel & DC Exclusive, and launch: watch the outside provider add creators over MCP in the agent graph, then open **ROI & budget**.
 3. Results: **Top 3 in each field** (overall, audience fit, promo views, engagement, micro), funnel (1,200 evaluated → eligible → matched → ranked), ranked table, recommendation, **Excluded / review** tab with exact Python reason codes.
 4. Tick 2–3 creators → **Compare**. Open a **Profile** for the score breakdown.
 5. Change *Min followers* / *Min promo views* → **Re-run matching** (backend recomputes).

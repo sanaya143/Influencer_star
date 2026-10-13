@@ -39,7 +39,7 @@ def seed_if_empty() -> None:
         products = load_seed_products(seed_dir)
         t = now()
         for p in products:
-            db.add(ProductRow(**p.model_dump(), created_at=t - timedelta(days=120), updated_at=t - timedelta(days=120)))
+            db.add(ProductRow(**p.model_dump(exclude={"content_themes"}), created_at=t - timedelta(days=120), updated_at=t - timedelta(days=120)))
         if db.query(OrderRow).first() is None:
             names = {p.product_id: p.product_name for p in products}
             for o in load_seed_orders(seed_dir):
@@ -60,6 +60,22 @@ def apply_rebrand() -> None:
         for r in rows:
             r.description = r.description.replace("THREADORA", "Zylo")
         if rows:
+            db.commit()
+
+
+def ensure_collection_products() -> None:
+    """Add the products the collections need (Marvel & DC, Disney, winter and summer pieces) to an existing catalogue.
+    Idempotent: products already present, including ones archived since, are left alone."""
+    from ..data.collections import collection_products
+    with session() as db:
+        have = {pid for (pid,) in db.query(ProductRow.product_id).all()}
+        added = [p for p in collection_products() if p.product_id not in have]
+        t = now()
+        for p in added:
+            db.add(ProductRow(**p.model_dump(exclude={"content_themes"}), created_at=t - timedelta(days=3), updated_at=t - timedelta(days=3)))
+            for size, units in p.stock.items():
+                _move(db, p.product_id, size, units, units, "Initial stock")
+        if added:
             db.commit()
 
 
@@ -153,8 +169,15 @@ def search(statuses: list[str] | None = None, q: str = "", category: str = "", t
 
 # ------------------------------------------------------------------ writes
 def _next_id(db) -> str:
-    nums = [int(m.group(1)) for (pid,) in db.query(ProductRow.product_id).all() if (m := re.fullmatch(r"P(\d+)", pid))]
-    return f"P{(max(nums) if nums else 0) + 1:03d}"
+    """Next free P-number after the back office's own products (the collections' fixed ids P101... are skipped)."""
+    from ..data.collections import COLLECTION_PRODUCTS
+    reserved = {row[0] for row in COLLECTION_PRODUCTS}
+    taken = {pid for (pid,) in db.query(ProductRow.product_id).all()}
+    nums = [int(m.group(1)) for pid in taken - reserved if (m := re.fullmatch(r"P(\d+)", pid))]
+    n = (max(nums) if nums else 0) + 1
+    while f"P{n:03d}" in taken:
+        n += 1
+    return f"P{n:03d}"
 
 
 def _move(db, pid: str, size: str, delta: int, balance: int, reason: str, ref: str | None = None) -> None:

@@ -41,7 +41,7 @@ def test_capabilities_list_the_specialist_agents(client):
     d = client.get("/api/chat/capabilities").json()
     assert [a["name"] for a in d["agents"]] == ["InventoryAgent", "CreatorAgent", "MatchingAgent", "CampaignAgent"]
     names = {t["name"] for a in d["agents"] for t in a["tools"]}
-    assert names == {t.__name__ for t in at.ALL_TOOLS} and len(names) == 11 and d["mode"] == "offline"
+    assert names == {t.__name__ for t in at.ALL_TOOLS} and len(names) == 13 and d["mode"] == "offline"
 
 
 def test_every_chat_tool_has_a_valid_model_schema():

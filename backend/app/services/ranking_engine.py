@@ -56,8 +56,9 @@ def _rationale_and_concerns(e: dict, product: Product) -> tuple[str, list[str]]:
     top = sorted(e["contributions"].items(), key=lambda kv: kv[1], reverse=True)[:2]
     strengths = ", ".join(CRITERIA_LABELS[k].lower() for k, _ in top)
     micro = " Micro-influencer with strong view-to-follower ratio." if _is_micro(inf) and e["view_rate"] >= 10 else ""
+    themes = f" Posts about {', '.join(e['themes'])}." if e.get("themes") else ""
     rationale = (f"Strongest on {strengths}. {e['details'][0]}; median promo views "
-                 f"{inf.median_promotional_views:,} ({e['view_rate']:.1f}% of followers).{micro}")
+                 f"{inf.median_promotional_views:,} ({e['view_rate']:.1f}% of followers).{micro}{themes}")
     concerns = []
     if e["scores"]["audience_fit"] < 50:
         concerns.append("Only a modest share of the audience is in the target segment.")
@@ -94,7 +95,8 @@ def rank(entries: list[dict], product: Product, brief: CampaignBrief) -> list[Ma
             median_promotional_views=inf.median_promotional_views or 0, engagement_rate=inf.engagement_rate or 0.0,
             is_micro=_is_micro(inf), audience_fit_pct=sum(e["relevant"].values()), relevant_audience=e["relevant"],
             scores=e["scores"], contributions=e["contributions"], overall_score=e["overall"], criteria=e["criteria"],
-            rationale=rationale, concerns=concerns, data_confidence=_confidence(inf, e["missing"])))
+            rationale=rationale, concerns=concerns, data_confidence=_confidence(inf, e["missing"]),
+            source=inf.source, matched_themes=e.get("themes", [])))
     return out
 
 

@@ -7,8 +7,9 @@ import { Badge, Button, StatusPill } from '../shared/ui'
 
 // ------------------------------------------------------------------ layout (SVG user units)
 const BRIEF = 'CampaignBriefAgent', COORD = 'MatchingCoordinatorAgent', INSIGHTS = 'CampaignInsightsAgent'
-const W = 1420, H = 690
-const COL = { brief: 340, coord: 720, insights: 1080 }
+const W = 1420, H = 900
+const COL = { brief: 340, coord: 720, insights: 1080 }  // runs recorded with the (retired) Brief agent
+const COL2 = { coord: 600, insights: 1080 }  // current workflow: Matching Coordinator, then Insights
 type Kind = 'io' | 'agent' | 'tool' | 'llm'
 interface GNode { id: string; kind: Kind; label: string; sub?: string; x: number; y: number; w: number; h: number; agent?: string; tool?: string }
 interface GEdge { id: string; from: string; to: string; kind: 'flow' | 'tool' | 'llm'; label?: string }
@@ -16,50 +17,85 @@ interface GEdge { id: string; from: string; to: string; kind: 'flow' | 'tool' | 
 const TOOL_LABELS: Record<string, string> = {
   search_products: 'Search products', submit_brief: 'Submit brief', retrieve_data: 'Retrieve creators',
   level1_eligibility_filter: 'Level 1 · eligibility', level2_audience_matcher: 'Level 2 · audience match', ranking_engine: 'Ranking engine',
-  template_insights: 'Template insights',
+  template_insights: 'Template insights', resolve_target: 'Resolve product / collection', fetch_external_creators: 'Outside creators (MCP)',
+  roi_planner: 'ROI & budget plan',
 }
 const BRIEF_TOOLS = ['search_products', 'submit_brief']
-const COORD_TOOLS = ['retrieve_data', 'level1_eligibility_filter', 'level2_audience_matcher', 'ranking_engine']
+const COORD_TOOLS_V1 = ['retrieve_data', 'level1_eligibility_filter', 'level2_audience_matcher', 'ranking_engine']
+const COORD_TOOLS = ['resolve_target', 'retrieve_data', 'fetch_external_creators', 'level1_eligibility_filter', 'level2_audience_matcher', 'ranking_engine', 'roi_planner']
+interface LaneDef { x: number; w: number; label: string }
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 
 function buildGraph(trace: Trace) {
   const insightTools = [...new Set(trace.agents.find(a => a.id === INSIGHTS)?.tools.map(t => t.name) ?? [])]
   const llm = trace.mode === 'llm'
+  const legacy = trace.agents.some(a => a.id === BRIEF)
   const agentRow = 170, toolRow = 352
-  const nodes: GNode[] = [
-    { id: 'in', kind: 'io', label: 'Campaign brief', sub: 'Marketer input', x: 24, y: agentRow + 17, w: 150, h: 70 },
-    { id: 'llm', kind: 'llm', label: llm ? (trace.model ?? 'LLM') : 'No LLM call', sub: llm ? trace.provider : 'Offline deterministic mode', x: COL.coord - 160, y: 24, w: 320, h: 72 },
-    { id: BRIEF, kind: 'agent', label: 'Brief Agent', x: COL.brief - 120, y: agentRow, w: 240, h: 104, agent: BRIEF },
-    { id: COORD, kind: 'agent', label: 'Matching Coordinator', x: COL.coord - 132, y: agentRow, w: 264, h: 104, agent: COORD },
-    { id: INSIGHTS, kind: 'agent', label: 'Insights Agent', x: COL.insights - 120, y: agentRow, w: 240, h: 104, agent: INSIGHTS },
-    { id: 'out', kind: 'io', label: 'Ranked shortlist', sub: 'Results & insights', x: W - 174, y: agentRow + 17, w: 150, h: 70 },
-  ]
-  BRIEF_TOOLS.forEach((t, i) => nodes.push({ id: `${BRIEF}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.brief - 110, y: toolRow + i * 80, w: 220, h: 56, agent: BRIEF, tool: t }))
-  COORD_TOOLS.forEach((t, i) => nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.coord - 125, y: toolRow - 12 + i * 84, w: 250, h: 56, agent: COORD, tool: t }))
-  insightTools.forEach((t, i) => nodes.push({ id: `${INSIGHTS}:${t}`, kind: 'tool', label: TOOL_LABELS[t] ?? t, sub: t, x: COL.insights - 110, y: toolRow + i * 80, w: 220, h: 56, agent: INSIGHTS, tool: t }))
-
   const out = (agent: string, tool: string) => trace.agents.find(a => a.id === agent)?.tools.find(t => t.name === tool)?.output as Record<string, number> | undefined
   const n = (v: unknown) => (typeof v === 'number' ? fmt.n(v) : null)
   const retrieved = n(out(COORD, 'retrieve_data')?.influencers_retrieved)
   const eligible = n(out(COORD, 'level1_eligibility_filter')?.eligible)
   const matched = n(out(COORD, 'level2_audience_matcher')?.passed)
   const ranked = n(out(COORD, 'ranking_engine')?.ranked)
+  const insightLane = trace.agents.find(a => a.id === INSIGHTS)?.tools.length ? 'INSIGHT TOOLS' : 'LLM OUTPUT'
+  const llmNode = (cx: number): GNode => ({ id: 'llm', kind: 'llm', label: llm ? (trace.model ?? 'LLM') : 'No LLM call', sub: llm ? trace.provider : 'Offline deterministic mode', x: cx - 160, y: 24, w: 320, h: 72 })
+  const io = (id: string, label: string, sub: string, x: number): GNode => ({ id, kind: 'io', label, sub, x, y: agentRow + 17, w: 150, h: 70 })
+
+  if (legacy) {  // a run from before the Brief agent was merged into the Matching Coordinator
+    const nodes: GNode[] = [
+      io('in', 'Campaign brief', 'Marketer input', 24), llmNode(COL.coord),
+      { id: BRIEF, kind: 'agent', label: 'Brief Agent', x: COL.brief - 120, y: agentRow, w: 240, h: 104, agent: BRIEF },
+      { id: COORD, kind: 'agent', label: 'Matching Coordinator', x: COL.coord - 132, y: agentRow, w: 264, h: 104, agent: COORD },
+      { id: INSIGHTS, kind: 'agent', label: 'Insights Agent', x: COL.insights - 120, y: agentRow, w: 240, h: 104, agent: INSIGHTS },
+      io('out', 'Ranked shortlist', 'Results & insights', W - 174),
+    ]
+    BRIEF_TOOLS.forEach((t, i) => nodes.push({ id: `${BRIEF}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.brief - 110, y: toolRow + i * 80, w: 220, h: 56, agent: BRIEF, tool: t }))
+    COORD_TOOLS_V1.forEach((t, i) => nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL.coord - 125, y: toolRow - 12 + i * 84, w: 250, h: 56, agent: COORD, tool: t }))
+    insightTools.forEach((t, i) => nodes.push({ id: `${INSIGHTS}:${t}`, kind: 'tool', label: TOOL_LABELS[t] ?? t, sub: t, x: COL.insights - 110, y: toolRow + i * 80, w: 220, h: 56, agent: INSIGHTS, tool: t }))
+    const edges: GEdge[] = [
+      { id: 'e-in', from: 'in', to: BRIEF, kind: 'flow' },
+      { id: 'e-b-c', from: BRIEF, to: COORD, kind: 'flow', label: 'validated brief' },
+      { id: 'e-c-i', from: COORD, to: INSIGHTS, kind: 'flow', label: ranked ? `${ranked} ranked` : undefined },
+      { id: 'e-out', from: INSIGHTS, to: 'out', kind: 'flow' },
+      { id: 'e-llm-b', from: 'llm', to: BRIEF, kind: 'llm' },
+      { id: 'e-llm-i', from: 'llm', to: INSIGHTS, kind: 'llm' },
+      { id: `e-${BRIEF}-t0`, from: BRIEF, to: `${BRIEF}:${BRIEF_TOOLS[0]}`, kind: 'tool' },
+      { id: `e-${BRIEF}-t1`, from: `${BRIEF}:${BRIEF_TOOLS[0]}`, to: `${BRIEF}:${BRIEF_TOOLS[1]}`, kind: 'tool' },
+      { id: `e-${COORD}-t0`, from: COORD, to: `${COORD}:${COORD_TOOLS_V1[0]}`, kind: 'tool' },
+      { id: `e-${COORD}-t1`, from: `${COORD}:${COORD_TOOLS_V1[0]}`, to: `${COORD}:${COORD_TOOLS_V1[1]}`, kind: 'tool', label: retrieved ? `${retrieved} creators` : undefined },
+      { id: `e-${COORD}-t2`, from: `${COORD}:${COORD_TOOLS_V1[1]}`, to: `${COORD}:${COORD_TOOLS_V1[2]}`, kind: 'tool', label: eligible ? `${eligible} eligible` : undefined },
+      { id: `e-${COORD}-t3`, from: `${COORD}:${COORD_TOOLS_V1[2]}`, to: `${COORD}:${COORD_TOOLS_V1[3]}`, kind: 'tool', label: matched ? `${matched} matched` : undefined },
+      ...insightTools.map((t, i) => ({ id: `e-${INSIGHTS}-t${i}`, from: i ? `${INSIGHTS}:${insightTools[i - 1]}` : INSIGHTS, to: `${INSIGHTS}:${t}`, kind: 'tool' as const })),
+    ]
+    const lanes: LaneDef[] = [{ x: COL.brief - 140, w: 280, label: 'BRIEF TOOLS' }, { x: COL.coord - 145, w: 290, label: 'DETERMINISTIC PYTHON' }, { x: COL.insights - 140, w: 280, label: insightLane }]
+    return { nodes, edges, lanes, coordTools: COORD_TOOLS_V1 }
+  }
+
+  const ext = out(COORD, 'fetch_external_creators') as Record<string, unknown> | undefined
+  const added = typeof ext?.new_creators === 'number' ? ext.new_creators : null
+  const nodes: GNode[] = [
+    io('in', 'Campaign brief', 'Product or collection', 24), llmNode(COL2.insights),
+    { id: COORD, kind: 'agent', label: 'Matching Coordinator', x: COL2.coord - 140, y: agentRow, w: 280, h: 104, agent: COORD },
+    { id: INSIGHTS, kind: 'agent', label: 'Insights Agent', x: COL2.insights - 120, y: agentRow, w: 240, h: 104, agent: INSIGHTS },
+    io('out', 'Shortlist & plan', 'Results, insights, ROI', W - 174),
+  ]
+  const ty = (i: number) => 318 + i * 82
+  COORD_TOOLS.forEach((t, i) => nodes.push({ id: `${COORD}:${t}`, kind: 'tool', label: TOOL_LABELS[t], sub: t, x: COL2.coord - 135, y: ty(i), w: 270, h: 52, agent: COORD, tool: t }))
+  nodes.push({ id: 'ext', kind: 'io', label: 'Outside data provider', sub: ext?.skipped ? 'Turned off in Settings' : 'MCP server · creator data', x: 150, y: ty(2) - 9, w: 210, h: 70 })
+  insightTools.forEach((t, i) => nodes.push({ id: `${INSIGHTS}:${t}`, kind: 'tool', label: TOOL_LABELS[t] ?? t, sub: t, x: COL2.insights - 110, y: toolRow + i * 80, w: 220, h: 56, agent: INSIGHTS, tool: t }))
+  const chain = (i: number, label?: string | null): GEdge => ({ id: `e-${COORD}-t${i}`, from: i ? `${COORD}:${COORD_TOOLS[i - 1]}` : COORD, to: `${COORD}:${COORD_TOOLS[i]}`, kind: 'tool', label: label ?? undefined })
   const edges: GEdge[] = [
-    { id: 'e-in', from: 'in', to: BRIEF, kind: 'flow' },
-    { id: 'e-b-c', from: BRIEF, to: COORD, kind: 'flow', label: 'validated brief' },
+    { id: 'e-in', from: 'in', to: COORD, kind: 'flow', label: 'reviewed brief' },
     { id: 'e-c-i', from: COORD, to: INSIGHTS, kind: 'flow', label: ranked ? `${ranked} ranked` : undefined },
     { id: 'e-out', from: INSIGHTS, to: 'out', kind: 'flow' },
-    { id: 'e-llm-b', from: 'llm', to: BRIEF, kind: 'llm' },
     { id: 'e-llm-i', from: 'llm', to: INSIGHTS, kind: 'llm' },
-    { id: `e-${BRIEF}-t0`, from: BRIEF, to: `${BRIEF}:${BRIEF_TOOLS[0]}`, kind: 'tool' },
-    { id: `e-${BRIEF}-t1`, from: `${BRIEF}:${BRIEF_TOOLS[0]}`, to: `${BRIEF}:${BRIEF_TOOLS[1]}`, kind: 'tool' },
-    { id: `e-${COORD}-t0`, from: COORD, to: `${COORD}:${COORD_TOOLS[0]}`, kind: 'tool' },
-    { id: `e-${COORD}-t1`, from: `${COORD}:${COORD_TOOLS[0]}`, to: `${COORD}:${COORD_TOOLS[1]}`, kind: 'tool', label: retrieved ? `${retrieved} creators` : undefined },
-    { id: `e-${COORD}-t2`, from: `${COORD}:${COORD_TOOLS[1]}`, to: `${COORD}:${COORD_TOOLS[2]}`, kind: 'tool', label: eligible ? `${eligible} eligible` : undefined },
-    { id: `e-${COORD}-t3`, from: `${COORD}:${COORD_TOOLS[2]}`, to: `${COORD}:${COORD_TOOLS[3]}`, kind: 'tool', label: matched ? `${matched} matched` : undefined },
+    { id: 'e-ext', from: 'ext', to: `${COORD}:fetch_external_creators`, kind: 'flow', label: added != null ? `+${fmt.n(added)} via MCP` : 'MCP' },
+    chain(0), chain(1), chain(2, retrieved ? `${retrieved} own creators` : null), chain(3), chain(4, eligible ? `${eligible} eligible` : null),
+    chain(5, matched ? `${matched} matched` : null), chain(6, ranked ? `${ranked} ranked` : null),
     ...insightTools.map((t, i) => ({ id: `e-${INSIGHTS}-t${i}`, from: i ? `${INSIGHTS}:${insightTools[i - 1]}` : INSIGHTS, to: `${INSIGHTS}:${t}`, kind: 'tool' as const })),
   ]
-  return { nodes, edges }
+  const lanes: LaneDef[] = [{ x: COL2.coord - 150, w: 300, label: 'DETERMINISTIC PYTHON' }, { x: COL2.insights - 140, w: 280, label: insightLane }]
+  return { nodes, edges, lanes, coordTools: COORD_TOOLS }
 }
 
 function edgePath(a: GNode, b: GNode, kind: GEdge['kind']): string {
@@ -97,6 +133,10 @@ function summary(tc: ToolCall): string {
   if ('passed' in o) return `${fmt.n(o.passed as number)} matched`
   if ('ranked' in o) return `${fmt.n(o.ranked as number)} ranked`
   if ('ok' in o) return o.ok ? 'brief accepted' : 'needs clarification'
+  if ('skipped' in o) return 'skipped: outside data is off'
+  if ('new_creators' in o) return `+${fmt.n(o.new_creators as number)} creators from ${o.server ?? 'the outside provider'}`
+  if ('plan_creators' in o) return `plan: ${fmt.n(o.plan_creators as number)} creators for £${fmt.n(o.spend_gbp as number)}`
+  if ('kind' in o && 'name' in o) return `${o.kind}: ${o.name}`
   return ''
 }
 
@@ -233,7 +273,7 @@ function usePanZoom(reduce: boolean | null) {
 // ------------------------------------------------------------------ component
 export default function AgentGraph({ trace }: { trace: Trace }) {
   const reduce = useReducedMotionConfig()
-  const { nodes, edges } = useMemo(() => buildGraph(trace), [trace])
+  const { nodes, edges, lanes, coordTools } = useMemo(() => buildGraph(trace), [trace])
   const byId = useMemo(() => Object.fromEntries(nodes.map(n => [n.id, n])), [nodes])
   const agent = (id?: string) => trace.agents.find(a => a.id === id)
   const terminal = ['Completed', 'Failed', 'Needs Review'].includes(trace.status)
@@ -270,6 +310,12 @@ export default function AgentGraph({ trace }: { trace: Trace }) {
   const idx = (pred: (e: Ev) => boolean) => events.findIndex(pred)
 
   function status(n: GNode): Status {
+    if (n.id === 'ext') {
+      const fetch = byId[`${COORD}:fetch_external_creators`]
+      const call = agent(COORD)?.tools.find(t => t.name === 'fetch_external_creators')
+      if ((call?.output as { skipped?: boolean } | null)?.skipped) return 'Skipped'
+      return fetch ? status(fetch) : 'Skipped'
+    }
     if (n.kind === 'io') {
       if (n.id === 'in') return 'Completed'
       if (replaying) return k! >= events.length - 1 ? (trace.status as Status) : 'Pending'
@@ -295,14 +341,15 @@ export default function AgentGraph({ trace }: { trace: Trace }) {
       return 'Pending'
     }
     const call = a.tools.find(t => t.name === n.tool)
+    const skipped = (call?.output as { skipped?: boolean } | null)?.skipped
     if (!replaying) {
-      if (call) return call.error ? 'Failed' : 'Completed'
-      if (a.status === 'Running') return a.tools.length === (n.agent === COORD ? COORD_TOOLS.indexOf(n.tool!) : 0) ? 'Running' : 'Pending'
+      if (call) return call.error ? (n.tool === 'fetch_external_creators' ? 'Needs Review' : 'Failed') : skipped ? 'Skipped' : 'Completed'
+      if (a.status === 'Running') return a.tools.length === (n.agent === COORD ? coordTools.indexOf(n.tool!) : 0) ? 'Running' : 'Pending'
       return a.status === 'Pending' ? 'Pending' : 'Skipped'
     }
     const ti = idx(e => e.node === n.id)
     if (ti === -1) return 'Skipped'
-    return ti < k! ? (call?.error ? 'Failed' : 'Completed') : ti === k ? 'Running' : 'Pending'
+    return ti < k! ? (call?.error ? 'Failed' : skipped ? 'Skipped' : 'Completed') : ti === k ? 'Running' : 'Pending'
   }
 
   const st = Object.fromEntries(nodes.map(n => [n.id, status(n)])) as Record<string, Status>
@@ -388,6 +435,7 @@ function Workspace({ expanded, onToggle, trace, terminal, replay, details, child
   const reduce = useReducedMotionConfig()
   const { box, size, view, dragging, fit, reset, follow, centerOn, zoomAt, actual, handlers } = usePanZoom(reduce)
   useEffect(() => { follow(focus) }, [focus?.id, follow])
+  const lanes = useMemo(() => buildGraph(trace).lanes, [trace])
   const clipped = size.w > 0 && (view.x < -2 || view.y < -2 || view.x + W * view.s > size.w + 2 || view.y + H * view.s > size.h + 2)
   const { k, playing, events } = replay
   const replaying = k !== null
@@ -438,9 +486,7 @@ function Workspace({ expanded, onToggle, trace, terminal, replay, details, child
                 <marker id="ag-arrow-on" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style={{ fill: 'var(--brand)' }} /></marker>
               </defs>
               <g transform={`translate(${view.x} ${view.y}) scale(${view.s})`}>
-                <Lane x={COL.brief - 140} w={280} label="BRIEF TOOLS" />
-                <Lane x={COL.coord - 145} w={290} label="DETERMINISTIC PYTHON" />
-                <Lane x={COL.insights - 140} w={280} label={trace.agents.find(a => a.id === INSIGHTS)?.tools.length ? 'INSIGHT TOOLS' : 'LLM OUTPUT'} />
+                {lanes.map(l => <Lane key={l.label} {...l} />)}
                 {children}
               </g>
             </svg>

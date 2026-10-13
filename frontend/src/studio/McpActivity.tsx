@@ -37,6 +37,7 @@ function Row({ c, fresh }: { c: McpCall; fresh: boolean }) {
         <span className="min-w-0">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-mono text-sm font-semibold">{c.name}</span>
+            {c.transport.startsWith('outbound') ? <Badge tone="brand">outbound · Zylo is the client</Badge> : null}
             {c.kind !== 'tool' && <Badge>{c.kind}</Badge>}
             {c.changes_data && <Badge tone="warn">changed data</Badge>}
             {c.status === 'error' && <Badge tone="bad">error</Badge>}
@@ -141,7 +142,7 @@ export default function McpActivity() {
           </ul>
         </Card>
       )}
-      <p className="text-xs text-muted">Shows a trimmed summary of each call (secrets are masked; results are not stored). The last 5,000 calls are kept. Calls from the read-only stdio server appear here too.</p>
+      <p className="text-xs text-muted">Shows a trimmed summary of each call (secrets are masked; results are not stored). The last 5,000 calls are kept. Calls from the read-only stdio server appear here too, and so do Zylo's own outbound calls to the outside creator-data provider (marked outbound).</p>
     </div>
   )
 }

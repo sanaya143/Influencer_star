@@ -66,6 +66,8 @@ def preview_matching_core(product_id: str, target_age_segments: list[str] | None
     brief = assemble_brief(product, {"target_age_segments": target_age_segments or None, "target": target or None, "location": location or None,
                                      "min_followers": min_followers, "min_promo_views": min_promo_views, "preferred_interests": preferred_interests or []})
     brief.filters.min_audience_match = min_audience_match
+    if product.category == "Collection":
+        brief.collection_id, brief.content_themes = product.product_id, list(product.content_themes)
     out = run_matching(brief, product, get_provider().influencers())
     reasons = Counter(code for e in out.excluded for code in e.reason_codes)
     pool = [m for m in out.ranked if m.is_micro] if micro_only else out.ranked  # rank numbers stay the overall ranks
@@ -88,6 +90,35 @@ def campaign_results(campaign_id: str, top_n: int = 10, micro_only: bool = False
                                        "engagement_rate", "is_micro", "overall_score", "scores", "data_confidence", "rationale", "concerns")}
                     for m in r["ranked"]],
             "insights": {k: ins.get(k) for k in ("summary", "recommendation", "trade_offs", "micro_highlights", "next_steps")}, "note": r["label"]}
+
+
+def latest_campaign_id() -> str:
+    items = routes().list_campaigns()["items"]
+    if not items:
+        raise ToolFail("There are no saved campaigns yet.")
+    return items[0]["campaign_id"]
+
+
+def campaign_roi(campaign_id: str, budget_gbp: float | None = None) -> dict[str, Any]:
+    from fastapi import HTTPException
+    try:
+        r = routes().campaign_roi(campaign_id or latest_campaign_id(), budget_gbp or None, 40)
+    except HTTPException as e:
+        raise ToolFail(str(e.detail)) from None
+    slim = lambda rows: [{k: x[k] for k in ("display_name", "platform", "followers", "fee_gbp", "fair_fee_gbp", "value_flag", "views", "cpm_gbp",
+                                            "expected_orders", "expected_revenue_gbp", "roas")} for x in rows]
+    return {"campaign_id": r["campaign_id"], "product": r["product_name"], "budget_gbp": r["budget_gbp"], "optimised_for": r["optimised_for"],
+            "plan": {**r["plan"]["summary"], "creators": slim(r["plan"]["creators"])}, "biggest_accounts_plan": r["baseline"]["summary"],
+            "comparison": r["comparison"], "value_flags": r["value_flags"], "negotiation_saving_gbp": r["negotiation_saving_gbp"],
+            "assumptions": r["assumptions"][:3], "label": r["label"]}
+
+
+def collections_overview() -> dict[str, Any]:
+    from . import collections
+    infl = get_provider().influencers()
+    return {"collections": [{k: v for k, v in collections.view(c, infl).items() if k in (
+        "collection_id", "name", "tagline", "kind", "content_themes", "discount_pct", "avg_price_gbp", "total_stock", "creators_with_themes")}
+        | {"products": [p["product_name"] for p in collections.view(c, None)["products"]]} for c in collections.all_collections()]}
 
 
 def campaign_analytics(campaign_id: str) -> dict[str, Any]:
@@ -206,7 +237,8 @@ def get_creator(influencer_id: str) -> dict:
 @safe
 def preview_matching(product_id: str, target_age_segments: str = "", target: str = "", location: str = "", min_followers: int = 0,
                      min_promo_views: int = 0, top_n: int = 5, micro_only: bool = False) -> dict:
-    """Rank creators for a product with the deterministic Python engine (eligibility, audience match, weighted score). Nothing is
+    """Rank creators for a product, or a whole collection (pass its id, e.g. COL-DISNEY: creators must then post about the
+    collection's themes), with the deterministic Python engine (eligibility, audience match, weighted score). Nothing is
     saved. target_age_segments is a comma list from: children, teens, 18-24, 25-34, 35-54, 55+ (empty = the product's own).
     target is women, men, unisex, couple, family or kids (empty = the product's own). location defaults to UK. 0 for the
     follower/view minimums means the standard thresholds. Set micro_only to true when the user asks for micro-influencers
@@ -234,18 +266,35 @@ def explain_creator_in_campaign(campaign_id: str, influencer_id: str) -> dict:
 
 
 @safe
+def list_collections() -> dict:
+    """Product collections a campaign can target as a whole (for example Marvel & DC Exclusive, Disney Collection, Summer Sale,
+    Winter Collection): their products, the content themes creators must post about, and how many creators post about them."""
+    return collections_overview()
+
+
+@safe
+def get_campaign_roi(campaign_id: str = "", budget_gbp: float = 0.0) -> dict:
+    """What creators in a saved campaign charge and the best plan for a budget: each creator's asking fee vs the market rate,
+    cost per 1,000 views, expected orders and revenue, and how the plan compares with booking the biggest accounts. Empty
+    campaign_id = the latest campaign; 0 budget = the campaign's own budget (or 5,000 GBP). All figures are estimates."""
+    return campaign_roi(campaign_id, float(budget_gbp or 0) or None)
+
+
+@safe
 async def start_campaign(product_id: str, request: str = "") -> dict:
-    """LAUNCH a saved campaign for a product: builds the brief from the request text and starts the full agent workflow
-    (Brief agent, Matching coordinator, Insights agent). Only call when the user explicitly asks to create, launch or run
-    a campaign. Returns the campaign id and its page."""
+    """LAUNCH a saved campaign for a product or a whole collection (pass a collection id such as COL-MARVEL-DC): builds the brief
+    from the request text and starts the agent workflow (Matching coordinator, then Insights agent). Only call when the user
+    explicitly asks to create, launch or run a campaign. Returns the campaign id and its page."""
     from ..agents.brief_parser import assemble_brief, extract_fields
     r = routes()
     product = get_provider().product(product_id)
     if product is None:
-        raise ToolFail(f"Product '{product_id}' not found")
+        raise ToolFail(f"Product or collection '{product_id}' not found")
     if product.status == "archived":
         raise ToolFail(f"'{product.product_name}' is archived and cannot be promoted.")
     brief = assemble_brief(product, extract_fields(request or f"Promote {product.product_name}"))
+    if product.category == "Collection":
+        brief.collection_id, brief.content_themes = product.product_id, list(product.content_themes)
     created = r.create_campaign(r.CreateCampaignReq(brief=brief, name=f"{product.product_name} campaign (chat)"))
     started = await r.match(created["campaign_id"], r.MatchReq())
     return {"campaign_id": created["campaign_id"], "name": created["name"], "run_id": started["run_id"], "status": started["status"],
@@ -255,11 +304,11 @@ async def start_campaign(product_id: str, request: str = "") -> dict:
 
 # Which specialist agent owns each tool (shown in the brain timeline and used to group the model's tools).
 SPECIALISTS: dict[str, dict[str, Any]] = {
-    "InventoryAgent": {"role": "Catalogue, stock levels, orders and sales", "tools": [list_products, get_product, inventory_summary, recent_orders]},
+    "InventoryAgent": {"role": "Catalogue, collections, stock levels, orders and sales", "tools": [list_products, get_product, list_collections, inventory_summary, recent_orders]},
     "CreatorAgent": {"role": "Browse and inspect the creator (influencer) dataset", "tools": [search_creators, get_creator]},
     "MatchingAgent": {"role": "Rank creators for a product with the deterministic engine", "tools": [preview_matching]},
-    "CampaignAgent": {"role": "Saved campaigns: results, explanations, and launching the full agent workflow",
-                      "tools": [list_campaigns, get_campaign_results, explain_creator_in_campaign, start_campaign]},
+    "CampaignAgent": {"role": "Saved campaigns: results, creator fees and ROI, explanations, and launching the agent workflow",
+                      "tools": [list_campaigns, get_campaign_results, get_campaign_roi, explain_creator_in_campaign, start_campaign]},
 }
 AGENT_OF: dict[str, str] = {t.__name__: a for a, spec in SPECIALISTS.items() for t in spec["tools"]}
 ALL_TOOLS = [t for spec in SPECIALISTS.values() for t in spec["tools"]]

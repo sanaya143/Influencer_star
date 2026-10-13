@@ -80,6 +80,7 @@ export default function Results() {
       </div>
 
       <Controls filters={r.stats.thresholds} weights={r.brief.weights} busy={rerunning} onApply={(f, w) => rerun(f, w)} />
+      {!!r.sources?.outside && <p className="text-xs text-muted">{fmt.n(r.sources.outside)} of the {fmt.n(r.stats.retrieved)} creators evaluated came from the outside data provider over MCP.</p>}
       {r.stats.warnings.length > 0 && <ul className="space-y-1 text-xs text-muted">{r.stats.warnings.map(w => <li key={w} className="flex items-center gap-1.5"><TriangleAlert size={13} aria-hidden="true" />{w}</li>)}</ul>}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -121,7 +122,9 @@ export default function Results() {
                               <div className="min-w-0">
                                 <Link to={`/admin/campaigns/${campaignId}/influencer/${m.influencer_id}`} className="font-semibold hover:text-brand-ink">{m.display_name}</Link>
                                 <div className="text-xs text-muted">{m.username} · {m.platform}</div>
-                                <div className="mt-0.5 flex gap-1">{m.is_micro && <Badge tone="brand">Micro</Badge>}<Badge tone={CONF[m.data_confidence]}>{m.data_confidence} confidence</Badge></div>
+                                <div className="mt-0.5 flex flex-wrap gap-1">{m.is_micro && <Badge tone="brand">Micro</Badge>}<Badge tone={CONF[m.data_confidence]}>{m.data_confidence} confidence</Badge>
+                                  {m.source && m.source !== 'zylo' && <Badge tone="neutral">via MCP</Badge>}
+                                  {!!m.matched_themes?.length && <span className="text-[11px] text-muted">#{m.matched_themes.slice(0, 2).join(' #')}</span>}</div>
                               </div>
                             </div>
                           </td>

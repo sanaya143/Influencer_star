@@ -155,8 +155,8 @@ export default function Overview() {
       <Reveal>
         <Card className="p-5">
           <h2 className="text-lg font-semibold">How a campaign runs</h2>
-          <ol className="mt-4 grid gap-3 text-sm sm:grid-cols-5">
-            {[['Brief agent', 'Structures the request'], ['Level 1 (Python)', 'Eligibility thresholds'], ['Level 2 (Python)', 'Audience & product match'], ['Ranking engine', 'Weighted, explainable score'], ['Insights agent', 'Explains the shortlist']].map(([t, d], i) => (
+          <ol className="mt-4 grid gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+            {[['Brief (rules)', 'Product or collection, reviewed by you'], ['Creators', 'Zylo data + outside provider over MCP'], ['Level 1 (Python)', 'Eligibility thresholds'], ['Level 2 (Python)', 'Audience, style & collection themes'], ['Ranking & ROI', 'Weighted score, budget plan'], ['Insights agent', 'Explains the shortlist']].map(([t, d], i) => (
               <motion.li key={t} initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.07 }}
                 className="relative rounded-xl border border-line bg-ice p-3">
                 <span className="text-xs font-bold text-brand-ink">0{i + 1}</span>

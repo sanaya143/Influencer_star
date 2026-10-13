@@ -5,6 +5,7 @@ import { useApi } from '../shared/hooks'
 import { Badge, Button, Card, ErrorState, Segmented, Skeleton, Spinner, inputCls } from '../shared/ui'
 import { useTheme } from '../shared/theme'
 import { SETTINGS_EVENT } from './ModelChip'
+import { ModelPrices, OutsideData } from './SettingsExtras'
 
 interface ProviderInfo { id: string; label: string; models: string[]; default_model: string; needs_key: boolean; uses_base_url: boolean; default_base_url: string | null }
 interface SettingsView {
@@ -106,7 +107,7 @@ export default function Settings() {
       <Card className="space-y-5 p-5">
         <label className="flex items-start gap-3 text-sm">
           <input type="checkbox" className="mt-1 h-4 w-4 accent-[#01ABDD]" checked={useAi} onChange={e => { setUseAi(e.target.checked); setTest(null) }} />
-          <span><b>Use an AI model</b><span className="block text-muted">Turn off to run fully offline with the rule-based brief parser and templated insights (no tokens used).</span></span>
+          <span><b>Use an AI model</b><span className="block text-muted">Turn off to run fully offline: templated campaign insights and the rule-based chat router (no tokens used). Briefs and matching never need a model.</span></span>
         </label>
 
         <fieldset disabled={!useAi} className="space-y-4 disabled:opacity-50">
@@ -160,9 +161,9 @@ export default function Settings() {
                 <p className="flex items-center gap-2 font-semibold text-emerald-900 dark:text-emerald-200"><CheckCircle2 size={18} aria-hidden="true" />Connection successful</p>
                 <p className="text-emerald-900 dark:text-emerald-200">{test.model} answered in {((test.latency_ms ?? 0) / 1000).toFixed(1)}s{test.reply ? ` (“${test.reply}”)` : ''}
                   {test.prompt_tokens != null && ` · ${test.prompt_tokens} in / ${test.completion_tokens ?? 0} out tokens`}</p>
-                {test.supports_tools === true && <p className="text-emerald-900 dark:text-emerald-200">Tool calling works, so the Campaign Brief Agent can use this model.</p>}
-                {test.supports_tools === false && <p className="text-amber-800 dark:text-amber-300">This model answered but did not call a tool, so the Campaign Brief Agent will fall back to the rule-based parser. Insights can still use it.</p>}
-                {test.supports_tools == null && <p className="text-amber-800 dark:text-amber-300">Tool calling could not be checked (the probe call failed). The Brief Agent falls back to the rule-based parser if needed.</p>}
+                {test.supports_tools === true && <p className="text-emerald-900 dark:text-emerald-200">Tool calling works, so the chat assistant can use this model.</p>}
+                {test.supports_tools === false && <p className="text-amber-800 dark:text-amber-300">This model answered but did not call a tool, so the chat assistant will fall back to its rule-based router. Campaign insights can still use it.</p>}
+                {test.supports_tools == null && <p className="text-amber-800 dark:text-amber-300">Tool calling could not be checked (the probe call failed). The chat assistant falls back to its rule-based router if needed.</p>}
                 {!msg && dirty && <p className="text-xs text-emerald-900/80">Not saved yet: press “Save settings” to use it.</p>}
               </div>
             ) : (
@@ -176,6 +177,8 @@ export default function Settings() {
         )}
         {msg && <p role="status" className={`text-sm font-medium ${msg.tone === 'ok' ? 'text-emerald-800 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}`}>{msg.text}</p>}
       </Card>
+      <ModelPrices />
+      <OutsideData />
     </div>
   )
 }

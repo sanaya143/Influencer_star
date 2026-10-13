@@ -256,6 +256,22 @@ def build_server(writes: bool = False, transport_security: TransportSecuritySett
         except at.ToolFail as e:
             raise _fail(e) from None
 
+    @mcp.tool(annotations=READ)
+    def get_campaign_roi(campaign_id: str, budget_gbp: Annotated[float, Field(ge=0, le=10_000_000)] = 0) -> dict[str, Any]:
+        """What the shortlisted creators charge and the best plan for a budget: asking fee vs market rate, cost per 1,000 views,
+        expected orders and revenue, and the comparison with booking the biggest accounts. 0 = the campaign's own budget.
+        All figures are estimates from synthetic data."""
+        try:
+            return at.campaign_roi(campaign_id, budget_gbp or None)
+        except at.ToolFail as e:
+            raise _fail(e) from None
+
+    @mcp.tool(annotations=READ)
+    def list_collections() -> dict[str, Any]:
+        """Product collections a campaign can target as a whole (Marvel & DC, Disney, Summer Sale, Winter...), with their
+        products and the content themes creators must post about. Pass a collection id to preview_matching."""
+        return at.collections_overview()
+
     # ------------------------------------------------------------------ reference material
     @mcp.resource("zylo://methodology", mime_type="text/markdown")
     def methodology() -> str:

@@ -30,11 +30,21 @@ class MockProvider:
         return self._influencers
 
     def product(self, product_id: str) -> Product | None:
-        """Any product by id, including drafts and archived ones referenced by past campaigns."""
+        """Any product by id, including drafts and archived ones referenced by past campaigns. A collection id
+        (COL-...) resolves to the collection as one virtual product, so collection campaigns match the same way."""
+        from . import collections
+        if collections.is_collection_id(product_id):
+            c = collections.get(product_id)
+            return collections.as_product(c) if c else None
         return inventory.get_product(product_id)
 
     def influencer(self, influencer_id: str) -> Influencer | None:
-        return self._imap.get(influencer_id)
+        """A creator from Zylo's dataset, or one fetched earlier from an outside provider over MCP."""
+        hit = self._imap.get(influencer_id)
+        if hit is None and not influencer_id.startswith("I"):
+            from .external_creators import cached
+            hit = cached(influencer_id)
+        return hit
 
 
 _provider: MockProvider | None = None

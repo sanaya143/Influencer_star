@@ -12,8 +12,8 @@ from ..config import get_settings
 SECRET_KEY = re.compile(r"(key|token|secret|password|authorization|credential)", re.I)
 
 AGENT_META = {
-    "CampaignBriefAgent": ("Campaign Brief Agent", "Turns a marketing request into a validated CampaignBrief."),
-    "MatchingCoordinatorAgent": ("Matching Coordinator Agent", "Runs the deterministic Python L1 filter, L2 matcher and ranking engine."),
+    "CampaignBriefAgent": ("Campaign Brief Agent", "Retired: turned a marketing request into a brief (runs recorded before it was merged)."),
+    "MatchingCoordinatorAgent": ("Matching Coordinator Agent", "Resolves the product or collection, gathers creators (Zylo's own plus an outside provider over MCP), runs the deterministic L1 filter, L2 matcher, ranking engine and ROI planner."),
     "CampaignInsightsAgent": ("Campaign Insights Agent", "Explains the ranked results and suggests next steps."),
     "ConciergeAgent": ("Concierge Agent", "Chat coordinator: decides which specialist agents to call and writes the answer."),
     "InventoryAgent": ("Inventory Agent", "Catalogue, stock levels, orders and sales."),
@@ -171,9 +171,8 @@ class Recorder:
         tout = sum(a["output_tokens"] for a in agents)
         sources = {a["token_source"] for a in agents if a["llm_calls"]}
         source = "none" if not sources else sources.pop() if len(sources) == 1 else "mixed"
-        cost = None
-        if s.price_in_per_m is not None and s.price_out_per_m is not None and source != "none":
-            cost = round(tin / 1e6 * s.price_in_per_m + tout / 1e6 * s.price_out_per_m, 6)
+        from ..services.usage import cost as price_cost  # lazy: usage imports the DB layer
+        cost = price_cost(self.trace["model"], tin, tout, s.llm_provider) if source != "none" else None
         mode = self.trace["mode"]
         note = ("Offline deterministic mode: no LLM was called, so no tokens were used." if mode == "offline" else
                 "Token counts reported by the model provider." if source == "actual" else
@@ -183,7 +182,7 @@ class Recorder:
         return {
             "run_id": self.run_id, "model": self.trace["model"], "provider": self.trace["provider"], "mode": mode,
             "input_tokens": tin, "output_tokens": tout, "total_tokens": tin + tout, "token_source": source,
-            "estimated_cost_usd": cost, "cost_note": None if cost is not None else "No pricing configured (set LLM_PRICE_INPUT_PER_M / LLM_PRICE_OUTPUT_PER_M).",
+            "estimated_cost_usd": cost, "cost_note": None if cost is not None else "No price known for this model; add one in Settings > Model prices.",
             "note": note.strip(), "executed_at": self.trace["completed_at"] or self.trace["started_at"],
             "per_agent": [{"agent": a["name"], "input_tokens": a["input_tokens"], "output_tokens": a["output_tokens"],
                            "total_tokens": a["total_tokens"], "token_source": a["token_source"]} for a in agents],
