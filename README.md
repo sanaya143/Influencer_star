@@ -111,6 +111,43 @@ Light and dark themes (header toggle, or **Settings → Appearance**), page tran
 
 ## Quick start (works with no token; add one in Settings for real agents)
 
+### Run on a new Windows machine
+
+Two files, in this order: **`setup.ps1` once**, then **`run.ps1` every time** you want to use the app.
+
+**Before you start (once per machine)**
+1. Install **Python 3.11 or newer** (3.13 recommended) from https://www.python.org/downloads/ and tick **"Add python.exe to PATH"** during install.
+2. Install **Node.js 20 or newer** (LTS) from https://nodejs.org/
+3. Copy the project folder to the machine. Leave out `backend\.venv` and `frontend\node_modules`: they are large, machine-specific and recreated by setup. Copy `data\zylo.db` and `.env` only if you want to keep saved model settings, token and past campaigns.
+
+**Step 1: setup (only the first time)**
+
+Open PowerShell in the project folder and run:
+```powershell
+powershell -ExecutionPolicy Bypass -File setup.ps1
+```
+It takes a few minutes: it checks your Python and Node versions, creates `backend\.venv`, installs every Python package from the pinned root `requirements.txt` (the exact versions this build was tested with), installs the web app's packages from `frontend/package-lock.json` and builds the web app. Wait for the green **"Setup complete"** message.
+
+**Step 2: run (every time)**
+```powershell
+powershell -ExecutionPolicy Bypass -File run.ps1
+```
+The browser opens Zylo Reach at **http://localhost:8000/admin** after a few seconds; the shop is at http://localhost:8000. Press **Ctrl+C** in the PowerShell window to stop. If port 8000 is already in use:
+```powershell
+powershell -ExecutionPolicy Bypass -File run.ps1 -Port 8010
+```
+
+**Step 3: choose the AI model (optional)**
+
+In Zylo Reach > **Settings**, pick a provider and model, paste the access token, press **Test connection**, then **Save**. Without a token the app still works in offline mode (rule-based answers). The database and synthetic data are created on first start.
+
+**If something goes wrong**
+- *"Python ... was not found"* or *"Node.js was not found"*: install it (tick PATH for Python), close and reopen PowerShell, run `setup.ps1` again.
+- *"Not set up yet"* when running: run `setup.ps1` first.
+- You changed the code or copied newer files over: run `setup.ps1` again (it rebuilds the web app).
+
+**Manual setup (any OS):**
+
 Requirements: Python 3.11+, Node 20+. No Docker needed. One-liner: `./start.ps1` (Windows PowerShell) or `./start.sh`.
 
 ```bash
