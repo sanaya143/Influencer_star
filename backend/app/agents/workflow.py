@@ -55,6 +55,9 @@ def make_model():
         from .fake_llm import FakeLlm
         return FakeLlm(model="fake-llm")
     from google.adk.models.lite_llm import LiteLlm  # all providers go through LiteLLM
+
+    from ..services import tls
+    tls.apply(s.llm_provider)  # Windows certificates / a CA file / off, as chosen in Settings
     kwargs: dict = {"timeout": 180, "num_retries": 3}  # LiteLLM retries brief provider hiccups (503/429/timeouts) with backoff
     if s.llm_api_key:
         kwargs["api_key"] = s.llm_api_key
@@ -316,7 +319,8 @@ async def run_match(brief: CampaignBrief, campaign_id: str, on_change: Callable[
                         raise ValueError("Insights agent returned non-JSON output")
                 break
             except Exception as e:
-                rec.error(INSIGHTS, f"attempt {attempt + 1}: {e}")
+                from ..services.tls import ssl_problem
+                rec.error(INSIGHTS, f"attempt {attempt + 1}: {ssl_problem(e) or e}")
                 rec.agent(INSIGHTS)["retries"] = attempt
         if insights is None:
             insights = template_insights(_insight_input(state2))

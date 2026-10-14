@@ -28,7 +28,8 @@ def clean(msg: str, secret: str | None) -> str:
     return msg[:500]
 
 
-async def test_connection(provider: str, model: str, api_key: str | None, base_url: str | None) -> dict:
+async def test_connection(provider: str, model: str, api_key: str | None, base_url: str | None,
+                          tls_mode: str | None = None, ca_bundle: str | None = None) -> dict:
     spec = PROVIDERS.get(provider)
     if spec is None:
         return {"ok": False, "error": f"Unknown provider '{provider}'.", "hint": None}
@@ -37,6 +38,9 @@ async def test_connection(provider: str, model: str, api_key: str | None, base_u
     if spec["needs_key"] and not api_key:
         return {"ok": False, "error": f"{spec['label']} needs an access token.", "hint": "Paste the token above, or save one first."}
     import litellm  # imported lazily so the API starts even if litellm is missing
+
+    from . import tls
+    tls.apply(provider, tls_mode, ca_bundle)  # the certificate check being tested (may differ from the saved one)
 
     name = litellm_model(provider, model.strip())
     kwargs: dict = {"model": name, "messages": [{"role": "user", "content": "Reply with the single word OK."}], "max_tokens": 64, "timeout": 60}
@@ -48,6 +52,10 @@ async def test_connection(provider: str, model: str, api_key: str | None, base_u
     try:
         resp = await litellm.acompletion(**kwargs)
     except Exception as e:  # provider/network errors vary widely; report them without leaking the token
+        problem = tls.ssl_problem(e)
+        if problem:  # LiteLLM reports these as "InternalServerError 500 ... Connection error", which hides the cause
+            return {"ok": False, "error": problem, "status": None, "ssl": True, "hint": tls.SSL_HINT,
+                    "latency_ms": round((time.perf_counter() - t0) * 1000)}
         status = getattr(e, "status_code", None)
         return {"ok": False, "error": clean(getattr(e, "message", None) or str(e), api_key), "status": status,
                 "hint": HINTS.get(status) if status else "Could not reach the provider. Check your network and base URL.",

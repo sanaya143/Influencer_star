@@ -145,7 +145,7 @@ def test_invalid_base_urls_are_rejected(client, bad):
 def test_connection_test_uses_the_saved_base_url(client, monkeypatch):
     seen = {}
 
-    async def fake(provider, model, api_key, base_url):
+    async def fake(provider, model, api_key, base_url, tls_mode=None, ca_bundle=None):
         seen["base"] = base_url
         return {"ok": True}
     from app.services import llm_client
@@ -155,3 +155,60 @@ def test_connection_test_uses_the_saved_base_url(client, monkeypatch):
     assert seen["base"] == "https://gateway.example.com/v1"
     client.post("/api/settings/test", json={"provider": "openai", "model": "gpt-4o-mini", "base_url": "https://other.example.com"})
     assert seen["base"] == "https://other.example.com"  # an unsaved URL typed in the form is what gets tested
+
+
+# ------------------------------------------------------------------ TLS certificate check (SSL errors with a base URL)
+def test_ssl_failures_are_explained_not_reported_as_http_500():
+    from app.services.tls import ssl_problem
+    import ssl as _ssl
+    inner = _ssl.SSLCertVerificationError(1, "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain")
+    try:
+        try:
+            raise inner
+        except Exception as e:
+            raise RuntimeError("litellm.InternalServerError: OpenAIException - Connection error.") from e
+    except RuntimeError as outer:
+        msg = ssl_problem(outer)
+    assert msg and "not trusted" in msg
+    assert ssl_problem(RuntimeError("Cannot connect to host api.example.com:443 ssl:True [getaddrinfo failed]")) is None  # DNS, not SSL
+    assert "expired" in ssl_problem(RuntimeError("certificate verify failed: certificate has expired"))
+
+
+def test_connection_test_reports_ssl_problems_with_a_hint(client, monkeypatch):
+    import ssl as _ssl
+    import litellm
+
+    async def boom(**kw):
+        try:
+            raise _ssl.SSLCertVerificationError(1, "certificate verify failed: unable to get local issuer certificate")
+        except Exception as e:
+            raise litellm.InternalServerError("OpenAIException - Connection error.", llm_provider="openai", model="gpt-4o-mini") from e
+    monkeypatch.setattr(litellm, "acompletion", boom)
+    r = client.post("/api/settings/test", json={"provider": "openai", "model": "gpt-4o-mini", "api_key": "sk-test-not-real-2222",
+                                                "base_url": "https://gateway.corp.example/v1"}).json()
+    assert r["ok"] is False and r["ssl"] is True and r["status"] is None
+    assert "SSL certificate check failed" in r["error"] and "CA certificate" in r["hint"]
+
+
+def test_certificate_check_is_saved_per_provider_and_applied(client, tmp_path):
+    import certifi
+    import litellm
+    import shutil
+    ca = tmp_path / "corp-root.pem"
+    shutil.copy(certifi.where(), ca)  # any valid PEM bundle works as a stand-in for a company root certificate
+    v = _save(client, base_url="https://gateway.corp.example/v1", tls_mode="custom", ca_bundle=str(ca)).json()
+    assert v["tls"] == {"mode": "custom", "ca_bundle": str(ca)}
+    assert hasattr(litellm.ssl_verify, "load_verify_locations")  # an SSL context, not the default certifi path
+    v = _save(client, tls_mode="off").json()
+    assert v["tls"]["mode"] == "off" and litellm.ssl_verify is False
+    v = _save(client, provider="anthropic", model="claude-haiku-5-5").json()
+    assert v["tls"]["mode"] == "system" and v["tls_by_provider"]["openai"]["mode"] == "off"  # each provider keeps its own
+    assert litellm.ssl_verify is not False  # the active provider (anthropic) checks certificates
+    _save(client, tls_mode="system")
+
+
+@pytest.mark.parametrize("path,expect", [("", "Enter the path"), ("C:/nope/missing.pem", "No file"), ("notes.txt", ".pem, .crt or .cer")])
+def test_bad_ca_files_are_rejected(client, path, expect):
+    r = _save(client, tls_mode="custom", ca_bundle=path)
+    assert r.status_code == 422 and expect in r.json()["detail"]
+    assert _save(client, tls_mode="maybe").status_code == 422

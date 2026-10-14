@@ -11,15 +11,17 @@ interface ProviderInfo { id: string; label: string; models: string[]; default_mo
 interface SettingsView {
   use_ai: boolean; provider: string; model: string; base_url: string | null; has_key: boolean; key_hint: string | null
   base_url_source: 'saved' | 'environment' | 'default'; base_urls: Record<string, string>
+  tls_by_provider: Record<string, { mode: TlsMode; ca_bundle: string | null }>
   key_source: 'saved' | 'environment' | 'none'; keys_saved: Record<string, boolean>; effective_mode: 'llm' | 'offline'
   providers: ProviderInfo[]; note: string
 }
 interface TestResult {
-  ok: boolean; error?: string; hint?: string | null; status?: number; latency_ms?: number; model?: string; reply?: string
+  ok: boolean; ssl?: boolean; error?: string; hint?: string | null; status?: number; latency_ms?: number; model?: string; reply?: string
   prompt_tokens?: number | null; completion_tokens?: number | null; supports_tools?: boolean | null
 }
 
 const CUSTOM = '__custom__'
+type TlsMode = 'system' | 'custom' | 'off'
 
 function Appearance() {
   const { pref, setPref, motion, setMotion, systemReducedMotion } = useTheme()
@@ -44,6 +46,8 @@ export default function Settings() {
   const [modelSel, setModelSel] = useState('')
   const [customModel, setCustomModel] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
+  const [tlsMode, setTlsMode] = useState<TlsMode>('system')
+  const [caBundle, setCaBundle] = useState('')
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
   const [busy, setBusy] = useState<'test' | 'save' | 'clear' | null>(null)
@@ -55,6 +59,7 @@ export default function Settings() {
 
   const hydrate = (s: SettingsView) => {
     setUseAi(s.use_ai); setProvider(s.provider); setBaseUrl(s.base_urls[s.provider] ?? ''); setToken('')
+    setTlsMode(s.tls_by_provider[s.provider]?.mode ?? 'system'); setCaBundle(s.tls_by_provider[s.provider]?.ca_bundle ?? '')
     const p = s.providers.find(x => x.id === s.provider)
     if (p?.models.includes(s.model)) { setModelSel(s.model); setCustomModel('') } else { setModelSel(CUSTOM); setCustomModel(s.model) }
   }
@@ -64,6 +69,7 @@ export default function Settings() {
     const p = data!.providers.find(x => x.id === id)!
     setProvider(id); setToken(''); setTest(null); setMsg(null)
     setModelSel(p.models[0] ?? CUSTOM); setCustomModel(''); setBaseUrl(data!.base_urls[id] ?? '')  // each provider keeps its own URL
+    setTlsMode(data!.tls_by_provider[id]?.mode ?? 'system'); setCaBundle(data!.tls_by_provider[id]?.ca_bundle ?? '')
   }
 
   if (error) return <ErrorState message={error} onRetry={reload} />
@@ -73,12 +79,16 @@ export default function Settings() {
   const hasKeyForProvider = !!token || (provider === data.provider && data.has_key) || savedForProvider
   const savedUrl = data.base_urls[provider] ?? ''
   const urlError = baseUrl.trim() && !/^https?:\/\/[^\s/?#@]+(\/[^\s?#]*)?$/i.test(baseUrl.trim()) ? 'Enter a full http:// or https:// address without spaces, ?query or user:password.' : null
-  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || baseUrl.trim().replace(/\/+$/, '') !== savedUrl
-  const body = { use_ai: useAi, provider, model, base_url: baseUrl.trim() || null, api_key: token || null }
+  const savedTls = data.tls_by_provider[provider] ?? { mode: 'system', ca_bundle: null }
+  const tlsDirty = tlsMode !== savedTls.mode || (tlsMode === 'custom' && caBundle.trim() !== (savedTls.ca_bundle ?? ''))
+  const caError = tlsMode === 'custom' && !caBundle.trim() ? 'Enter the path to the CA certificate file.' : null
+  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || baseUrl.trim().replace(/\/+$/, '') !== savedUrl || tlsDirty
+  const tlsBody = { tls_mode: tlsMode, ca_bundle: tlsMode === 'custom' ? caBundle.trim() : null }
+  const body = { use_ai: useAi, provider, model, base_url: baseUrl.trim() || null, api_key: token || null, ...tlsBody }
 
   async function runTest() {
     setBusy('test'); setTest(null); setMsg(null)
-    try { setTest(await api<TestResult>('/settings/test', { method: 'POST', json: { provider, model, base_url: baseUrl.trim() || null, api_key: token || null } })) }
+    try { setTest(await api<TestResult>('/settings/test', { method: 'POST', json: { provider, model, base_url: baseUrl.trim() || null, api_key: token || null, ...tlsBody } })) }
     catch (e) { setTest({ ok: false, error: (e as Error).message }) } finally { setBusy(null) }
   }
   async function save(clear = false) {
@@ -144,6 +154,26 @@ export default function Settings() {
                 : <>The address of your OpenAI-compatible server, for example <code>http://localhost:8000/v1</code>. Saved for this provider only.</>)}
             </span>
           </label>
+          <fieldset className="space-y-2 text-sm">
+            <legend className="mb-1 font-medium">Certificate check <span className="font-normal text-muted">(for HTTPS base URLs)</span></legend>
+            {([['system', 'Windows certificates (recommended)', 'Trusts the certificates installed on this computer, including a company gateway\'s root certificate that IT installed.'],
+               ['custom', 'Use a CA certificate file', 'Also trust a .pem, .crt or .cer file, for a gateway with a self-signed or private certificate.'],
+               ['off', 'Off (not secure)', 'Skips the check entirely. Only for local testing: anyone on the network could intercept the token.']] as [TlsMode, string, string][]).map(([v, label, hint]) => (
+              <label key={v} className={`flex cursor-pointer items-start gap-2.5 rounded-lg border px-3 py-2 transition-colors ${tlsMode === v ? 'border-brand/50 bg-brand/5' : 'border-line hover:bg-ice'}`}>
+                <input type="radio" name="tls-mode" className="mt-1 accent-[#01ABDD]" checked={tlsMode === v} onChange={() => { setTlsMode(v); setTest(null) }} />
+                <span><span className={`font-medium ${v === 'off' ? 'text-amber-800 dark:text-amber-300' : ''}`}>{label}</span><span className="block text-xs text-muted">{hint}</span></span>
+              </label>
+            ))}
+            {tlsMode === 'custom' && (
+              <label className="block pl-1">
+                <span className="mb-1 block text-xs font-medium">CA certificate file on this computer</span>
+                <input className={`${inputCls} font-mono text-[13px]`} value={caBundle} spellCheck={false} autoComplete="off" onChange={e => { setCaBundle(e.target.value); setTest(null) }}
+                  placeholder="C:\certs\company-root.pem" aria-invalid={!!caError} />
+                <span className="mt-1 block text-xs text-muted">Export it from Windows (certmgr.msc &gt; the root certificate &gt; Export &gt; Base-64 .cer) or ask IT for the PEM file. The path is read by the server.</span>
+              </label>
+            )}
+            {tlsMode === 'off' && <p role="alert" className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">Certificate checking is off for {info.label}. Use this only to confirm the cause, then switch to Windows certificates or a CA file.</p>}
+          </fieldset>
           <label className="block text-sm">
             <span className="mb-1 flex items-center gap-2 font-medium"><KeyRound size={15} aria-hidden="true" />Access token{!info.needs_key && ' (optional)'}
               {hasKeyForProvider && !token && <Badge tone="ok">{provider === data.provider && data.key_hint ? `saved ${data.key_hint}${data.key_source === 'environment' ? ' (from environment)' : ''}` : 'saved'}</Badge>}</span>
@@ -158,9 +188,9 @@ export default function Settings() {
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || !!urlError || (info.needs_key && !hasKeyForProvider)}>
+          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || !!urlError || !!caError || (info.needs_key && !hasKeyForProvider)}>
             {busy === 'test' ? <Spinner /> : <PlugZap size={16} aria-hidden="true" />}Test connection</Button>
-          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model) || !!urlError}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
+          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model) || !!urlError || !!caError}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
           {savedForProvider && <Button variant="ghost" onClick={() => save(true)} disabled={busy !== null}><Trash2 size={16} aria-hidden="true" />Remove saved token</Button>}
         </div>
         {busy === 'test' && <p className="text-xs text-muted">Contacting the provider… free models can take up to a minute.</p>}
@@ -179,7 +209,7 @@ export default function Settings() {
               </div>
             ) : (
               <div className="space-y-1">
-                <p className="flex items-center gap-2 font-semibold text-red-900 dark:text-red-200"><XCircle size={18} aria-hidden="true" />Connection failed{test.status ? ` (HTTP ${test.status})` : ''}</p>
+                <p className="flex items-center gap-2 font-semibold text-red-900 dark:text-red-200"><XCircle size={18} aria-hidden="true" />{test.ssl ? 'SSL certificate problem' : `Connection failed${test.status ? ` (HTTP ${test.status})` : ''}`}</p>
                 {test.hint && <p className="text-red-900 dark:text-red-200">{test.hint}</p>}
                 <p className="break-words text-xs text-red-900/80">{test.error}</p>
               </div>

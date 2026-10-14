@@ -38,13 +38,13 @@ fsspec==2026.9.0
 google-adk==1.39.1
 google-api-core==2.34.0
 google-api-python-client==2.201.0
-google-auth==2.61.0
 google-auth-httplib2==0.4.4
+google-auth==2.61.0
 google-cloud-aiplatform==1.165.1
 google-cloud-appengine-logging==1.11.0
 google-cloud-audit-log==0.6.2
-google-cloud-bigquery==3.46.1
 google-cloud-bigquery-storage==2.42.0
+google-cloud-bigquery==3.46.1
 google-cloud-bigtable==2.50.0
 google-cloud-core==2.8.0
 google-cloud-dataplex==2.21.0
@@ -66,8 +66,8 @@ googleapis-common-protos==1.75.5
 graphviz==0.21
 grpc-google-iam-v1==0.14.5
 grpc-interceptor==0.15.4
-grpcio==1.84.0
 grpcio-status==1.84.0
+grpcio==1.84.0
 h11==0.16.0
 h2==4.4.1
 hf-xet==1.7.0
@@ -75,8 +75,8 @@ hpack==4.2.0
 httpcore==1.0.9
 httplib2==0.32.0
 httptools==0.9.0
-httpx==0.28.1
 httpx-sse==0.4.3
+httpx==0.28.1
 huggingface_hub==1.33.0
 hyperframe==6.1.0
 idna==3.20
@@ -86,8 +86,8 @@ Jinja2==3.1.6
 jiter==0.17.0
 jmespath==1.1.0
 joserfc==1.7.5
-jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
+jsonschema==4.26.0
 license-expression==30.4.4
 litellm==1.105.0
 Mako==1.4.3
@@ -124,8 +124,8 @@ pyarrow==26.0.0
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
 pycparser==3.11
-pydantic==2.14.1
 pydantic-settings==2.15.0
+pydantic==2.14.1
 pydantic_core==2.50.1
 Pygments==2.21.0
 PyJWT==2.15.1
@@ -145,8 +145,8 @@ s3transfer==0.19.2
 six==1.17.0
 sniffio==1.3.1
 sortedcontainers==2.4.0
-SQLAlchemy==2.1.4
 sqlalchemy-spanner==1.20.1
+SQLAlchemy==2.1.4
 sqlparse==0.6.0
 sse-starlette==3.5.0
 starlette==1.8.0
@@ -156,6 +156,7 @@ tokenizers==0.23.3
 tomli==2.5.0
 tomli_w==1.2.0
 tqdm==4.70.1
+truststore==0.10.5
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 tzdata==2026.5

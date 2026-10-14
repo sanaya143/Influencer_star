@@ -29,6 +29,8 @@ mcp_mount = McpHttpMount()
 async def lifespan(app: FastAPI):
     init_db()
     runtime_settings.load()  # provider/model/token saved from the Settings page
+    from .services import tls
+    tls.apply(get_settings().llm_provider)  # certificate check for model calls (Windows store by default)
     get_provider()  # load/generate synthetic seed data
     async with mcp_mount.running():  # MCP server (Streamable HTTP) lives and dies with the app
         yield

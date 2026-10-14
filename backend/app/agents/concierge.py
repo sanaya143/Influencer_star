@@ -347,6 +347,9 @@ async def _run_rules(rec: Recorder, text: str, cards: list[dict]) -> str:
 # ---------------------------------------------------------------------- one chat turn
 def _friendly(e: Exception) -> str:
     """The provider's own message without LiteLLM's repeated class-name prefixes."""
+    from ..services.tls import SSL_HINT, ssl_problem
+    if ssl_problem(e):
+        return f"{ssl_problem(e)} {SSL_HINT}"  # kept whole (longer than the usual 200-character cut)
     msg = re.sub(r"^(litellm\.)?\w+Error:\s*(\w+Error:\s*)?", "", str(e).strip())
     return (msg or type(e).__name__)[:200]
 
@@ -354,6 +357,9 @@ def _friendly(e: Exception) -> str:
 def _transient(e: Exception) -> bool:
     """Worth retrying: the provider is busy or the network blipped. A hard timeout of ours, a bad token or a bad request are not."""
     if isinstance(e, asyncio.TimeoutError):
+        return False
+    from ..services.tls import ssl_problem
+    if ssl_problem(e):  # a certificate problem will not fix itself; retrying only wastes time
         return False
     text = f"{type(e).__name__} {e}".lower()
     return any(k in text for k in _TRANSIENT)

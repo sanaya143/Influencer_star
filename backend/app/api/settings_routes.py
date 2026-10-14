@@ -14,7 +14,7 @@ from ..config import PROVIDERS, PROVIDER_ALIASES, env_key_for, get_settings
 import asyncio
 
 from ..security import guard
-from ..services import external_creators, llm_client, runtime_settings, usage
+from ..services import external_creators, llm_client, runtime_settings, tls, usage
 
 router = APIRouter(prefix="/api/settings")
 
@@ -60,6 +60,7 @@ def _view() -> dict:
     keys_saved = {p: bool(saved.get(p)) for p in PROVIDERS}
     return {"use_ai": s.llm_mode != "offline", "provider": s.llm_provider, "model": s.llm_model, "base_url": s.llm_base_url,
             "base_url_source": s.base_url_source, "base_urls": saved_base_urls(),
+            "tls": tls.for_provider(s.llm_provider), "tls_by_provider": {p: tls.for_provider(p) for p in PROVIDERS},
             "has_key": bool(s.llm_api_key), "key_hint": _hint(s.llm_api_key), "key_source": s.key_source, "keys_saved": keys_saved,
             "effective_mode": s.effective_mode(), "providers": _providers(),
             "note": "Access tokens are stored in the local SQLite database on this machine and are never sent back to the browser."}
@@ -72,6 +73,8 @@ class SettingsIn(BaseModel):
     base_url: Optional[str] = None  # blank = the provider's standard endpoint; saved per provider
     api_key: Optional[str] = None  # omitted/blank = keep the saved token
     clear_key: bool = False
+    tls_mode: Optional[str] = None  # system | custom | off; omitted = keep this provider's current choice
+    ca_bundle: Optional[str] = None  # path to a .pem/.crt/.cer file when tls_mode is "custom"
 
     _url = field_validator("base_url")(classmethod(lambda cls, v: clean_base_url(v)))
 
@@ -81,6 +84,8 @@ class TestIn(BaseModel):
     model: str
     base_url: Optional[str] = None  # blank = the one saved for this provider, else its standard endpoint
     api_key: Optional[str] = None  # blank = use the saved token for this provider
+    tls_mode: Optional[str] = None  # what to test with; omitted = this provider's saved choice
+    ca_bundle: Optional[str] = None
 
     _url = field_validator("base_url")(classmethod(lambda cls, v: clean_base_url(v)))
 
@@ -90,6 +95,17 @@ def _norm(provider: str) -> str:
     if p not in PROVIDERS:
         raise HTTPException(422, f"Unknown provider '{provider}'.")
     return p
+
+
+def _tls_choice(mode: Optional[str], ca_bundle: Optional[str]) -> dict:
+    if mode not in tls.MODES:
+        raise HTTPException(422, "Certificate check must be one of: system, custom, off.")
+    if mode != "custom":
+        return {"mode": mode, "ca_bundle": None}
+    try:
+        return {"mode": "custom", "ca_bundle": tls.check_ca_bundle(ca_bundle)}
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from None
 
 
 @router.get("")
@@ -114,9 +130,18 @@ def update_settings(body: SettingsIn):
     else:
         urls.pop(provider, None)
     values.pop("base_url", None)  # replaced by the per-provider map
+    if body.tls_mode is not None:
+        choice = _tls_choice(body.tls_mode, body.ca_bundle)
+        tls_map = dict(values.get("tls") or {})
+        if choice["mode"] == "system":
+            tls_map.pop(provider, None)
+        else:
+            tls_map[provider] = choice
+        values["tls"] = tls_map
     values.update({"mode": "auto" if body.use_ai else "offline", "provider": provider, "model": body.model.strip(),
                    "base_urls": urls, "keys": keys})
     runtime_settings.save(values)
+    tls.apply(provider)
     return _view()
 
 
@@ -127,7 +152,11 @@ async def test_settings(body: TestIn, request: Request):
     saved = (runtime_settings.overrides().get("keys") or {}).get(provider)
     key = (body.api_key or "").strip() or saved or env_key_for(provider)
     base = body.base_url or saved_base_urls().get(provider) or PROVIDERS[provider].get("default_base_url")
-    return await llm_client.test_connection(provider, body.model, key, base)
+    choice = _tls_choice(body.tls_mode, body.ca_bundle) if body.tls_mode is not None else tls.for_provider(provider)
+    try:
+        return await llm_client.test_connection(provider, body.model, key, base, choice["mode"], choice["ca_bundle"])
+    finally:
+        tls.apply(get_settings().llm_provider)  # put back the active provider's saved check
 
 
 # ------------------------------------------------------------------ model prices (for the token cost dropdown)
