@@ -169,7 +169,8 @@ Open **Campaign Studio → Settings**:
 1. Pick a **provider** (Google Gemini, OpenRouter, OpenAI, Anthropic, Ollama, or Custom LiteLLM string).
 2. Pick a **model** from the dropdown or choose *Custom model id…* and type any id (e.g. `nvidia/nemotron-3-ultra-550b-a55b:free` on OpenRouter).
 3. Paste your **access token** (not needed for Ollama). It is write-only: stored in the local SQLite file `data/zylo.db` (git-ignored; an existing `data/threadora.db` is copied there once on first start) and never sent back to the browser.
-4. Press **Test connection** (makes one tiny real call and reports latency, tokens and clear errors), then **Save settings**.
+4. Optional: set a **Base URL** to send model calls through a gateway, proxy, Azure deployment or self-hosted server (blank = the provider's standard endpoint, shown in the field). It is saved per provider, must be a full `http(s)://` address, and takes priority over `LLM_BASE_URL`.
+5. Press **Test connection** (makes one tiny real call and reports latency, tokens and clear errors), then **Save settings**.
 
 Untick *Use an AI model* for the deterministic offline mode (rule-based brief parser + templated insights, zero tokens, no network). If a saved model fails during a run, the brief step falls back to the rule-based parser and the run is marked *Needs Review*; insights fall back to the template.
 

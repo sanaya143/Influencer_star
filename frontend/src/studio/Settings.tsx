@@ -7,9 +7,10 @@ import { useTheme } from '../shared/theme'
 import { SETTINGS_EVENT } from './ModelChip'
 import { ModelPrices, OutsideData } from './SettingsExtras'
 
-interface ProviderInfo { id: string; label: string; models: string[]; default_model: string; needs_key: boolean; uses_base_url: boolean; default_base_url: string | null }
+interface ProviderInfo { id: string; label: string; models: string[]; default_model: string; needs_key: boolean; uses_base_url: boolean; default_base_url: string | null; endpoint: string | null }
 interface SettingsView {
   use_ai: boolean; provider: string; model: string; base_url: string | null; has_key: boolean; key_hint: string | null
+  base_url_source: 'saved' | 'environment' | 'default'; base_urls: Record<string, string>
   key_source: 'saved' | 'environment' | 'none'; keys_saved: Record<string, boolean>; effective_mode: 'llm' | 'offline'
   providers: ProviderInfo[]; note: string
 }
@@ -53,7 +54,7 @@ export default function Settings() {
   const model = modelSel === CUSTOM ? customModel.trim() : modelSel
 
   const hydrate = (s: SettingsView) => {
-    setUseAi(s.use_ai); setProvider(s.provider); setBaseUrl(s.base_url ?? ''); setToken('')
+    setUseAi(s.use_ai); setProvider(s.provider); setBaseUrl(s.base_urls[s.provider] ?? ''); setToken('')
     const p = s.providers.find(x => x.id === s.provider)
     if (p?.models.includes(s.model)) { setModelSel(s.model); setCustomModel('') } else { setModelSel(CUSTOM); setCustomModel(s.model) }
   }
@@ -62,7 +63,7 @@ export default function Settings() {
   const changeProvider = (id: string) => {
     const p = data!.providers.find(x => x.id === id)!
     setProvider(id); setToken(''); setTest(null); setMsg(null)
-    setModelSel(p.models[0] ?? CUSTOM); setCustomModel(''); setBaseUrl(p.default_base_url ?? '')
+    setModelSel(p.models[0] ?? CUSTOM); setCustomModel(''); setBaseUrl(data!.base_urls[id] ?? '')  // each provider keeps its own URL
   }
 
   if (error) return <ErrorState message={error} onRetry={reload} />
@@ -70,12 +71,14 @@ export default function Settings() {
 
   const savedForProvider = data.keys_saved[provider]
   const hasKeyForProvider = !!token || (provider === data.provider && data.has_key) || savedForProvider
-  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || (baseUrl || null) !== (data.base_url ?? null)
-  const body = { use_ai: useAi, provider, model, base_url: baseUrl || null, api_key: token || null }
+  const savedUrl = data.base_urls[provider] ?? ''
+  const urlError = baseUrl.trim() && !/^https?:\/\/[^\s/?#@]+(\/[^\s?#]*)?$/i.test(baseUrl.trim()) ? 'Enter a full http:// or https:// address without spaces, ?query or user:password.' : null
+  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || baseUrl.trim().replace(/\/+$/, '') !== savedUrl
+  const body = { use_ai: useAi, provider, model, base_url: baseUrl.trim() || null, api_key: token || null }
 
   async function runTest() {
     setBusy('test'); setTest(null); setMsg(null)
-    try { setTest(await api<TestResult>('/settings/test', { method: 'POST', json: { provider, model, base_url: baseUrl || null, api_key: token || null } })) }
+    try { setTest(await api<TestResult>('/settings/test', { method: 'POST', json: { provider, model, base_url: baseUrl.trim() || null, api_key: token || null } })) }
     catch (e) { setTest({ ok: false, error: (e as Error).message }) } finally { setBusy(null) }
   }
   async function save(clear = false) {
@@ -129,10 +132,18 @@ export default function Settings() {
               {provider === 'openrouter' && <span className="mt-1 block text-xs text-muted">Use OpenRouter’s id, for example <code>vendor/model:free</code>.</span>}
               {provider === 'custom' && <span className="mt-1 block text-xs text-muted">Full LiteLLM string including the provider prefix.</span>}</label>
           )}
-          {info.uses_base_url && (
-            <label className="block text-sm"><span className="mb-1 block font-medium">Base URL{info.id === 'custom' ? ' (optional)' : ''}</span>
-              <input className={inputCls} value={baseUrl} onChange={e => { setBaseUrl(e.target.value); setTest(null) }} placeholder={info.default_base_url ?? 'https://…'} /></label>
-          )}
+          <label className="block text-sm">
+            <span className="mb-1 flex flex-wrap items-center gap-2 font-medium">Base URL <span className="font-normal text-muted">(optional)</span>
+              {provider === data.provider && data.base_url_source === 'environment' && !baseUrl && <Badge>from LLM_BASE_URL: {data.base_url}</Badge>}</span>
+            <input className={`${inputCls} font-mono text-[13px] ${urlError ? 'border-red-400 focus:border-red-500' : ''}`} value={baseUrl} inputMode="url" spellCheck={false} autoComplete="off"
+              aria-invalid={!!urlError} aria-describedby="base-url-help"
+              onChange={e => { setBaseUrl(e.target.value); setTest(null) }} placeholder={info.endpoint ?? 'https://your-endpoint.example.com/v1'} />
+            <span id="base-url-help" className={`mt-1 block text-xs ${urlError ? 'text-red-700 dark:text-red-300' : 'text-muted'}`}>
+              {urlError ?? (info.endpoint
+                ? <>Leave blank to use {info.label}'s standard endpoint (<code>{info.endpoint}</code>). Set it to route calls through a gateway, proxy, Azure deployment or self-hosted server. Saved for {info.label} only.</>
+                : <>The address of your OpenAI-compatible server, for example <code>http://localhost:8000/v1</code>. Saved for this provider only.</>)}
+            </span>
+          </label>
           <label className="block text-sm">
             <span className="mb-1 flex items-center gap-2 font-medium"><KeyRound size={15} aria-hidden="true" />Access token{!info.needs_key && ' (optional)'}
               {hasKeyForProvider && !token && <Badge tone="ok">{provider === data.provider && data.key_hint ? `saved ${data.key_hint}${data.key_source === 'environment' ? ' (from environment)' : ''}` : 'saved'}</Badge>}</span>
@@ -147,9 +158,9 @@ export default function Settings() {
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || (info.needs_key && !hasKeyForProvider)}>
+          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || !!urlError || (info.needs_key && !hasKeyForProvider)}>
             {busy === 'test' ? <Spinner /> : <PlugZap size={16} aria-hidden="true" />}Test connection</Button>
-          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model)}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
+          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model) || !!urlError}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
           {savedForProvider && <Button variant="ghost" onClick={() => save(true)} disabled={busy !== null}><Trash2 size={16} aria-hidden="true" />Remove saved token</Button>}
         </div>
         {busy === 'test' && <p className="text-xs text-muted">Contacting the provider… free models can take up to a minute.</p>}

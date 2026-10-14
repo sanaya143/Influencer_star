@@ -8,7 +8,7 @@ import { useToast } from '../shared/toast'
 import { Spinner } from '../shared/ui'
 
 interface SettingsView {
-  use_ai: boolean; provider: string; model: string; base_url: string | null; has_key: boolean; keys_saved: Record<string, boolean>
+  use_ai: boolean; provider: string; model: string; base_url: string | null; base_url_source?: string; has_key: boolean; keys_saved: Record<string, boolean>
   providers: { id: string; label: string; models: string[]; needs_key: boolean }[]
 }
 
@@ -83,6 +83,7 @@ export default function ModelChip() {
               <dt className="text-muted">Status</dt>
               <dd className={live ? 'font-semibold text-emerald-700 dark:text-emerald-400' : 'font-semibold'}>{live ? 'LLM active' : h.use_ai ? 'Offline: no access token' : 'Offline mode (AI turned off)'}</dd>
               <dt className="text-muted">Provider</dt><dd>{h.provider_label}</dd>
+              {settings && <><dt className="text-muted">Base URL</dt><dd className="break-all font-mono text-[11px]">{settings.base_url ?? 'provider default'}{settings.base_url_source === 'environment' ? ' (env)' : ''}</dd></>}
               <dt className="text-muted">Access token</dt><dd>{h.key_source === 'saved' ? 'Saved in Settings' : h.key_source === 'environment' ? 'From environment' : 'None'}</dd>
               <dt className="text-muted">Decisions</dt><dd>Deterministic Python (model only interprets briefs and explains results)</dd>
             </dl>
