@@ -145,7 +145,7 @@ def test_invalid_base_urls_are_rejected(client, bad):
 def test_connection_test_uses_the_saved_base_url(client, monkeypatch):
     seen = {}
 
-    async def fake(provider, model, api_key, base_url, tls_mode=None, ca_bundle=None):
+    async def fake(provider, model, api_key, base_url, tls_mode=None, ca_bundle=None, proxy=None):
         seen["base"] = base_url
         return {"ok": True}
     from app.services import llm_client
@@ -212,3 +212,32 @@ def test_bad_ca_files_are_rejected(client, path, expect):
     r = _save(client, tls_mode="custom", ca_bundle=path)
     assert r.status_code == 422 and expect in r.json()["detail"]
     assert _save(client, tls_mode="maybe").status_code == 422
+
+
+def test_gemini_base_url_drops_trailing_models():
+    from app.api.settings_routes import for_provider_url
+    assert for_provider_url("gemini", "https://gw.corp/v1beta/models") == "https://gw.corp/v1beta"
+    assert for_provider_url("openai", "https://gw.corp/v1/models") == "https://gw.corp/v1/models"
+
+
+def test_proxy_validation_and_masking():
+    import pytest
+    from app.api.settings_routes import clean_proxy
+    from app.services import tls
+    assert clean_proxy("http://proxy.corp:8080/") == "http://proxy.corp:8080"
+    assert clean_proxy("") is None
+    with pytest.raises(ValueError):
+        clean_proxy("proxy.corp:8080")
+    assert tls.mask_proxy("http://bob:pw@proxy:8080") == "http://***:***@proxy:8080"
+
+
+def test_error_chain_shows_causes_without_secrets():
+    from app.services import tls
+    try:
+        try:
+            raise OSError("tls handshake failed key=AIzaSECRETSECRET123")
+        except OSError as inner:
+            raise RuntimeError("Connection error") from inner
+    except RuntimeError as e:
+        text = tls.error_chain(e, "AIzaSECRETSECRET123")
+    assert "caused by OSError" in text and "SECRET" not in text

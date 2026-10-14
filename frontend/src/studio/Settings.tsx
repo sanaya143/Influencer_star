@@ -12,11 +12,12 @@ interface SettingsView {
   use_ai: boolean; provider: string; model: string; base_url: string | null; has_key: boolean; key_hint: string | null
   base_url_source: 'saved' | 'environment' | 'default'; base_urls: Record<string, string>
   tls_by_provider: Record<string, { mode: TlsMode; ca_bundle: string | null }>
+  proxy: string | null; proxy_in_use: string | null; proxy_source: string
   key_source: 'saved' | 'environment' | 'none'; keys_saved: Record<string, boolean>; effective_mode: 'llm' | 'offline'
   providers: ProviderInfo[]; note: string
 }
 interface TestResult {
-  ok: boolean; ssl?: boolean; error?: string; hint?: string | null; status?: number; latency_ms?: number; model?: string; reply?: string
+  ok: boolean; ssl?: boolean; details?: string; route?: { url: string | null; proxy: string | null; proxy_source: string; certificate_check: string }; error?: string; hint?: string | null; status?: number; latency_ms?: number; model?: string; reply?: string
   prompt_tokens?: number | null; completion_tokens?: number | null; supports_tools?: boolean | null
 }
 
@@ -48,6 +49,7 @@ export default function Settings() {
   const [baseUrl, setBaseUrl] = useState('')
   const [tlsMode, setTlsMode] = useState<TlsMode>('system')
   const [caBundle, setCaBundle] = useState('')
+  const [proxy, setProxy] = useState('')
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
   const [busy, setBusy] = useState<'test' | 'save' | 'clear' | null>(null)
@@ -59,7 +61,7 @@ export default function Settings() {
 
   const hydrate = (s: SettingsView) => {
     setUseAi(s.use_ai); setProvider(s.provider); setBaseUrl(s.base_urls[s.provider] ?? ''); setToken('')
-    setTlsMode(s.tls_by_provider[s.provider]?.mode ?? 'system'); setCaBundle(s.tls_by_provider[s.provider]?.ca_bundle ?? '')
+    setTlsMode(s.tls_by_provider[s.provider]?.mode ?? 'system'); setCaBundle(s.tls_by_provider[s.provider]?.ca_bundle ?? ''); setProxy(s.proxy ?? '')
     const p = s.providers.find(x => x.id === s.provider)
     if (p?.models.includes(s.model)) { setModelSel(s.model); setCustomModel('') } else { setModelSel(CUSTOM); setCustomModel(s.model) }
   }
@@ -82,8 +84,9 @@ export default function Settings() {
   const savedTls = data.tls_by_provider[provider] ?? { mode: 'system', ca_bundle: null }
   const tlsDirty = tlsMode !== savedTls.mode || (tlsMode === 'custom' && caBundle.trim() !== (savedTls.ca_bundle ?? ''))
   const caError = tlsMode === 'custom' && !caBundle.trim() ? 'Enter the path to the CA certificate file.' : null
-  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || baseUrl.trim().replace(/\/+$/, '') !== savedUrl || tlsDirty
-  const tlsBody = { tls_mode: tlsMode, ca_bundle: tlsMode === 'custom' ? caBundle.trim() : null }
+  const dirty = !!token || useAi !== data.use_ai || provider !== data.provider || model !== data.model || baseUrl.trim().replace(/\/+$/, '') !== savedUrl || tlsDirty || proxy.trim() !== (data.proxy ?? '')
+  const proxyError = proxy.trim() && !/^https?:\/\/[^\s/]+/i.test(proxy.trim()) ? 'Enter the proxy as http://host:port.' : null
+  const tlsBody = { tls_mode: tlsMode, ca_bundle: tlsMode === 'custom' ? caBundle.trim() : null, proxy: proxy.includes('***') ? undefined : proxy.trim() }
   const body = { use_ai: useAi, provider, model, base_url: baseUrl.trim() || null, api_key: token || null, ...tlsBody }
 
   async function runTest() {
@@ -175,6 +178,14 @@ export default function Settings() {
             {tlsMode === 'off' && <p role="alert" className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">Certificate checking is off for {info.label}. Use this only to confirm the cause, then switch to Windows certificates or a CA file.</p>}
           </fieldset>
           <label className="block text-sm">
+            <span className="mb-1 block font-medium">Proxy <span className="font-normal text-muted">(optional)</span></span>
+            <input className={`${inputCls} font-mono text-[13px]`} value={proxy} spellCheck={false} autoComplete="off" aria-invalid={!!proxyError}
+              onChange={e => { setProxy(e.target.value); setTest(null) }} placeholder={data.proxy_in_use ?? 'http://proxy.company.com:8080'} />
+            <span className={`mt-1 block text-xs ${proxyError ? 'text-red-700 dark:text-red-300' : 'text-muted'}`}>
+              {proxyError ?? <>Needed behind a company proxy. Blank uses the HTTPS_PROXY environment variable{data.proxy_in_use && !data.proxy ? <> (now <code>{data.proxy_in_use}</code>)</> : ' (none set)'}, like curl.</>}
+            </span>
+          </label>
+          <label className="block text-sm">
             <span className="mb-1 flex items-center gap-2 font-medium"><KeyRound size={15} aria-hidden="true" />Access token{!info.needs_key && ' (optional)'}
               {hasKeyForProvider && !token && <Badge tone="ok">{provider === data.provider && data.key_hint ? `saved ${data.key_hint}${data.key_source === 'environment' ? ' (from environment)' : ''}` : 'saved'}</Badge>}</span>
             <span className="relative block">
@@ -188,9 +199,9 @@ export default function Settings() {
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || !!urlError || !!caError || (info.needs_key && !hasKeyForProvider)}>
+          <Button variant="outline" onClick={runTest} disabled={busy !== null || !useAi || !model || !!urlError || !!caError || !!proxyError || (info.needs_key && !hasKeyForProvider)}>
             {busy === 'test' ? <Spinner /> : <PlugZap size={16} aria-hidden="true" />}Test connection</Button>
-          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model) || !!urlError || !!caError}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
+          <Button onClick={() => save()} disabled={busy !== null || (useAi && !model) || !!urlError || !!caError || !!proxyError}>{busy === 'save' ? <Spinner /> : <Save size={16} aria-hidden="true" />}Save settings</Button>
           {savedForProvider && <Button variant="ghost" onClick={() => save(true)} disabled={busy !== null}><Trash2 size={16} aria-hidden="true" />Remove saved token</Button>}
         </div>
         {busy === 'test' && <p className="text-xs text-muted">Contacting the provider… free models can take up to a minute.</p>}
@@ -211,6 +222,9 @@ export default function Settings() {
               <div className="space-y-1">
                 <p className="flex items-center gap-2 font-semibold text-red-900 dark:text-red-200"><XCircle size={18} aria-hidden="true" />{test.ssl ? 'SSL certificate problem' : `Connection failed${test.status ? ` (HTTP ${test.status})` : ''}`}</p>
                 {test.hint && <p className="text-red-900 dark:text-red-200">{test.hint}</p>}
+                {(test.details || test.route) && <details className="text-xs"><summary className="cursor-pointer text-red-900 dark:text-red-200">Technical details</summary>
+                  {test.route && <p className="mt-1">URL: <code>{test.route.url ?? 'provider default'}</code> · proxy: <code>{test.route.proxy ?? 'none'}</code> ({test.route.proxy_source}) · certificate check: {test.route.certificate_check}</p>}
+                  {test.details && <pre className="mt-1 whitespace-pre-wrap break-all font-mono text-[11px]">{test.details}</pre>}</details>}
                 <p className="break-words text-xs text-red-900/80">{test.error}</p>
               </div>
             )}

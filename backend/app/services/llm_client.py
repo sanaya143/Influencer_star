@@ -29,7 +29,7 @@ def clean(msg: str, secret: str | None) -> str:
 
 
 async def test_connection(provider: str, model: str, api_key: str | None, base_url: str | None,
-                          tls_mode: str | None = None, ca_bundle: str | None = None) -> dict:
+                          tls_mode: str | None = None, ca_bundle: str | None = None, proxy: str | None = None) -> dict:
     spec = PROVIDERS.get(provider)
     if spec is None:
         return {"ok": False, "error": f"Unknown provider '{provider}'.", "hint": None}
@@ -40,7 +40,10 @@ async def test_connection(provider: str, model: str, api_key: str | None, base_u
     import litellm  # imported lazily so the API starts even if litellm is missing
 
     from . import tls
-    tls.apply(provider, tls_mode, ca_bundle)  # the certificate check being tested (may differ from the saved one)
+    tls.apply(provider, tls_mode, ca_bundle, proxy)  # the certificate check and proxy being tested (may differ from the saved ones)
+    used_proxy, proxy_source = tls.proxy_in_use(proxy)
+    route = {"url": base_url or PROVIDERS[provider].get("endpoint"), "proxy": tls.mask_proxy(used_proxy), "proxy_source": proxy_source,
+             "certificate_check": tls_mode or tls.for_provider(provider)["mode"]}
 
     name = litellm_model(provider, model.strip())
     kwargs: dict = {"model": name, "messages": [{"role": "user", "content": "Reply with the single word OK."}], "max_tokens": 64, "timeout": 60}
@@ -53,11 +56,19 @@ async def test_connection(provider: str, model: str, api_key: str | None, base_u
         resp = await litellm.acompletion(**kwargs)
     except Exception as e:  # provider/network errors vary widely; report them without leaking the token
         problem = tls.ssl_problem(e)
+        details = tls.error_chain(e, api_key)
         if problem:  # LiteLLM reports these as "InternalServerError 500 ... Connection error", which hides the cause
-            return {"ok": False, "error": problem, "status": None, "ssl": True, "hint": tls.SSL_HINT,
+            hint = tls.SSL_HINT
+            if (tls_mode or tls.for_provider(provider)["mode"]) == "off":
+                hint = ("Certificate checking is already off, so the TLS connection itself is failing: usually a company proxy the app "
+                        "is not using. Enter the proxy in Settings (the same one curl uses: run  echo %HTTPS_PROXY%  or check your "
+                        "browser's proxy settings), or check the base URL's scheme and port.")
+            return {"ok": False, "error": problem, "status": None, "ssl": True, "hint": hint, "details": details, "route": route,
                     "latency_ms": round((time.perf_counter() - t0) * 1000)}
         status = getattr(e, "status_code", None)
-        return {"ok": False, "error": clean(getattr(e, "message", None) or str(e), api_key), "status": status,
+        if status == 500 and re.search(r"connection error|cannot connect|connecterror|timed out", details, re.I):
+            status = None  # a network failure, not a server's HTTP 500
+        return {"ok": False, "error": clean(getattr(e, "message", None) or str(e), api_key), "status": status, "details": details, "route": route,
                 "hint": HINTS.get(status) if status else "Could not reach the provider. Check your network and base URL.",
                 "latency_ms": round((time.perf_counter() - t0) * 1000)}
     usage = getattr(resp, "usage", None)

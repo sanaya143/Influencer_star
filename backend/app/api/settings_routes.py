@@ -50,6 +50,24 @@ def clean_base_url(v: Optional[str]) -> Optional[str]:
     return v.rstrip("/")
 
 
+def clean_proxy(v: Optional[str]) -> Optional[str]:
+    """A proxy like http://proxy.corp:8080 (credentials allowed: http://user:pass@proxy.corp:8080). Blank = none."""
+    v = (v or "").strip()
+    if not v:
+        return None
+    parts = urlsplit(v)
+    if parts.scheme not in ("http", "https") or not parts.hostname or any(c.isspace() for c in v) or len(v) > 300:
+        raise ValueError("Proxy must look like http://proxy.company.com:8080 (http:// or https://, host and port).")
+    return v.rstrip("/")
+
+
+def for_provider_url(provider: str, url: Optional[str]) -> Optional[str]:
+    """Gemini gateways are often given as .../v1beta/models; LiteLLM adds /models itself, so drop a trailing one."""
+    if url and provider == "gemini" and url.rstrip("/").endswith("/models"):
+        return url.rstrip("/")[: -len("/models")]
+    return url
+
+
 def _hint(key: str | None) -> str | None:
     return f"…{key[-4:]}" if key and len(key) >= 8 else ("••••" if key else None)
 
@@ -61,6 +79,8 @@ def _view() -> dict:
     return {"use_ai": s.llm_mode != "offline", "provider": s.llm_provider, "model": s.llm_model, "base_url": s.llm_base_url,
             "base_url_source": s.base_url_source, "base_urls": saved_base_urls(),
             "tls": tls.for_provider(s.llm_provider), "tls_by_provider": {p: tls.for_provider(p) for p in PROVIDERS},
+            "proxy": tls.mask_proxy(tls.saved_proxy()), "proxy_in_use": tls.mask_proxy(tls.proxy_in_use()[0]),
+            "proxy_source": tls.proxy_in_use()[1],
             "has_key": bool(s.llm_api_key), "key_hint": _hint(s.llm_api_key), "key_source": s.key_source, "keys_saved": keys_saved,
             "effective_mode": s.effective_mode(), "providers": _providers(),
             "note": "Access tokens are stored in the local SQLite database on this machine and are never sent back to the browser."}
@@ -75,6 +95,9 @@ class SettingsIn(BaseModel):
     clear_key: bool = False
     tls_mode: Optional[str] = None  # system | custom | off; omitted = keep this provider's current choice
     ca_bundle: Optional[str] = None  # path to a .pem/.crt/.cer file when tls_mode is "custom"
+    proxy: Optional[str] = None  # omitted = keep; "" = clear; otherwise e.g. http://proxy.corp:8080
+
+    _proxy = field_validator("proxy")(classmethod(lambda cls, v: v if v is None else (clean_proxy(v) or "")))
 
     _url = field_validator("base_url")(classmethod(lambda cls, v: clean_base_url(v)))
 
@@ -86,6 +109,9 @@ class TestIn(BaseModel):
     api_key: Optional[str] = None  # blank = use the saved token for this provider
     tls_mode: Optional[str] = None  # what to test with; omitted = this provider's saved choice
     ca_bundle: Optional[str] = None
+    proxy: Optional[str] = None  # what to test with; omitted = the saved / environment proxy
+
+    _proxy = field_validator("proxy")(classmethod(lambda cls, v: clean_proxy(v)))
 
     _url = field_validator("base_url")(classmethod(lambda cls, v: clean_base_url(v)))
 
@@ -125,8 +151,13 @@ def update_settings(body: SettingsIn):
     elif body.api_key and body.api_key.strip():
         keys[provider] = body.api_key.strip()
     urls = saved_base_urls()
+    if body.proxy is not None:
+        if body.proxy:
+            values["proxy"] = body.proxy
+        else:
+            values.pop("proxy", None)
     if body.base_url:
-        urls[provider] = body.base_url
+        urls[provider] = for_provider_url(provider, body.base_url)
     else:
         urls.pop(provider, None)
     values.pop("base_url", None)  # replaced by the per-provider map
@@ -151,10 +182,10 @@ async def test_settings(body: TestIn, request: Request):
     provider = _norm(body.provider)
     saved = (runtime_settings.overrides().get("keys") or {}).get(provider)
     key = (body.api_key or "").strip() or saved or env_key_for(provider)
-    base = body.base_url or saved_base_urls().get(provider) or PROVIDERS[provider].get("default_base_url")
+    base = for_provider_url(provider, body.base_url or saved_base_urls().get(provider) or PROVIDERS[provider].get("default_base_url"))
     choice = _tls_choice(body.tls_mode, body.ca_bundle) if body.tls_mode is not None else tls.for_provider(provider)
     try:
-        return await llm_client.test_connection(provider, body.model, key, base, choice["mode"], choice["ca_bundle"])
+        return await llm_client.test_connection(provider, body.model, key, base, choice["mode"], choice["ca_bundle"], body.proxy)
     finally:
         tls.apply(get_settings().llm_provider)  # put back the active provider's saved check
 
